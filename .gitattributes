@@ -1,0 +1,3 @@
+# Theme tokenization inputs are hashed byte-for-byte against the recorded
+# baseline, so their line endings must never depend on the checkout platform.
+scripts/theme-sources/*.css text eol=lf

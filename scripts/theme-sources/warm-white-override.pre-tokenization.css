@@ -1,0 +1,1778 @@
+/* ============================================================
+   Warm-white palette overrides — "ivory paper" variant.
+
+   Loaded only when `globalThis.__incipitConfig.theme.palette === 'warm-white'`.
+   The dark `theme.css` is always loaded; this file replays the same
+   selectors with light-scheme colors and rides the cascade after it.
+   Layout, spacing, and animation rules are NOT touched. The only
+   typography divergence is the body reading face — see the
+   "Reading face" block below for rationale.
+
+   Anchor colors:
+     #f8f8f6  primary background (warm paper)
+     #ffffff  input fill / popup / dropdown / tooltip
+     #E6E4DE  user bubble = code block = list-active selection
+              = send button base (embedded-content surfaces share one weight)
+     #F4F2EC  list hover (lightest interactive step)
+     #DDDBD5  pill / send / cache-badge active-hover (deepest interactive surface)
+    #0d0d0d  primary foreground (near-black ink)
+     #797569  secondary foreground (ash brown)
+     #bf5d3a  accent (deepened from dark-mode #d97757 for light contrast)
+   ============================================================ */
+
+/* ---------- Reading face: PaperReading 500 weight bump, opt-in ----------
+   Irradiation effect on light surfaces makes Plex Serif 400 read thin even
+   against near-black ink. Users who experience the thinning can flip the
+   `bodyBold` knob on (CLI: 主题色 → 暖白（正文加粗）); the menu writes
+   `theme.bodyBold = true` to ~/.incipit/config.json, the apply preamble
+   bakes it into `globalThis.__incipitConfig.theme.bodyBold`, and
+   `claude_code_enhance.js > applyBodyBoldFlag()` toggles the
+   `data-incipit-body-bold` attribute on the document root. The CSS rule
+   below activates only when that attribute is present, so:
+     - palette: warm-white,  bodyBold: false → falls through to `Reading`
+     - palette: warm-white,  bodyBold: true  → swaps to `PaperReading`
+     - palette: warm-black                   → this whole stylesheet is not
+       loaded; attribute is also never set
+   This factoring lets future warm-white work flow to both states without
+   maintaining two CSS branches.
+
+   Implementation contract — DO NOT regress to synthetic bold:
+   - `PaperReading` / `PaperReadingHei` are registered as font-weight 400
+     but `src` points to real 500-weight cuts (Plex Serif Medium for
+     Latin; CJK Medium = LXGW WenKai 霞鹜文楷 for the kai preset,
+     Noto Sans SC 思源黑体 for the gothic preset). The bodyBold rule
+     picks the matching family via `--incipit-paper-reading-font`.
+     Consumers stay on `font-weight: 400` and pick up the heavier glyphs
+     without triggering Chromium synthetic bold (fatal for ClearType).
+   - Selector scope is body text + user bubble only. h1-h6 / strong / b
+     stay on `Emphasis` (real Plex Serif SemiBold cuts) via the higher-
+     specificity `[data-incipit-message] h1` etc. rules in `theme.css`.
+     `pre / code / .hljs` and tool body cells stay on `Rec Mono Linear` via
+     their own selectors.
+   - User bubble must be listed explicitly: the host writes its own
+     `font-family` on the bubble container, breaking inheritance from the
+     `[data-incipit-message]` ancestor.
+   - The `@font-face` declarations stay unconditional. They cost nothing
+     unless a `font-family: 'PaperReading'` consumer fires (Chromium does
+     not download woff2 with no live selector), and keeping them here lets
+     the gated rule pick them up instantly when the user flips bodyBold on.
+   - Cascade: this file loads after `theme.css` (see
+     `claude_code_enhance.js > injectStyles()`), so same-specificity
+     `!important` duels resolve in our favour. */
+/* First-paint colour variables — light branch.
+   Mirror of the `:root` block in `theme.css`; rides the cascade after
+   it and overrides the warm-black defaults to ivory paper colours.
+   See the comment in `theme.css` for the full contract; the JS path
+   in `enhance.js > applyAppVarOverrides()` continues to handle inline-
+   style drift via its MutationObserver. */
+:root {
+  --app-background: #f8f8f6 !important;
+  --app-primary-background: #f8f8f6 !important;
+  --app-root-background: #f8f8f6 !important;
+  --app-secondary-background: #f8f8f6 !important;
+  --app-tool-background: #f8f8f6 !important;
+  --app-header-background: #f8f8f6 !important;
+  --app-input-background: #f8f8f6 !important;
+  --app-input-secondary-background: #f8f8f6 !important;
+  --app-menu-background: #f8f8f6 !important;
+  --app-primary-foreground: #0d0d0d !important;
+  --app-input-foreground: #0d0d0d !important;
+  --app-input-secondary-foreground: #0d0d0d !important;
+  --app-menu-foreground: #0d0d0d !important;
+  --app-secondary-foreground: #797569 !important;
+  --app-secondary-text: #797569 !important;
+  --incipit-message-mention-chip-background: #ead8cf;
+  --incipit-message-mention-chip-foreground: #8f452b;
+  --incipit-message-mention-chip-background-hover: #e2c8bc;
+  --incipit-composer-mention-chip-background: #ead8cf;
+  --incipit-composer-mention-chip-foreground: #8f452b;
+  --incipit-composer-mention-chip-background-hover: #e2c8bc;
+  --incipit-mermaid-text: #0d0d0d;
+  --incipit-mermaid-muted: #5f5a50;
+  --incipit-mermaid-inverse-text: #f8f8f6;
+  --incipit-mermaid-label-bg: #f8f8f6;
+  --incipit-mermaid-label-border: #c6baab;
+  --incipit-mermaid-surface: #fffaf0;
+  --incipit-mermaid-surface-alt: #f1e8df;
+  --incipit-mermaid-line: #746d64;
+  --incipit-mermaid-line-muted: #c6baab;
+  --incipit-mermaid-accent: #bf5d3a;
+  --incipit-mermaid-accent-soft: #ead2c5;
+  --incipit-mermaid-accent-border: #bf5d3a;
+  --incipit-mermaid-done-soft: #e4ede0;
+  --incipit-mermaid-done-border: #718c5e;
+}
+
+@font-face {
+  font-family: 'PaperReading';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/ibm-plex-serif/IBMPlexSerif-500.woff2') format('woff2');
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-206F, U+2070-209F,
+                 U+20A0-20CF, U+2100-214F, U+2190-21FF, U+2200-22FF;
+}
+@font-face {
+  font-family: 'PaperReading';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/lxgw-wenkai/LXGWWenKai-500.woff2') format('woff2');
+  unicode-range: U+3000-303F, U+3040-309F, U+30A0-30FF,
+                 U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF,
+                 U+FE30-FE4F, U+FF00-FFEF;
+}
+/* Gothic-preset bodyBold cut: same name-encoded-weight contract, real
+   500-weight masters (Plex Serif Medium + Noto Sans SC Medium). The
+   bodyBold rule below selects `PaperReading` vs `PaperReadingHei` via
+   `--incipit-paper-reading-font`, injected per preset at apply so the
+   warm-white bold body matches whichever CJK face the preset uses. */
+@font-face {
+  font-family: 'PaperReadingHei';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/ibm-plex-serif/IBMPlexSerif-500.woff2') format('woff2');
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-206F, U+2070-209F,
+                 U+20A0-20CF, U+2100-214F, U+2190-21FF, U+2200-22FF;
+}
+@font-face {
+  font-family: 'PaperReadingHei';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('fonts/noto-sans-sc/NotoSansSC-500.woff2') format('woff2');
+  unicode-range: U+3000-303F, U+3040-309F, U+30A0-30FF,
+                 U+3400-4DBF, U+4E00-9FFF, U+F900-FAFF,
+                 U+FE30-FE4F, U+FF00-FFEF;
+}
+
+:root[data-incipit-body-bold] [data-incipit-message],
+:root[data-incipit-body-bold] [data-incipit-message] p,
+:root[data-incipit-body-bold] [data-incipit-message] li,
+:root[data-incipit-body-bold] [data-incipit-message] td,
+:root[data-incipit-body-bold] [data-incipit-message] th,
+:root[data-incipit-body-bold] [data-incipit-message] blockquote,
+:root[data-incipit-body-bold] [data-incipit-user-bubble],
+:root[data-incipit-body-bold] [data-incipit-user-bubble] [data-incipit-user-content] {
+  font-family: var(--incipit-paper-reading-font, 'PaperReading'), var(--incipit-body-font) !important;
+}
+
+/* ---------- Base surface ---------- */
+[data-incipit-messages-container] {
+  background: #f8f8f6 !important;
+  background-color: #f8f8f6 !important;
+}
+
+/* Timeline vertical connector. */
+[data-incipit-message]::after {
+  background-color: rgba(60,55,40,0.14) !important;
+}
+
+/* ---------- Selection ---------- */
+[data-incipit-message] ::selection,
+[data-incipit-markdown-root] ::selection {
+  background: rgba(191,93,58,0.22) !important;
+}
+
+/* ---------- Links ---------- */
+[data-incipit-message] a,
+[data-incipit-message] a:link,
+[data-incipit-message] a:visited,
+[data-incipit-markdown-root] a,
+[data-incipit-markdown-root] a:link,
+[data-incipit-markdown-root] a:visited {
+  background-image:
+    radial-gradient(circle, rgba(191,93,58,0.85) 1px, transparent 1.6px) !important;
+}
+[data-incipit-message] a:hover,
+[data-incipit-markdown-root] a:hover {
+  background-color: rgba(191,93,58,0.16) !important;
+}
+[data-incipit-message] a:focus-visible,
+[data-incipit-markdown-root] a:focus-visible {
+  outline: 1px solid rgba(191,93,58,0.6);
+}
+
+/* ---------- Horizontal rule ---------- */
+[data-incipit-message] hr {
+  background: linear-gradient(to right,
+    transparent,
+    rgba(150,145,130,0.30) 20%,
+    rgba(150,145,130,0.30) 80%,
+    transparent);
+}
+
+/* ---------- Block quote ---------- */
+[data-incipit-markdown-root] blockquote,
+[data-incipit-message] blockquote {
+  border-left: 3px solid rgba(120,115,100,0.35) !important;
+  color: #797569 !important;
+}
+[data-incipit-markdown-root] blockquote p,
+[data-incipit-message] blockquote p {
+  color: #797569 !important;
+}
+
+/* ---------- KaTeX render error ---------- */
+.claude-math[data-render-error] {
+  color: #c63a3a;
+  border-bottom: 1px dashed #c63a3a;
+}
+
+/* ---------- Tool summary + thinking summary unified middle tone ----------
+   Two host elements share the "secondary inactive header" semantic:
+     - tool-summary (Bash / Edit / Grep row title) → host has no opacity, we
+       were overriding to `#797569` (full secondary).
+     - thinking-summary ("Thought for 23s") → host applies
+       `color: var(--app-secondary-foreground); opacity: 0.8`, which on
+       cream paper renders as ~`#a09e93`.
+   On warm-white those two read at very different lightness (45 vs 73),
+   one too dark, one too pale. Force both to the same target tone
+   `#8c897e` (lightness ~52, mid between the two old states), and
+   neutralise the host opacity so the rendered result actually matches. */
+[data-incipit-tool-use] [data-incipit-tool-summary],
+[data-incipit-thinking-summary],
+[class*="thinkingSummary"] {
+  color: #8c897e !important;
+  opacity: 1 !important;
+}
+
+/* Restore hover-to-ink lift on the tool summary row. The mid-tone
+   `!important` above pinned the resting color so hard that
+   `theme.css`'s `:hover { color: inherit }` lost the cascade fight —
+   the user's expected "hovered tool row reads as body text" affordance
+   went silent. Mirror the dark-palette behaviour by force-lifting both
+   the row and every descendant span (tool-name, fingerprint, stats,
+   chevron — anything riding `currentColor`) to ink on hover. Thinking
+   summary intentionally stays at the resting tone because it's not a
+   click target. */
+[data-incipit-tool-use] [data-incipit-tool-summary]:hover,
+[data-incipit-tool-use] [data-incipit-tool-summary]:hover * {
+  color: #0d0d0d !important;
+  opacity: 1 !important;
+}
+
+/* +N / −M stats keep their semantic accent — vivid hue for light bg.
+   Earlier muted hues (#3d8c3d / #a83a3a) read as washed-out brown-greens
+   and brown-reds against cream paper; warm-white cannot lean on
+   subtractive contrast the way a dark surface does, so push hue
+   saturation up so the marks stay legible at glanceable sizes. */
+[data-incipit-tool-added]   { color: #1c9c1c !important; }
+[data-incipit-tool-removed] { color: #c92626 !important; }
+
+/* Hover-state exception: the `:hover *` universal above (specificity 0,3,0
+   + !important) beats the plain `[data-incipit-tool-added]` accent rule
+   (0,1,0 + !important), so without these the green/red/terra signals
+   collapse to body ink the moment the row is hovered. Warm-black has no
+   such bug because its hover rule is non-!important, letting our accent
+   !important win the cascade. Re-assert each accent inside `:hover` with
+   a 4-attr selector (0,4,0) so it outranks the universal sweep. */
+[data-incipit-tool-use] [data-incipit-tool-summary]:hover [data-incipit-tool-added] {
+  color: #1c9c1c !important;
+}
+[data-incipit-tool-use] [data-incipit-tool-summary]:hover [data-incipit-tool-removed] {
+  color: #c92626 !important;
+}
+
+/* ---------- Grep takeover ---------- */
+[data-incipit-tool-grep-filename] {
+  background-image:
+    radial-gradient(circle, rgba(191,93,58,0.85) 1px, transparent 1.6px);
+}
+[data-incipit-tool-grep-filename]:hover {
+  background-color: rgba(191,93,58,0.16);
+}
+[data-incipit-tool-fingerprint-aux] {
+  color: #bf5d3a !important;
+}
+[data-incipit-tool-use] [data-incipit-tool-summary]:hover [data-incipit-tool-fingerprint-aux] {
+  color: #bf5d3a !important;
+}
+[data-incipit-tool-grep-expansion] {
+  border: 1px solid rgba(0,0,0,0.16);
+}
+[data-incipit-tool-grep-label] {
+  color: #797569;
+}
+[data-incipit-tool-grep-content] {
+  color: #0d0d0d;
+}
+[data-incipit-tool-grep-more] {
+  color: #a39f8e;
+}
+[data-incipit-tool-grep-more]:hover {
+  color: #0d0d0d;
+}
+
+/* ---------- Generic IN/OUT block (host shared template) ---------- */
+/* Mirrors the warm-white Grep palette on the host's
+   `toolBodyGrid_ZUQaOA / toolBodyRow / toolBodyRowLabel /
+   toolBodyRowContent` template so Bash, PowerShell, LSP, MCP,
+   Read, TodoWrite etc. share the same paper-leaf look as Grep. */
+[data-incipit-tool-use] [class*="toolBodyGrid"] {
+  border-color: rgba(0, 0, 0, 0.16);
+}
+[data-incipit-tool-use] [class*="toolBodyRow"] {
+  border-top-color: rgba(0, 0, 0, 0.10);
+}
+[data-incipit-tool-use] [class*="toolBodyRowLabel"] {
+  color: #797569;
+}
+[data-incipit-tool-use] [class*="toolBodyRowContent"] {
+  color: #0d0d0d;
+}
+
+/* IN/OUT truncation toggle — mirror the warm-white Grep "show more"
+   colour so all fold-out tools share one affordance vocabulary. */
+[data-incipit-tool-out-more] {
+  color: #a39f8e;
+}
+[data-incipit-tool-out-more]:hover {
+  color: #0d0d0d;
+}
+
+/* ---------- Path tooltip portal ---------- */
+/* Mirrors the warm-white input-box surface: pure-white card on cream
+   paper. The input container keeps a 1px hairline so its silhouette
+   doesn't dissolve into the cream — but the literary spec drops the
+   frame here, so the ambient halo is bumped one notch above the input's
+   pair to carry the edge on its own. */
+[data-incipit-path-tooltip] {
+  background: #ffffff;
+  color: #0d0d0d;
+  border: 0;
+  box-shadow: 0 3px 14px rgba(60,55,40,0.10),
+              0 1px 4px rgba(60,55,40,0.07);
+}
+[data-incipit-path-context-menu] {
+  background: #ffffff;
+  color: #0d0d0d;
+  border: 0;
+  box-shadow: 0 12px 32px rgba(60,55,40,0.14),
+              0 2px 8px rgba(60,55,40,0.08);
+}
+[data-incipit-path-context-menu-item]:hover,
+[data-incipit-path-context-menu-item]:focus {
+  background: rgba(60,55,40,0.08);
+}
+
+/* ---------- Code block ---------- */
+[data-incipit-markdown-root] pre,
+[data-incipit-message] [data-incipit-markdown-root] pre {
+  background: #E6E4DE !important;
+  background-color: #E6E4DE !important;
+}
+
+/* Tool body pre / code / toolResult must NOT inherit the code-block
+   tint. theme.css already mirrors this exception, but warm-white
+   override loads AFTER theme.css, so theme.css's exception is no
+   longer the latest declaration on equal specificity. Restate the
+   exception here so the toolBodyGrid cells stay flush with the
+   surrounding paper instead of blocking out as code panels. */
+[data-incipit-tool-use] [class*="toolBody_"] pre,
+[data-incipit-tool-use] [class*="toolBody_"] pre code,
+[data-incipit-tool-use] [class*="toolBodyRowContent"] pre,
+[data-incipit-tool-use] [class*="toolBodyRowContent"] pre code,
+[data-incipit-tool-use] [class*="toolResult_"] {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* ---------- Inline diff editor ----------
+   install.js patches the host's Monaco diff editors to use incipit's bundled
+   GitHub-like light theme under warm-white, so syntax tokens and diff bands
+   now come from Monaco itself instead of a hand-maintained `.mtk*` colour
+   map. This override only tones the exact paper surface, modal shell,
+   gradient, and expand button.
+
+   Scope mirrors the shared `theme.css` diff block: inline wrappers and
+   the expanded diff modal both receive the same paper proof variables.
+   If the host CSS-module stems drift, warm-white simply falls back to the
+   host diff instead of breaking tool folding or editor opening. */
+/* Variables on both inline wrapper AND modal frame. */
+:where(
+  [data-incipit-diff-island],
+  [data-incipit-write-diff],
+  [data-incipit-write-diff-modal-content],
+  [class*="diffEditorWrapper"],
+  [class*="modalContent_"]:has([class*="diffEditorContainer"])
+) {
+  --incipit-diff-surface: #fafaf5;
+  --incipit-diff-text: #0d0d0d;
+  --incipit-diff-muted: #666258;
+  --incipit-diff-border: rgba(0, 0, 0, 0.10);
+  --incipit-diff-divider: rgba(0, 0, 0, 0.08);
+  --incipit-diff-shadow: rgba(60, 55, 40, 0.10);
+  --incipit-diff-header-bg: #E6E4DE;
+  --incipit-diff-header-text: #3f3d38;
+  --incipit-diff-header-border: rgba(31, 35, 40, 0.08);
+  --incipit-diff-gradient-start: rgba(250, 250, 245, 0);
+  --incipit-diff-overlay-hover: rgba(60, 55, 40, 0.055);
+  --incipit-diff-button-bg: #fafaf5;
+  --incipit-diff-button-bg-hover: #f2f2eb;
+  --incipit-diff-button-text: #0d0d0d;
+  --incipit-diff-button-border: rgba(0, 0, 0, 0.12);
+  --incipit-diff-add-fg: #217a35;
+  --incipit-diff-del-fg: #a43a34;
+  /* Line-bg values must match the Monaco theme tokens in install.js
+     (`diffEditor.insertedLineBackground` / `removedLineBackground`) so
+     our overlay gutter, Monaco's hidden margin row decorations, and
+     Monaco's view-overlays code rows all blend to the same shade over
+     `--incipit-diff-surface`. Char-level deep tints come from Monaco's
+     `*TextBackground` tokens directly; we don't paint them in CSS. */
+  --incipit-diff-add-line: #dafbe180;
+  --incipit-diff-del-line: #ffebe980;
+  --incipit-diff-add-char: #aceebb99;
+  --incipit-diff-del-char: #ff818266;
+  --incipit-diff-add-border: rgba(40, 132, 55, 0.34);
+  --incipit-diff-del-border: rgba(176, 62, 54, 0.34);
+  --incipit-diff-add-bar: #1f883d;
+  --incipit-diff-del-bar: #cf222e;
+  --incipit-diff-overview: rgba(60, 55, 40, 0.045);
+}
+
+/* Modal expanded diff frame: replace VS Code's `--app-input-border`
+   near-black stroke + `--app-primary-background` sidebar fill with our
+   paper-proof surface so the modal reads as "the same diff, just full
+   screen" rather than a different theme. */
+[class*="modalContent_"]:has([class*="diffEditorContainer"]) {
+  border: 1px solid var(--incipit-diff-border) !important;
+  border-radius: 8px !important;
+  background: var(--incipit-diff-surface) !important;
+  background-color: var(--incipit-diff-surface) !important;
+  box-shadow: 0 8px 32px var(--incipit-diff-shadow) !important;
+}
+
+[class*="modalContent_"]:has([class*="diffEditorContainer"]) [class*="modalHeader_"] {
+  border-bottom: 1px solid var(--incipit-diff-header-border) !important;
+  background-color: var(--incipit-diff-header-bg) !important;
+  color: var(--incipit-diff-header-text) !important;
+}
+
+[class*="modalContent_"]:has([class*="diffEditorContainer"]) [class*="modalTitle_"],
+[class*="modalContent_"]:has([class*="diffEditorContainer"]) [class*="iconButton_"] {
+  color: var(--incipit-diff-header-text) !important;
+}
+
+[class*="modalBackdrop_"]:has([class*="diffEditorContainer"]) {
+  background-color: rgba(0, 0, 0, 0.20) !important;
+}
+
+[data-incipit-write-diff-modal] {
+  background-color: rgba(0, 0, 0, 0.20);
+}
+
+/* ---------- Tables ---------- */
+[data-incipit-markdown-root] table th,
+[data-incipit-markdown-root] table td,
+[data-incipit-message] table th,
+[data-incipit-message] table td {
+  border-bottom: 1px solid rgba(160,150,130,0.30) !important;
+}
+[data-incipit-markdown-root] table thead th,
+[data-incipit-message] table thead th {
+  border-bottom: 1.5px solid rgba(160,150,130,0.45) !important;
+  color: rgba(61,57,41,0.72);
+}
+
+/* ---------- Permission-mode "softened" indicator ---------- */
+[data-claude-softened] {
+  color: #bf5d3a !important;
+  background: rgba(191,93,58,0.08) !important;
+  border-color: rgba(191,93,58,0.40) !important;
+}
+[data-claude-softened] * {
+  color: #bf5d3a !important;
+  fill: #bf5d3a !important;
+  stroke: #bf5d3a !important;
+}
+
+/* ---------- Send / stop button ---------- */
+[data-incipit-send-button] {
+  background-color: #E6E4DE !important;
+  color: #0d0d0d !important;
+}
+[data-incipit-send-button]:hover {
+  background-color: #DDDBD5 !important;
+}
+[data-incipit-send-button][data-permission-mode="acceptEdits"] {
+  color: #8a7d5a !important;
+}
+[data-incipit-send-button][data-permission-mode="plan"] {
+  color: #797569 !important;
+}
+[data-incipit-send-button][data-permission-mode="bypassPermissions"],
+[data-incipit-send-button][data-permission-mode="auto"] {
+  color: #bf5d3a !important;
+}
+
+/* ---------- Input container (pure white card on cream paper)
+   Keep the root fieldset visually stable across focus/permission states;
+   the fixed card edge lives on inputContainerBackground. ---------- */
+fieldset[class*="inputContainer_"],
+[class*="inputContainer_"]:has(> [class*="inputContainerBackground"]),
+fieldset[class*="inputContainer_"]:focus-within,
+[class*="inputContainer_"]:has(> [class*="inputContainerBackground"]):focus-within,
+fieldset[class*="inputContainer_"][data-permission-mode]:focus-within,
+[class*="inputContainer_"][data-permission-mode]:has(> [class*="inputContainerBackground"]):focus-within {
+  --focus-ring-color: transparent !important;
+  border-color: transparent !important;
+  outline: none !important;
+}
+[class*="inputContainerBackground"] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  border-radius: 10px !important;
+  /* Non-metric edge: an inset line on the host background layer keeps the
+     white card readable without changing the composer editor's client box. */
+  box-shadow: 0 2px 10px rgba(60,55,40,0.05),
+              0 1px 3px rgba(60,55,40,0.04),
+              inset 0 0 0 1px rgba(60,55,40,0.13) !important;
+}
+
+fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"],
+[class*="inputContainer_"][data-incipit-file-drag-hint="over"]:has(> [class*="inputContainerBackground"]),
+fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]:focus-within,
+[class*="inputContainer_"][data-incipit-file-drag-hint="over"]:has(> [class*="inputContainerBackground"]):focus-within {
+  --focus-ring-color: transparent !important;
+  border-color: transparent !important;
+  outline: none !important;
+}
+fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"] [class*="inputContainerBackground"],
+[class*="inputContainer_"][data-incipit-file-drag-hint="over"]:has(> [class*="inputContainerBackground"]) [class*="inputContainerBackground"] {
+  background: #fffdf8 !important;
+  background-color: #fffdf8 !important;
+  box-shadow: 0 6px 22px rgba(60,55,40,0.08),
+              0 1px 4px rgba(60,55,40,0.06),
+              inset 0 0 0 1px rgba(191,93,58,0.42) !important;
+}
+fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
+[class*="inputContainer_"][data-incipit-file-drag-hint="over"]:has(> [class*="inputContainerBackground"])::after {
+  background: #ffffff;
+  color: #797569;
+  border-color: rgba(191,93,58,0.42);
+  box-shadow: 0 4px 14px rgba(60,55,40,0.12);
+}
+
+[data-incipit-change-review-turn] {
+  background: rgba(13,13,13,0.018) !important;
+  border-color: rgba(13,13,13,0.10) !important;
+  color: rgba(13,13,13,0.84) !important;
+  box-shadow: none !important;
+}
+[data-incipit-deferred-next] {
+  background: #efeee9 !important;
+  color: rgba(13,13,13,0.84) !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.08),
+              0 1px 3px rgba(0,0,0,0.06) !important;
+}
+[data-incipit-change-review-file-name],
+[data-incipit-change-review-turn-title] {
+  color: rgba(13,13,13,0.68) !important;
+}
+[data-incipit-change-review-turn-title] {
+  color: rgba(13,13,13,0.88) !important;
+}
+[data-incipit-change-review-reject-turn],
+[data-incipit-change-review-reject-file] {
+  color: rgba(13,13,13,0.58) !important;
+}
+[data-incipit-change-review-file-name]:hover,
+[data-incipit-change-review-file][data-incipit-change-review-clickable="1"]:hover
+  [data-incipit-change-review-file-name] {
+  color: rgba(13,13,13,0.88) !important;
+}
+[data-incipit-change-review-reject-turn]:hover,
+[data-incipit-change-review-reject-file]:hover {
+  color: #b4543a !important;
+}
+[data-incipit-change-review-reject-turn],
+[data-incipit-change-review-reject-file] {
+  color: #c76849 !important;
+}
+[data-incipit-change-review-error] {
+  color: #b4543a !important;
+  background: rgba(199,104,73,0.12) !important;
+}
+[data-incipit-change-review-file] {
+  border-top: 1px solid rgba(13,13,13,0.07) !important;
+}
+[data-incipit-change-review-more] {
+  background: transparent !important;
+  color: rgba(13,13,13,0.5) !important;
+}
+[data-incipit-change-review-more]:hover {
+  background: transparent !important;
+  color: rgba(13,13,13,0.86) !important;
+}
+[data-incipit-change-review-counts],
+[data-incipit-change-review-status] {
+  color: rgba(13,13,13,0.48) !important;
+}
+[data-incipit-change-review-source="subagent"] [data-incipit-change-review-file-name],
+[data-incipit-change-review-source="subagent"] [data-incipit-change-review-file-name]:hover {
+  background: transparent !important;
+  color: rgba(13,13,13,0.52) !important;
+}
+[data-incipit-change-review-subagent-badge] {
+  border-color: rgba(13,13,13,0.14) !important;
+  color: rgba(13,13,13,0.50) !important;
+  background: rgba(13,13,13,0.045) !important;
+}
+[data-incipit-change-review-modal] {
+  background: rgba(60,55,40,0.32) !important;
+}
+[data-incipit-change-review-modal-message] {
+  color: rgba(13,13,13,0.74) !important;
+}
+[data-incipit-custom-model-action]::after {
+  color: rgba(180,84,58,0.56) !important;
+}
+[data-incipit-custom-model-action]:hover::after,
+[data-incipit-custom-model-action]:focus-visible::after {
+  color: rgba(180,84,58,0.80) !important;
+}
+[data-incipit-custom-model-modal] {
+  background: rgba(60,55,40,0.32) !important;
+}
+[data-incipit-custom-model-dialog] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #0d0d0d !important;
+  box-shadow: 0 12px 36px rgba(60,55,40,0.22),
+              0 2px 8px rgba(60,55,40,0.14) !important;
+}
+[data-incipit-custom-model-header] {
+  border-bottom-color: rgba(60,55,40,0.10) !important;
+}
+[data-incipit-custom-model-close] {
+  color: rgba(13,13,13,0.56) !important;
+}
+[data-incipit-custom-model-close]:hover,
+[data-incipit-custom-model-close]:focus-visible {
+  background: #E6E4DE !important;
+  color: #0d0d0d !important;
+}
+[data-incipit-custom-model-label] {
+  color: rgba(13,13,13,0.58) !important;
+}
+[data-incipit-custom-model-input] {
+  background: #faf9f5 !important;
+  background-color: #faf9f5 !important;
+  color: #0d0d0d !important;
+  caret-color: #a8896e !important;
+  border-color: rgba(60,55,40,0.12) !important;
+}
+[data-incipit-custom-model-input]::placeholder {
+  color: rgba(61,57,41,0.42) !important;
+}
+[data-incipit-custom-model-input]:focus {
+  border-color: rgba(60,55,40,0.12) !important;
+  box-shadow: none !important;
+}
+[data-incipit-custom-model-error] {
+  color: #b4543a !important;
+}
+[data-incipit-custom-model-cancel] {
+  border-color: rgba(60,55,40,0.14) !important;
+  color: rgba(13,13,13,0.70) !important;
+}
+[data-incipit-custom-model-cancel]:hover,
+[data-incipit-custom-model-cancel]:focus-visible {
+  background: #E6E4DE !important;
+  color: #0d0d0d !important;
+}
+[data-incipit-custom-model-submit] {
+  background: #a8896e !important;
+  background-color: #a8896e !important;
+  color: #1f1f1e !important;
+}
+
+/* Notes icon + panel + reject bubble (warm-white). Flat menu language: no
+   frames, selection = #E6E4DE fill on hover, fields = #faf9f5, action = #a8896e. */
+.cceNoteBtn { color: #0d0d0d !important; }
+.cceNoteBtn:hover,
+.cceNoteBtn:focus-visible { background: #E6E4DE !important; color: #0d0d0d !important; }
+.cceNoteBtn.cceNoteBtnActive { background: #E6E4DE !important; }
+.cceNoteBtn.cceNoteBtnNudge { color: #b05545 !important; }
+[data-incipit-notes-panel],
+[data-incipit-notes-bubble] {
+  background: #ffffff !important;
+  box-shadow: 0 12px 36px rgba(60,55,40,0.22), 0 2px 8px rgba(60,55,40,0.14) !important;
+  color: #0d0d0d !important;
+}
+[data-incipit-notes-tab] { color: rgba(13,13,13,0.46) !important; }
+[data-incipit-notes-tab]:hover { color: rgba(13,13,13,0.78) !important; }
+[data-incipit-notes-tab][data-active="1"] { color: #0d0d0d !important; }
+[data-incipit-notes-tab][data-active="1"]::after { background: #a8896e !important; }
+[data-incipit-notes-empty] { color: rgba(13,13,13,0.42) !important; }
+[data-incipit-notes-row]:hover { background: #E6E4DE !important; }
+[data-incipit-notes-insert] { color: #0d0d0d !important; }
+[data-incipit-notes-edit],
+[data-incipit-notes-delete] { color: rgba(13,13,13,0.50) !important; }
+[data-incipit-notes-edit]:hover,
+[data-incipit-notes-delete]:hover { background: rgba(13,13,13,0.10) !important; color: #0d0d0d !important; }
+[data-incipit-notes-add] { color: rgba(13,13,13,0.55) !important; }
+[data-incipit-notes-add]:hover { background: #E6E4DE !important; color: #0d0d0d !important; }
+[data-incipit-notes-textarea] {
+  background: #faf9f5 !important;
+  color: #0d0d0d !important;
+  caret-color: #a8896e !important;
+}
+[data-incipit-notes-textarea]::placeholder { color: rgba(61,57,41,0.42) !important; }
+[data-incipit-notes-editor-cancel] { color: rgba(13,13,13,0.62) !important; }
+[data-incipit-notes-editor-cancel]:hover { background: #E6E4DE !important; color: #0d0d0d !important; }
+[data-incipit-notes-editor-save],
+[data-incipit-notes-bubble-insert] {
+  background: #a8896e !important;
+  color: #1f1f1e !important;
+}
+[data-incipit-notes-bubble-text] { color: rgba(13,13,13,0.82) !important; }
+[data-incipit-notes-bubble-dismiss] { color: rgba(13,13,13,0.62) !important; }
+[data-incipit-notes-bubble-dismiss]:hover { background: #E6E4DE !important; color: #0d0d0d !important; }
+
+[data-incipit-deferred-next-grip] {
+  color: rgba(13,13,13,0.26) !important;
+}
+[data-incipit-deferred-next-text] {
+  color: rgba(13,13,13,0.64) !important;
+}
+[data-incipit-deferred-next-guide],
+[data-incipit-deferred-next-icon-btn],
+[data-incipit-deferred-next-edit-save],
+[data-incipit-deferred-next-edit-cancel] {
+  color: rgba(13,13,13,0.58) !important;
+}
+[data-incipit-deferred-next-guide]:hover,
+[data-incipit-deferred-next-icon-btn]:hover,
+[data-incipit-deferred-next-edit-save]:hover,
+[data-incipit-deferred-next-edit-cancel]:hover {
+  background: rgba(13,13,13,0.06) !important;
+  color: rgba(13,13,13,0.88) !important;
+}
+[data-incipit-deferred-next-guide] {
+  color: rgba(13,13,13,0.68) !important;
+}
+[data-incipit-deferred-next-guide]:hover,
+[data-incipit-deferred-next-edit-save] {
+  color: #c76849 !important;
+}
+/* Attachment chips reuse `.incipit-edit-chip*`, whose warm-white
+   overrides already live further down this file — no card-local
+   colour override needed here. */
+[data-incipit-deferred-next-textarea] {
+  background: #f8f8f6 !important;
+  color: rgba(13,13,13,0.88) !important;
+  box-shadow: inset 0 0 0 1px rgba(13,13,13,0.10) !important;
+}
+[data-incipit-deferred-row] + [data-incipit-deferred-row] {
+  border-top: 1px solid rgba(13,13,13,0.07) !important;
+}
+[data-incipit-deferred-row][data-incipit-deferred-dragging] {
+  background: rgba(13,13,13,0.05) !important;
+  box-shadow: 0 6px 18px rgba(60,55,40,0.20) !important;
+}
+[data-incipit-deferred-next-error] {
+  color: #b4543a !important;
+  background: rgba(199,104,73,0.12) !important;
+}
+[data-incipit-deferred-next-grip]:hover {
+  color: rgba(13,13,13,0.5) !important;
+}
+
+/* ---------- Top chat-panel header ----------
+   Mirror of the dark-palette rule in `theme.css`: top bar surface is the
+   same paper colour as the chat body, with a single ruled hairline at the
+   bottom doing all the "heading ends here" work. Single continuous paper
+   page; no two-toned panel. */
+[class^="header_"]:has([class*="titleGroup"]) {
+  background: #f8f8f6 !important;
+  background-color: #f8f8f6 !important;
+  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.14) !important;
+}
+
+.cceEditChip {
+  color: #3f3d38;
+}
+.cceEditChip:hover,
+.cceEditChip:focus-visible,
+.cceEditChip.cceEditChipActive {
+  background: #DDDBD5;
+  color: #0d0d0d;
+}
+.cceEditChip:active {
+  background: #E6E4DE;
+}
+.cceEditPopup {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 12px 36px rgba(60,55,40,0.22), 0 2px 8px rgba(60,55,40,0.14);
+  color: #0d0d0d;
+}
+.cceEditKicker,
+.cceEditScope,
+.cceEditFacts,
+.cceEditProjectLabel,
+.cceEditMonths,
+.cceEditWeekdays,
+.cceEditLegend {
+  color: #797569;
+}
+.cceEditProjectName {
+  color: #0d0d0d;
+}
+.cceEditRule {
+  background: rgba(60,55,40,0.14);
+}
+.cceEditTotal {
+  color: #0d0d0d;
+}
+.cceEditPopup [data-incipit-tool-added] {
+  color: #2f8c3a !important;
+}
+.cceEditPopup [data-incipit-tool-removed] {
+  color: #b24740 !important;
+}
+.cceEditStatus {
+  background: rgba(168,137,110,0.16);
+  color: #8d725b;
+}
+.cceEditCell,
+.cceEditLegendCells i {
+  background: #E6E4DE;
+  box-shadow: inset 0 0 0 1px rgba(60,55,40,0.08);
+}
+.cceEditCell[data-level="1"],
+.cceEditLegendCells i[data-level="1"] {
+  background: rgba(168,137,110,0.32);
+}
+.cceEditCell[data-level="2"],
+.cceEditLegendCells i[data-level="2"] {
+  background: rgba(168,137,110,0.50);
+}
+.cceEditCell[data-level="3"],
+.cceEditLegendCells i[data-level="3"] {
+  background: rgba(168,137,110,0.68);
+}
+.cceEditCell[data-level="4"],
+.cceEditLegendCells i[data-level="4"] {
+  background: rgba(168,137,110,0.90);
+}
+.cceEditTooltip {
+  background: rgba(255,255,255,0.94);
+  box-shadow: 0 2px 8px rgba(60,55,40,0.16);
+  color: #0d0d0d;
+}
+
+/* ---------- Image-attachment chip ----------
+   Mirror of the dark-palette rule in `theme.css`. Same selector, same
+   intent — only the rgba flips so the soft hairline reads as paper-toned
+   pressure rather than a white veil. */
+[class*="pill_"]:has([class*="thumbIcon"]) {
+  border-color: rgba(0,0,0,0.10) !important;
+  border-radius: 6px !important;
+}
+[class*="pill_"]:has([class*="thumbIcon"]):hover {
+  border-color: rgba(0,0,0,0.20) !important;
+}
+
+/* ---------- Menu popup / dropdown / tooltip surfaces ----------
+   Pure white floats off the cream paper, but on its own a hard fill
+   reads as a flat sticker. Add the same warm ambient shadow used by
+   `.cceStatPopup` so every floating surface lifts off the page. The
+   shadow uses the deep-brown `rgba(60,55,40, …)` instead of pure
+   black — pure black on light paper looks bruise-coloured. */
+[data-incipit-menu-popup] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 12px 36px rgba(60,55,40,0.22),
+              0 2px 8px rgba(60,55,40,0.14) !important;
+}
+[data-incipit-menu-popup] input,
+[data-incipit-menu-popup] textarea,
+[data-incipit-menu-popup] [class*="filterInput"],
+[data-incipit-dropdown] input,
+[data-incipit-dropdown] textarea {
+  background: #faf9f5 !important;
+  background-color: #faf9f5 !important;
+  color: #0d0d0d !important;
+  border-color: rgba(60, 55, 40, 0.12) !important;
+}
+[data-incipit-menu-popup] input::placeholder,
+[data-incipit-menu-popup] textarea::placeholder,
+[data-incipit-menu-popup] [class*="filterInput"]::placeholder,
+[data-incipit-dropdown] input::placeholder,
+[data-incipit-dropdown] textarea::placeholder {
+  color: rgba(61, 57, 41, 0.46) !important;
+}
+[data-incipit-menu-popup] [class*="sectionHeader"],
+[data-incipit-menu-popup] [class*="sectionTitle"] {
+  color: #797569 !important;
+}
+[data-incipit-menu-popup] [class*="modelIndicator"],
+[data-incipit-input-footer] [class*="modelIndicator"] {
+  color: #797569 !important;
+}
+[data-incipit-dropdown] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 12px 36px rgba(60,55,40,0.22),
+              0 2px 8px rgba(60,55,40,0.14) !important;
+}
+
+/* ---------- User bubble (one step deeper than background) ---------- */
+[data-incipit-user-bubble] {
+  background: #E6E4DE !important;
+  background-color: #E6E4DE !important;
+}
+
+/* Interrupted markers borrow the host's user-message DOM shape but are not
+   user input. Keep every wrapper transparent so the paper surface shows
+   through instead of the warm-white user bubble fill. */
+[data-incipit-interrupted-message],
+[data-incipit-user-bubble][data-incipit-interrupted-message],
+[data-incipit-user-bubble]:has([data-incipit-interrupted-message]),
+[data-incipit-user-message-container]:has([data-incipit-interrupted-message]),
+[data-incipit-user-message-container]:has([data-incipit-interrupted-message])
+  [data-incipit-user-layout-wrapper] {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* ---------- List selection palette ---------- */
+:root,
+[data-incipit-menu-popup],
+[data-incipit-dropdown],
+[data-incipit-command-list],
+[data-incipit-command-item] {
+  --app-list-active-background: #E6E4DE !important;
+  --app-list-active-foreground: #0d0d0d !important;
+  --vscode-list-activeSelectionBackground: #E6E4DE !important;
+  --vscode-list-focusBackground: #E6E4DE !important;
+  --vscode-list-hoverBackground: #F4F2EC !important;
+}
+[data-incipit-command-item-active],
+[data-incipit-command-item][aria-selected="true"],
+[data-incipit-command-item].active,
+[data-incipit-dropdown] [aria-selected="true"],
+[data-incipit-dropdown] .active {
+  background: #E6E4DE !important;
+  background-color: #E6E4DE !important;
+  color: #0d0d0d !important;
+}
+
+/* ---------- Custom show-more button ---------- */
+.claude-show-more-btn {
+  color: rgba(61,57,41,0.55);
+}
+.claude-show-more-btn:hover {
+  color: #0d0d0d;
+}
+
+/* ---------- Spinner permission-mode colors ---------- */
+[data-incipit-spinner-row] [data-incipit-spinner-container] [data-incipit-spinner-icon],
+[class*="spinnerRow"] [class*="container_"] [class*="icon_"] {
+  color: #797569 !important;
+}
+[data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="acceptEdits"] [data-incipit-spinner-icon],
+[class*="spinnerRow"] [class*="container_"][data-permission-mode="acceptEdits"] [class*="icon_"] {
+  color: #9a9686 !important;
+}
+[data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="plan"] [data-incipit-spinner-icon],
+[class*="spinnerRow"] [class*="container_"][data-permission-mode="plan"] [class*="icon_"] {
+  color: #b3afa0 !important;
+}
+[data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="bypassPermissions"] [data-incipit-spinner-icon],
+[data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="auto"] [data-incipit-spinner-icon],
+[class*="spinnerRow"] [class*="container_"][data-permission-mode="bypassPermissions"] [class*="icon_"],
+[class*="spinnerRow"] [class*="container_"][data-permission-mode="auto"] [class*="icon_"] {
+  color: #bf5d3a !important;
+}
+
+/* ---------- User-message copy button ---------- */
+.claude-user-copy-btn {
+  color: rgba(61,57,41,0.55);
+}
+.claude-user-copy-btn:hover {
+  color: #0d0d0d;
+  background: rgba(60,55,40,0.06);
+}
+.claude-user-copy-btn.copied {
+  color: #8a7d5a;
+}
+/* Rerun (reprise arrow) — terra orange in live state, muted in disabled. */
+.incipit-transcript-action-rerun {
+  color: #bf5d3a;
+}
+.incipit-transcript-action-rerun:hover {
+  color: #bf5d3a;
+  background: rgba(191, 93, 58, 0.10);
+}
+.incipit-transcript-action-rerun[data-incipit-disabled="1"] {
+  color: rgba(60, 55, 40, 0.40) !important;
+}
+.incipit-transcript-action-rerun[data-incipit-disabled="1"]:hover {
+  color: rgba(60, 55, 40, 0.40) !important;
+}
+/* Fork (git-branch Y) — body-foreground in live state (no terra to
+   keep rerun's destructive accent the only one in the row), muted in
+   disabled state matching rerun's disabled treatment. */
+.incipit-transcript-action-fork[data-incipit-disabled="1"] {
+  color: rgba(60, 55, 40, 0.40) !important;
+}
+.incipit-transcript-action-fork[data-incipit-disabled="1"]:hover {
+  color: rgba(60, 55, 40, 0.40) !important;
+}
+[data-incipit-transcript-toast] {
+  border-color: rgba(60,55,40,0.12);
+  background: #ffffff;
+  color: #0d0d0d;
+  box-shadow: 0 8px 28px rgba(60,55,40,0.12);
+}
+[data-incipit-transcript-toast][data-kind="error"] {
+  border-color: rgba(176,62,54,0.30);
+  color: #a43a34;
+}
+[data-incipit-action-dropdown] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #0d0d0d;
+  border: none;
+  box-shadow: 0 12px 36px rgba(60,55,40,0.22),
+              0 2px 8px rgba(60,55,40,0.14);
+}
+[data-incipit-action-dropdown-item]:hover,
+[data-incipit-action-dropdown-item]:focus {
+  background: #E6E4DE;
+}
+[data-incipit-action-dropdown-item][data-incipit-disabled="1"]:hover,
+[data-incipit-action-dropdown-item][data-incipit-disabled="1"]:focus {
+  background: transparent !important;
+}
+[data-incipit-action-dropdown-icon] {
+  color: #0d0d0d;
+}
+/* Separator hairline tinted to warm-white palette so it reads as a
+   quiet group divider, not a hard rule. */
+[data-incipit-action-dropdown-separator] {
+  background: rgba(60, 55, 40, 0.14);
+}
+
+/* ---------- Generic permission request panels ---------- */
+[class*="permissionRequestContainer_"] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #0d0d0d !important;
+  box-shadow: 0 12px 36px rgba(60,55,40,0.20),
+              0 2px 8px rgba(60,55,40,0.12) !important;
+}
+
+[class*="permissionRequestContainer_"] [class*="permissionRequestContent_"] {
+  color: #0d0d0d !important;
+}
+
+[class*="permissionRequestContainer_"] [class*="title_"],
+[class*="permissionRequestContainer_"] [class*="questionText_"],
+[class*="permissionRequestContainer_"] [class*="questionTextLarge_"] {
+  color: #0d0d0d !important;
+}
+
+[class*="permissionRequestContainer_"] [class*="description_"],
+[class*="permissionRequestContainer_"] [class*="hint_"],
+[class*="permissionRequestContainer_"] [class*="keyboardHints_"] {
+  color: rgba(61,57,41,0.56) !important;
+}
+
+[class*="permissionRequestContainer_"] [class*="option_"],
+[class*="permissionRequestContainer_"] [class*="button_"],
+[class*="permissionRequestContainer_"] [class*="permissionAction_"],
+[class*="permissionRequestContainer_"] [class*="permissionOption_"],
+[class*="permissionRequestContainer_"] [class*="permissionRequestContent_"]
+  button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar]) {
+  background: transparent !important;
+  background-color: transparent !important;
+  border-color: rgba(60,55,40,0.12) !important;
+  color: #0d0d0d !important;
+  box-shadow: none !important;
+}
+
+[class*="permissionRequestContainer_"] [class*="option_"]:hover,
+[class*="permissionRequestContainer_"] [class*="option_"]:focus,
+[class*="permissionRequestContainer_"] [class*="button_"]:hover,
+[class*="permissionRequestContainer_"] [class*="button_"]:focus,
+[class*="permissionRequestContainer_"] [class*="permissionAction_"]:hover,
+[class*="permissionRequestContainer_"] [class*="permissionAction_"]:focus,
+[class*="permissionRequestContainer_"] [class*="permissionOption_"]:hover,
+[class*="permissionRequestContainer_"] [class*="permissionOption_"]:focus,
+[class*="permissionRequestContainer_"] [class*="permissionRequestContent_"]
+  button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar]):hover,
+[class*="permissionRequestContainer_"] [class*="permissionRequestContent_"]
+  button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar]):focus {
+  background: rgba(230,228,222,0.50) !important;
+  background-color: rgba(230,228,222,0.50) !important;
+  border-color: rgba(60,55,40,0.14) !important;
+  box-shadow: none !important;
+}
+
+[class*="permissionRequestContainer_"] input:not([type="checkbox"]):not([type="radio"]),
+[class*="permissionRequestContainer_"] textarea {
+  background: #faf9f5 !important;
+  background-color: #faf9f5 !important;
+  color: #0d0d0d !important;
+  caret-color: #a8896e !important;
+  box-shadow: inset 0 0 0 1px rgba(60,55,40,0.12) !important;
+}
+
+[class*="permissionRequestContainer_"] input:not([type="checkbox"]):not([type="radio"]):hover,
+[class*="permissionRequestContainer_"] input:not([type="checkbox"]):not([type="radio"]):focus,
+[class*="permissionRequestContainer_"] textarea:hover,
+[class*="permissionRequestContainer_"] textarea:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: inset 0 0 0 1px rgba(60,55,40,0.12) !important;
+}
+
+[class*="permissionRequestContainer_"] input::placeholder,
+[class*="permissionRequestContainer_"] textarea::placeholder {
+  color: rgba(61,57,41,0.42) !important;
+}
+
+/* ---------- AskUserQuestion panel ---------- */
+[data-incipit-ask-request],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 12px 36px rgba(60,55,40,0.20),
+              0 2px 8px rgba(60,55,40,0.12) !important;
+}
+
+[data-incipit-ask-request] [class*="permissionRequestContent_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="permissionRequestContent_"] {
+  color: #0d0d0d !important;
+}
+
+[data-incipit-ask-request] [class*="navTab_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="navTab_"] {
+  color: rgba(61,57,41,0.62) !important;
+  border-bottom-color: transparent !important;
+}
+
+[data-incipit-ask-request] [class*="navTabActive_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="navTabActive_"] {
+  color: #0d0d0d !important;
+  border-bottom-color: rgba(191,93,58,0.72) !important;
+}
+
+[data-incipit-ask-request] [class*="navTabAnswered_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="navTabAnswered_"] {
+  color: rgba(61,57,41,0.44) !important;
+}
+
+[data-incipit-ask-request] [class*="questionTextLarge_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="questionTextLarge_"],
+[data-incipit-ask-request] [class*="optionLabel_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="optionLabel_"] {
+  color: #0d0d0d !important;
+}
+
+[data-incipit-ask-request] [class*="optionDescription_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="optionDescription_"],
+[data-incipit-ask-request] [class*="keyboardHints_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="keyboardHints_"] {
+  color: rgba(61,57,41,0.56) !important;
+}
+
+[data-incipit-ask-request] [class*="optionsContainer_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="optionsContainer_"] {
+  gap: 0 !important;
+}
+
+[data-incipit-ask-request] [class*="option_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="option_"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  border-top: 1px solid rgba(60,55,40,0.10) !important;
+  border-radius: 0 !important;
+  color: #0d0d0d !important;
+  box-shadow: none !important;
+}
+
+[data-incipit-ask-request] [class*="option_"]:hover,
+[data-incipit-ask-request] [class*="option_"]:focus,
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="option_"]:hover,
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="option_"]:focus {
+  background: rgba(230,228,222,0.50) !important;
+  background-color: rgba(230,228,222,0.50) !important;
+  box-shadow: none !important;
+}
+
+[data-incipit-ask-request] [class*="radio_"],
+[data-incipit-ask-request] [class*="checkbox_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="radio_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="checkbox_"] {
+  border-color: rgba(60,55,40,0.28) !important;
+}
+
+[data-incipit-ask-request] [class*="radioChecked_"],
+[data-incipit-ask-request] [class*="checkboxChecked_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="radioChecked_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="checkboxChecked_"] {
+  border-color: #bf5d3a !important;
+  color: #bf5d3a !important;
+}
+
+[data-incipit-ask-request] [class*="radioDot_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="radioDot_"] {
+  background: #bf5d3a !important;
+  background-color: #bf5d3a !important;
+}
+
+[data-incipit-ask-request] [class*="otherInput_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="otherInput_"] {
+  background: #faf9f5 !important;
+  background-color: #faf9f5 !important;
+  color: #0d0d0d !important;
+  box-shadow: inset 0 0 0 1px rgba(60,55,40,0.12) !important;
+}
+
+[data-incipit-ask-request] [class*="button_"],
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="button_"] {
+  background: #E6E4DE !important;
+  background-color: #E6E4DE !important;
+  color: #0d0d0d !important;
+}
+
+[data-incipit-ask-request] [class*="button_"]:hover:not(:disabled),
+[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
+  [class*="button_"]:hover:not(:disabled) {
+  background: #DDDBD5 !important;
+  background-color: #DDDBD5 !important;
+}
+
+.incipit-ask-collapse-btn,
+.incipit-permission-collapse-btn {
+  color: rgba(61,57,41,0.56);
+}
+.incipit-ask-collapse-btn:hover,
+.incipit-ask-collapse-btn:focus-visible,
+.incipit-permission-collapse-btn:hover,
+.incipit-permission-collapse-btn:focus-visible {
+  background: #F4F2EC;
+  color: #0d0d0d;
+}
+
+[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-ask-collapsed-bar,
+[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-permission-collapsed-bar,
+[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-ask-collapsed-bar,
+[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar {
+  color: #0d0d0d;
+}
+[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-ask-collapsed-bar::before,
+[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-permission-collapsed-bar::before,
+[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-ask-collapsed-bar::before,
+[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar::before {
+  background: rgba(61,57,41,0.62);
+}
+.incipit-ask-collapsed-meta {
+  color: rgba(61,57,41,0.46);
+}
+[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-ask-collapsed-bar:hover,
+[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-ask-collapsed-bar:focus-visible,
+[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-permission-collapsed-bar:hover,
+[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-permission-collapsed-bar:focus-visible,
+[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-ask-collapsed-bar:hover,
+[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-ask-collapsed-bar:focus-visible,
+[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar:hover,
+[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar:focus-visible {
+  background: #F4F2EC;
+}
+
+/* ---------- Cache badge ---------- */
+.cceBadge {
+  color: #0d0d0d;
+}
+.cceBadge:hover,
+.cceBadge:focus-visible {
+  background: #DDDBD5;
+  color: #0d0d0d;
+}
+.cceBadge:active {
+  background: #E6E4DE;
+}
+.cceBadgeIcon {
+  color: #0d0d0d;
+}
+.cceBadgeLabel {
+  color: #0d0d0d;
+}
+.cceBadgeVal {
+  color: #a39f8e;
+}
+.cceBadge.cceBadgeActive {
+  background: #DDDBD5;
+}
+
+/* ---------- Cache popup ---------- */
+.cceStatPopup {
+  background: #ffffff;
+  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 12px 36px rgba(60,55,40,0.22), 0 2px 8px rgba(60,55,40,0.14);
+  color: #0d0d0d;
+}
+.cceStatOverview {
+  gap: 0;
+  margin-bottom: 11px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(60,55,40,0.10);
+}
+.cceStatHeading {
+  color: #0d0d0d;
+}
+.cceStatDivider {
+  background: rgba(0,0,0,0.08);
+}
+.cceStatMetric,
+.cceHitChartShell,
+.cceHitStat,
+.cceSelectedMetric {
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+}
+.cceStatMetric {
+  padding: 0 10px 0 0;
+}
+.cceStatMetric + .cceStatMetric {
+  padding: 0 0 0 12px;
+  border-left: 1px solid rgba(60,55,40,0.10);
+}
+.cceHitChartShell {
+  padding: 2px 0 0;
+}
+.cceHitStats {
+  gap: 0;
+  margin-top: 8px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(60,55,40,0.10);
+}
+.cceHitStat {
+  padding: 0 8px;
+}
+.cceHitStat:first-child {
+  padding-left: 0;
+}
+.cceHitStat + .cceHitStat {
+  border-left: 1px solid rgba(60,55,40,0.10);
+}
+.cceStatTotals {
+  gap: 12px;
+}
+.cceSelectedGrid {
+  gap: 8px 12px;
+}
+.cceSelectedMetric {
+  padding: 5px 0 0;
+  border-top: 1px solid rgba(60,55,40,0.10);
+}
+.cceStatMetricLabel,
+.cceHitChartMeta,
+.cceHitStat span,
+.cceSelectedMetric span,
+.cceFlowRangeTime {
+  color: #797569;
+}
+.cceHitAxisLabel {
+  fill: #797569;
+}
+.cceStatMetricValue,
+.cceHitStat strong,
+.cceSelectedMetric strong {
+  color: #0d0d0d;
+}
+.cceHitGrid {
+  stroke: rgba(60,55,40,0.13);
+}
+.cceHitXAxis {
+  stroke: rgba(60,55,40,0.18);
+}
+.cceHitXTick {
+  stroke: rgba(60,55,40,0.20);
+}
+.cceHitLine {
+  stroke: #a8896e;
+}
+.cceRangeLine {
+  stroke: rgba(168,137,110,0.68);
+}
+.cceRangeTrack {
+  stroke: rgba(60,55,40,0.20);
+}
+.cceRangeWindow {
+  fill: rgba(168,137,110,0.12);
+  stroke: rgba(168,137,110,0.44);
+}
+.cceRangeHandle {
+  stroke: #a8896e;
+}
+.cceHitPoint {
+  fill: #ffffff;
+  stroke: #a8896e;
+}
+.cceHitPointLow {
+  fill: #a8896e;
+}
+.cceHitPointLatest {
+  fill: #ffffff;
+}
+.cceHitHoverLine {
+  stroke: rgba(60,55,40,0.38);
+}
+.cceHitHoverPoint {
+  fill: #ffffff;
+  stroke: #a8896e;
+}
+.cceHitHoverLabel {
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 2px 8px rgba(60,55,40,0.16);
+  color: #0d0d0d;
+}
+.cceHitHoverPct {
+  color: #0d0d0d;
+}
+.cceHitHoverTime {
+  color: #797569;
+}
+.cceHitChartMeta span:nth-child(2) {
+  color: #797569;
+}
+.cceFlowHeader span,
+.cceFlowLegend,
+.cceFlowLabel {
+  color: #797569;
+}
+.cceFlowHeader strong,
+.cceFlowValue {
+  color: #0d0d0d;
+}
+.cceContextStack {
+  background: #E6E4DE;
+  box-shadow: inset 0 0 0 1px rgba(60,55,40,0.07);
+}
+.cceFlowBar {
+  background: #E6E4DE;
+}
+.cceContextSeg-fresh,
+.cceFlowRow-fresh .cceFlowBar span,
+.cceLegendFresh {
+  background: rgba(60,55,40,0.30);
+}
+.cceContextSeg-write,
+.cceFlowRow-write .cceFlowBar span,
+.cceLegendWrite {
+  background: rgba(168,137,110,0.48);
+}
+.cceContextSeg-read,
+.cceFlowRow-read .cceFlowBar span,
+.cceLegendRead {
+  background: rgba(168,137,110,0.82);
+}
+.cceFlowRow-output .cceFlowBar span {
+  background: rgba(121,117,105,0.70);
+}
+.cceStatEmpty {
+  color: #b8b4a4;
+}
+
+/* ---------- Effort slider / thinking toggle / usage bar ----------
+   Filled (on) state stays on the warm-camel `#a8896e` from `theme.css`
+   — that hue reads identically calm against both ivory paper and warm
+   black, no override needed.
+
+   But the OFF state and the thumbs both inherit host CSS variables
+   that go wrong on light paper:
+
+     - Track off  →  `var(--app-input-border)` resolves to VS Code's
+                     near-black `inlineChatInput-border`, prints as a
+                     dark utility-grey gash on cream.
+     - Thumb fill →  `var(--app-primary-foreground)` is now `#0d0d0d`
+                     (we just darkened it), which renders a black
+                     knob — visually heavy and inverts the relationship
+                     between the bright track and the contrast knob.
+
+   Fix is palette-local: only flip these two slots on warm-white,
+   leave warm-black alone (white thumb + mid-grey track already sits
+   well there). Selectors avoid hashed module suffixes:
+
+     [class*="toggle_"]:has(> [class*="fill_"])  → effort slider track
+     [class*="track_"]:not([class*="trackOn_"])  → thinking toggle off
+     [class*="usageTrack_"]                       → both usage bar tracks
+     [class*="toggle_"] [class*="thumb_"]         → both knobs (the
+        `.thumb_FISVxg` feedback button is outside any toggle_*
+        ancestor, so it is excluded automatically). */
+[class*="toggle_"]:has(> [class*="fill_"]),
+[class*="track_"]:not([class*="trackOn_"]),
+[class*="usageTrack_"] {
+  background: #d8d6cf !important;
+  background-color: #d8d6cf !important;
+}
+
+[class*="toggle_"] [class*="thumb_"] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+/* ---------- Effort brain icon — black-ink files for warm-white ----------
+   `theme.css` defaults to white-ink SVGs (warm-black surface). On
+   warm-white we point the same level vars at the black-ink files. The
+   earlier `filter: invert(1)` route promoted the `::before` to a
+   composited layer and re-rasterized every paint, so the brain icon
+   dropped frames during the slider thumb transition on warm-black.
+   This URL swap is one image load per level change, zero per-frame cost. */
+[class*="effortLabel"],
+[data-incipit-effort-label] {
+  --eb-low: url("effort-brain/effort-brain-low.svg") !important;
+  --eb-med: url("effort-brain/effort-brain-medium.svg") !important;
+  --eb-high: url("effort-brain/effort-brain-high.svg") !important;
+  --eb-xhigh: url("effort-brain/effort-brain-xhigh.svg") !important;
+  --eb-max: url("effort-brain/effort-brain-max.svg") !important;
+}
+
+/* ---------- Menu popup divider softening (light palette) ----------
+   Mirrors the dark-palette rule in `theme.css`, but inverts the alpha
+   colour so the line reads as paper-coloured pressure instead of a
+   white veil. Same selector, same intent — only the rgba flips. */
+[data-incipit-menu-popup] *,
+[data-incipit-dropdown] * {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+/* ---------- Section divider inside menu popups ----------
+   Host renders the horizontal section break as `.sectionDivider_*`
+   with `background: var(--app-input-border)`, NOT a border — so the
+   `border-color` softener above does not catch it. Under most VS Code
+   light themes `--vscode-inlineChatInput-border` resolves to a near-
+   black gray, which prints as a hard line on the white popup card.
+   We do NOT override `--app-input-border` globally because the same
+   variable is reused as the *background* of `.toggle_*` tracks and
+   `.usageTrack_*` progress bars — softening it would make those
+   widgets look broken. Instead, hit `[class*="sectionDivider"]`
+   directly: the only thing the host paints with this class name is
+   the horizontal section break, so the surgical rule has no fallout. */
+[class*="sectionDivider"],
+[class*="menuDivider"] {
+  background: rgba(60, 55, 40, 0.20) !important;
+  height: 2px !important;
+}
+
+/* ---------- Scrollbar thumb (light palette) ----------
+   Native Chromium scrollbars inherit these variables from the shared
+   `theme.css` rule; Monaco virtual sliders are repeated below as a
+   direct override for already-mounted editor widgets. Hover darkens
+   one notch instead of lightening, opposite of the dark palette,
+   because contrast against a light surface grows when the thumb gets
+   darker. */
+:root {
+  --incipit-scrollbar-thumb: #b0b0ae;
+  --incipit-scrollbar-thumb-hover: #8a8a88;
+  --incipit-scrollbar-thumb-active: #6f6f6d;
+}
+
+.monaco-scrollable-element > .scrollbar > .slider {
+  background: var(--incipit-scrollbar-thumb) !important;
+}
+.monaco-scrollable-element > .scrollbar > .slider:hover {
+  background: var(--incipit-scrollbar-thumb-hover) !important;
+}
+.monaco-scrollable-element > .scrollbar > .slider.active {
+  background: var(--incipit-scrollbar-thumb-active) !important;
+}
+
+/* ============================================================
+   Modal dialogs — warm-white mirror.
+
+   Mirror the white-paper card treatment used for `[data-incipit-
+   menu-popup]`. The dark-palette rule in theme.css already strips
+   the host's blue `:focus-within` ring; here we just swap the
+   surface and shadow to paper tones. The override-cascade iron
+   rule applies: theme.css writes `border: none` then
+   `border-color: transparent` for `:focus-within`, both still hold
+   here because we don't re-declare the basic dialog border.
+   ============================================================ */
+[class*="dialog_"] {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  box-shadow: 0 12px 36px rgba(60,55,40,0.22),
+              0 2px 8px rgba(60,55,40,0.14) !important;
+}
+
+[class*="overlay_"] {
+  background-color: rgba(60, 55, 40, 0.32) !important;
+}
+
+/* ---------- Manage Plugins dialog (yumWmQ) — warm-white ---------- */
+
+/* Tab bar bottom rule — paper-toned. */
+[class*="tabBar_yumWmQ"] {
+  border-bottom-color: rgba(60, 55, 40, 0.14) !important;
+}
+
+/* Active tab underline — keep terra; deepen slightly for paper. */
+[class*="tab_yumWmQ"][class*="active_yumWmQ"] {
+  border-bottom-color: #bf5d3a !important;
+}
+
+/* Tab badge — terra-tinted chip. */
+[class*="tabBadge_yumWmQ"] {
+  background-color: rgba(191, 93, 58, 0.14) !important;
+  color: #bf5d3a !important;
+}
+
+/* Search input — light paper card. */
+[class*="searchInput_yumWmQ"] {
+  background-color: #faf9f5 !important;
+  border-color: rgba(60, 55, 40, 0.14) !important;
+  color: #0d0d0d !important;
+}
+[class*="searchInput_yumWmQ"]:focus {
+  border-color: rgba(191, 93, 58, 0.55) !important;
+}
+
+/* Section headers — soften the underline for paper. */
+[class*="sectionHeader_yumWmQ"] {
+  border-bottom-color: rgba(60, 55, 40, 0.14) !important;
+}
+
+/* Plugin item card — sit on the same `#E6E4DE` embedded surface
+   used by user bubble / code block / list active. This way the
+   dialog's white card and the plugin chips share the same surface
+   hierarchy as the rest of the app. */
+[class*="pluginItem_yumWmQ"] {
+  background-color: #E6E4DE !important;
+  border-color: rgba(60, 55, 40, 0.10) !important;
+}
+[class*="pluginItem_yumWmQ"]:hover {
+  border-color: rgba(191, 93, 58, 0.45) !important;
+}
+
+/* Generic action button — paper ghost. */
+[class*="actionButton_yumWmQ"] {
+  border-color: rgba(60, 55, 40, 0.18) !important;
+  color: #0d0d0d !important;
+}
+[class*="actionButton_yumWmQ"]:hover {
+  background-color: rgba(60, 55, 40, 0.06) !important;
+}
+
+/* Primary Install button — terra on paper. */
+[class*="actionButton_yumWmQ"][class*="primary_yumWmQ"] {
+  background-color: #bf5d3a !important;
+  color: #ffffff !important;
+}
+
+/* Status dot — slightly deeper green for paper contrast. */
+[class*="statusDotEnabled_yumWmQ"] {
+  background-color: #1c9c1c !important;
+}
+
+/* Source link — terra underline on paper. */
+[class*="pluginMeta_yumWmQ"] a {
+  text-decoration-color: rgba(191, 93, 58, 0.7) !important;
+}
+
+/* ---------- Inline keyboard hints — warm-white mirror ----------
+   Mirrors the dark-palette kbd treatment but uses a paper-toned
+   chip: faint warm fill + soft brown border. Font-family chain
+   from theme.css still applies (per-character fallback gives ⇧
+   on every platform) — only colour fields change here. */
+[class*="menuHeaderHint"] kbd,
+[class*="keys_"] kbd {
+  background: rgba(60, 55, 40, 0.06) !important;
+  border-color: rgba(60, 55, 40, 0.26) !important;
+  color: #0d0d0d !important;
+}
+
+/* ---------- Inline edit (warm-white draft card) ----------
+   AI draft card reuses the warm-white code-block surface (#E6E4DE)
+   — same "embedded content" weight as <pre> blocks, so the editor
+   reads as the same surface family. Save icon + caret use the
+   deeper #bf5d3a accent. User bubble keeps its own #E6E4DE fill
+   (set elsewhere); no extra chrome needed when expanded. */
+[data-incipit-inline-edit-shell="assistant"] {
+  background: #E6E4DE !important;
+}
+/* Edit hover preview — same paper-tone draft fill the inline-edit
+   shell uses when actually opened. theme.css defines the transition
+   and base behaviour; this only flips the colour for warm-white so
+   the preview matches the (now-paper) draft card. */
+[data-incipit-markdown-root][data-incipit-edit-hover-preview] {
+  background-color: #E6E4DE !important;
+}
+.incipit-inline-edit-textarea {
+  caret-color: #bf5d3a !important;
+}
+/* Save button — primary commit, deep terra on paper. */
+.incipit-transcript-action-save {
+  color: #bf5d3a !important;
+}
+.incipit-transcript-action-save:hover {
+  color: #a64f30 !important;
+  background: rgba(60, 55, 40, 0.06) !important;
+}
+/* Streaming-disabled save: dim but keep the deep-terra hue,
+   override the base disabled-hover `color: inherit` rule. */
+.incipit-transcript-action-save[data-incipit-disabled="1"]:hover {
+  background: transparent !important;
+  color: #bf5d3a !important;
+}
+
+/* ---- Inline editor chip strip — warm-white ----
+   Chip surface is muted warm tone on paper (text/ide chips and image
+   thumb mounts), terra-orange icon color matches deep-terra accent
+   used elsewhere on warm-white. Image-chip X overlay stays dark
+   (image content background unknown) so the cross stays legible. */
+.incipit-edit-chip {
+  background: rgba(60, 55, 40, 0.06) !important;
+  border-color: rgba(60, 55, 40, 0.14) !important;
+  color: #5e5b50 !important;
+}
+.incipit-edit-chip-icon {
+  color: rgba(191, 93, 58, 0.95) !important;
+}
+.incipit-edit-chip--image {
+  background: rgba(60, 55, 40, 0.06) !important;
+  border-color: transparent !important;
+}
+.incipit-edit-chip--image .incipit-edit-chip-x {
+  background: rgba(0, 0, 0, 0.55) !important;
+  color: #ffffff !important;
+}
+.incipit-edit-chip--image .incipit-edit-chip-x:hover {
+  background: rgba(0, 0, 0, 0.72) !important;
+}
+.incipit-edit-chip-add {
+  border-color: rgba(60, 55, 40, 0.22) !important;
+  color: rgba(60, 55, 40, 0.50) !important;
+}
+.incipit-edit-chip-add:hover {
+  border-color: rgba(191, 93, 58, 0.65) !important;
+  color: rgba(191, 93, 58, 0.95) !important;
+}

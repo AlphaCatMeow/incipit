@@ -2,7 +2,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const childProcess = require('child_process');
 const {
   buildFinalMap,
   declarationKey,
@@ -16,6 +15,9 @@ const ROOT = path.resolve(__dirname, '..');
 const THEME_PATH = path.join(ROOT, 'data', 'theme.css');
 const WARM_PATH = path.join(ROOT, 'data', 'warm-white-override.css');
 const INK_PATH = path.join(ROOT, 'data', 'ink-black-override.css');
+const SOURCE_DIR = path.join(ROOT, 'scripts', 'theme-sources');
+const FROZEN_THEME_PATH = path.join(SOURCE_DIR, 'theme.pre-tokenization.css');
+const FROZEN_WARM_PATH = path.join(SOURCE_DIR, 'warm-white-override.pre-tokenization.css');
 const BASELINE_PATH = path.join(ROOT, 'tests', 'fixtures', 'theme-colors-baseline.json');
 const CSS_NAMED_COLORS = new Set(`
   aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond
@@ -505,24 +507,34 @@ function rewriteWarmWhiteHeader(css) {
   ].join('\n'));
 }
 
-function frozenSource(filePath, gitPath, expectedSha) {
-  const current = fs.readFileSync(filePath, 'utf8');
-  if (sha256(current) === expectedSha) return current;
-  const committed = childProcess.execFileSync('git', ['show', `HEAD:${gitPath}`], {
-    cwd: ROOT,
-    encoding: 'utf8',
-    maxBuffer: 4 * 1024 * 1024,
-  });
-  if (sha256(committed) !== expectedSha) {
-    throw new Error(`Neither the worktree nor HEAD matches the frozen source for ${gitPath}.`);
+/**
+ * Read one of the immutable pre-tokenization stylesheets this generator consumes.
+ *
+ * The stylesheets under `data/` are outputs, never inputs: once a tokenization
+ * result is committed, neither the worktree nor HEAD holds the pre-tokenization
+ * bytes any more. The inputs therefore live beside this script and are pinned by
+ * the baseline hash, which is also their identity check — a mismatch means the
+ * frozen input drifted and every downstream golden-master comparison built on it
+ * would silently compare against the wrong contract. Do not "fix" a mismatch by
+ * re-recording the hash. 2026-07-22
+ */
+function frozenSource(frozenPath, expectedSha) {
+  const source = fs.readFileSync(frozenPath, 'utf8');
+  const actual = sha256(source);
+  if (actual !== expectedSha) {
+    throw new Error(
+      `${path.relative(ROOT, frozenPath)} no longer matches its baseline hash `
+        + `(expected ${expectedSha}, got ${actual}). This file is the frozen input to theme `
+        + 'tokenization; restore it instead of editing it.',
+    );
   }
-  return committed;
+  return source;
 }
 
 function main() {
   const baseline = JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8'));
-  const themeCss = frozenSource(THEME_PATH, 'data/theme.css', baseline.sources.themeSha256);
-  const warmCss = frozenSource(WARM_PATH, 'data/warm-white-override.css', baseline.sources.warmWhiteSha256);
+  const themeCss = frozenSource(FROZEN_THEME_PATH, baseline.sources.themeSha256);
+  const warmCss = frozenSource(FROZEN_WARM_PATH, baseline.sources.warmWhiteSha256);
 
   const themeDeclarations = parseStylesheet(themeCss, 'data/theme.css');
   const warmDeclarations = parseStylesheet(warmCss, 'data/warm-white-override.css');
