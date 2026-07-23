@@ -46,7 +46,7 @@ On first launch you'll choose a CLI language, then enter the interactive menu:
 Menu actions:
 
 - **Apply / Restore**: apply the patch, or restore the selected Claude Code target to its official files. The first clean apply for each target/version records one official restore point; later applies reuse it. Restore does not touch other VS Code settings.
-- **Configure**: toggle math rendering and the session usage badge; switch body font size (12 / 13 / 14 / 15 / 16, default 13) and warm-black / warm-white palette.
+- **Configure**: toggle math rendering and the session usage badge; switch body font size (12 / 13 / 14 / 15 / 16, default 13) and the palette (warm-black / ink-black / warm-white); replace the Claude app icon with your own SVG or transparent PNG.
 - **Manage Claude Code targets**: auto-detects VS Code / Cursor / Insiders / VSCodium / Windsurf / Antigravity, and accepts manually specified extension directories.
 - **CLI language**: switch between Chinese and English at any time.
 
@@ -72,6 +72,8 @@ This removes the `incipit` command itself. It does not restore a patched Claude 
 ## Interface
 
 A literary-style interface — warm-black background, cream-toned serif type, color narrowed to lightness steps within a single hue, terracotta surfaced sparingly only on links, emphasis, and the bottom status line.
+
+Three palettes ship together: the default warm-black, the light warm-white, and ink-black — an achromatic variant that trades the terracotta accent for a neutral grey scale. Switch under **Configure**, then apply again.
 
 <p align="center">
   <img src="docs/screenshots/panel.png" width="420" alt="incipit chat panel as a whole: warm-black background, cream serif body, bottom status line" />

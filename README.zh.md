@@ -44,7 +44,7 @@ incipit
 菜单操作：
 
 - **Apply / Restore**：应用补丁，或把选中的 Claude Code 目标恢复为官方文件。每个目标/版本第一次干净 apply 时只记录一个官方恢复点，后续 apply 复用它；恢复时不会动你其他的 VS Code 配置。
-- **Configure**：开关数学公式渲染、会话用量徽章；切换正文字号（12 / 13 / 14 / 15 / 16，默认 13）和暖黑 / 暖白主题。
+- **Configure**：开关数学公式渲染、会话用量徽章；切换正文字号（12 / 13 / 14 / 15 / 16，默认 13）和主题（暖黑 / 墨黑 / 暖白）；把 Claude 应用图标换成你自己的 SVG 或透明背景 PNG。
 - **Manage Claude Code targets**：自动探测 VS Code / Cursor / Insiders / VSCodium / Windsurf / Antigravity，也支持手动指定扩展目录。
 - **CLI language**：随时切换中英文。
 
@@ -70,6 +70,8 @@ npm uninstall -g incipit
 ## 界面
 
 文学风格界面——暖黑底色，米色调衬线字体，色域窄到只剩同色相的明度阶差，陶土红只在链接、强调和底部状态行克制地点出。
+
+三套主题并存：默认的暖黑、浅色的暖白，以及墨黑——中性无彩的变体，把陶土红换成冷灰梯度。在 **Configure** 里切换，切换后重新 apply 一次生效。
 
 <p align="center">
   <img src="docs/screenshots/panel.png" width="420" alt="incipit 聊天面板整体外观：暖黑底色、米色衬线正文、底部状态行" />
