@@ -166,6 +166,41 @@ const HOST_CONTACT_ROUTE_CATALOG = Object.freeze([
     extensionSha256: '79da283cd8acc3862b93e5affccdeafe799b4ba0153cdb4ec55c8518e16e707c',
     webviewSha256: '8af7e7a5cedb7b2737c4c715b1c52b0aa129d9cc3a57a216ce1c8ce5ea779fc6',
   },
+  {
+    version: '2.1.179',
+    extensionSha256: '243c7b4f6e9d5b6647bab9fa603cc8c2733da8dee0a375c3a746439836c921dd',
+    webviewSha256: 'ef2a059cd0a454c1afc356d720458dd3e2fcef6fea35b6fd62c82ed9a04d2713',
+  },
+  {
+    version: '2.1.185',
+    extensionSha256: '4e1329e4ebd02f78c77b6b6013ddb92a072c55fadd1fe4af77529ed162834a91',
+    webviewSha256: 'ef1aae5e2ebd85bf753d7d226da505d4133839241cd8d08d808e6cf55cd2d5ad',
+  },
+  {
+    version: '2.1.195',
+    extensionSha256: 'f7fe40b9bc31e41a63420dee4001c4f606de774b2891a1e98f9de186fc570a03',
+    webviewSha256: '0ee735b5687cb5f0d3c16cd434f7a6084882c22ee09fe1b4decf753972c6f4b5',
+  },
+  {
+    version: '2.1.196',
+    extensionSha256: '5d7c8dbddcfe019e0d491d245a0991d61227a169cddffd24704cb2b0abf90a48',
+    webviewSha256: '8f217271fbbfa3ba922ca8c41810568673f4fcd8fa0650d7e640d789cda58ffe',
+  },
+  {
+    version: '2.1.197',
+    extensionSha256: 'b4dc84acdd26d7b90b9a5d3a434e413c60af21aaadd04efcdaeb14c9666c82de',
+    webviewSha256: 'a66b4e36773f4267165fd3f26419b525c9609a2943602856a0f548361ac4cece',
+  },
+  {
+    version: '2.1.199',
+    extensionSha256: '970e7f13d84f6e5dced5e3cee047d94b6ddf53801f69843b5b7f16e0f22b9cc5',
+    webviewSha256: '9d975a629702568feda07daee13db9f9651b7d4ac810a01ac38175e63092810c',
+  },
+  {
+    version: '2.1.210',
+    extensionSha256: 'eca01ae641957f18c01c3c7fd4fd3ff9a59ec5310b220c4ecfd5ee3cf01b8c8e',
+    webviewSha256: '9b1588f26246927a41cc121c5df59c24078a2ecf524159505b20ccd2abdfa9c8',
+  },
 ]);
 
 function sanitizeFontFamilyValue(raw) {
