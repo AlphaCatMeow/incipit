@@ -13,7 +13,9 @@ export const CFG = (() => {
   const raw = (typeof globalThis !== 'undefined' && globalThis.__incipitConfig) || {};
   const f = (raw && typeof raw.features === 'object') ? raw.features : {};
   const t = (raw && typeof raw.theme === 'object') ? raw.theme : {};
-  const palette = t.palette === 'warm-white' ? 'warm-white' : 'warm-black';
+  const palette = ['warm-black', 'ink-black', 'warm-white'].includes(t.palette)
+    ? t.palette
+    : 'warm-black';
   const language = raw.language === 'zh' ? 'zh' : 'en';
   const bodyBold = (palette === 'warm-white' && t.bodyBold === true);
   return Object.freeze({
@@ -357,9 +359,14 @@ export function ensureDomFreeze() {
   return freeze;
 }
 
-const SOFT_BG   = CFG.palette === 'warm-white' ? '#f8f8f6' : '#1f1f1e';
-const SOFT_FG   = CFG.palette === 'warm-white' ? '#0d0d0d' : '#f8f8f6';
-const SOFT_FG_2 = CFG.palette === 'warm-white' ? '#797569' : '#bcbcb9';
+const SOFT_PALETTE = Object.freeze({
+  'warm-black': Object.freeze({ background: '#1f1f1e', foreground: '#f8f8f6', secondary: '#bcbcb9' }),
+  'ink-black': Object.freeze({ background: '#0a0b0b', foreground: '#fbfbfc', secondary: '#aaaaab' }),
+  'warm-white': Object.freeze({ background: '#f8f8f6', foreground: '#0d0d0d', secondary: '#797569' }),
+});
+const SOFT_BG = SOFT_PALETTE[CFG.palette].background;
+const SOFT_FG = SOFT_PALETTE[CFG.palette].foreground;
+const SOFT_FG_2 = SOFT_PALETTE[CFG.palette].secondary;
 
 export const APP_VAR_OVERRIDES = {
   '--app-background': SOFT_BG,
@@ -433,20 +440,30 @@ export function applyBodyBoldFlag() {
 }
 
 export function injectStyles() {
-  if (!document.getElementById('claude-enhance-styles-link')) {
-    const link = document.createElement('link');
-    link.id = 'claude-enhance-styles-link';
-    link.rel = 'stylesheet';
-    link.href = assetURL('theme.css');
-    document.head.appendChild(link);
+  function ensureStylesheet(id, fileName) {
+    const href = assetURL(fileName);
+    let link = document.getElementById(id);
+    if (!link) {
+      link = document.createElement('link');
+      link.id = id;
+      document.head.appendChild(link);
+    }
+    if (link.rel !== 'stylesheet') link.rel = 'stylesheet';
+    if (link.href !== href) link.href = href;
+    return link;
   }
-  if (CFG.palette === 'warm-white' &&
-      !document.getElementById('incipit-warm-white-link')) {
-    const overrideLink = document.createElement('link');
-    overrideLink.id = 'incipit-warm-white-link';
-    overrideLink.rel = 'stylesheet';
-    overrideLink.href = assetURL('warm-white-override.css');
-    document.head.appendChild(overrideLink);
+  ensureStylesheet('claude-enhance-styles-link', 'theme.css');
+  const overrides = [
+    ['warm-white', 'incipit-warm-white-link', 'warm-white-override.css'],
+    ['ink-black', 'incipit-ink-black-link', 'ink-black-override.css'],
+  ];
+  for (const [palette, id, fileName] of overrides) {
+    const existing = document.getElementById(id);
+    if (CFG.palette !== palette) {
+      if (existing) existing.remove();
+      continue;
+    }
+    ensureStylesheet(id, fileName);
   }
 }
 

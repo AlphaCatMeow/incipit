@@ -115,7 +115,9 @@ import {
 
     function renderTimeHighlightIsBusy() {
       try { return kernelConversationIsBusy(); }
-      catch (_) { return false; }
+      // Unknown host state must not authorize an expensive highlightAuto call
+      // on the streaming render path; the settled DOM pass remains available.
+      catch (_) { return true; }
     }
 
     function noteRenderHealth(status, detail = null) {

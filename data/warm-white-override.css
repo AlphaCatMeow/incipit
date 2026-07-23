@@ -1,23 +1,473 @@
+/* Semantic colour tokens — warm-white palette. */
+:root {
+  --ink-accent: #bf5d3a;
+  --ink-accent-bright: #8f452b;
+  --ink-accent-dim: #bc8c75;
+  --ink-accent-focus: rgba(191,93,58,0.6);
+  --ink-accent-selection: rgba(191,93,58,0.22);
+  --ink-accent-wash: rgba(191,93,58,0.16);
+  --ink-action-button-border: rgba(60,55,40,0.18);
+  --ink-action-button-fg-override: #0d0d0d;
+  --ink-action-button-hover-bg: rgba(60,55,40,0.06);
+  --ink-action-dropdown-separator-bg: rgba(60,55,40,0.14);
+  --ink-action-dropdown-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
+  --ink-active-border-bottom: #bf5d3a;
+  --ink-add-bar: #1f883d;
+  --ink-add-char-bg: #aceebb99;
+  --ink-add-fg: #1c9c1c;
+  --ink-add-line-bg: #dafbe180;
+  --ink-ask-request-bg: transparent;
+  --ink-ask-request-bg-2: #faf9f5;
+  --ink-ask-request-border: rgba(60,55,40,0.28);
+  --ink-ask-request-border-bottom: rgba(191,93,58,0.72);
+  --ink-ask-request-border-top-override: 1px solid rgba(60,55,40,0.10);
+  --ink-ask-request-fg: rgba(61,57,41,0.62);
+  --ink-ask-request-fg-2: rgba(61,57,41,0.44);
+  --ink-ask-request-fg-3: rgba(61,57,41,0.56);
+  --ink-ask-request-fg-4: rgba(61,57,41,0.56);
+  --ink-ask-request-fg-override: #0d0d0d;
+  --ink-ask-request-hover-bg: rgba(230,228,222,0.50);
+  --ink-ask-request-hover-bg-2: #dddbd5;
+  --ink-ask-request-shadow: inset 0 0 0 1px rgba(60,55,40,0.12);
+  --ink-ask-request-shadow-override: 0 12px 36px rgba(60,55,40,0.20),0 2px 8px rgba(60,55,40,0.12);
+  --ink-border-divider: rgba(60,55,40,0.06);
+  --ink-border-hairline: rgba(60,55,40,0.10);
+  --ink-border-strong: rgba(60,55,40,0.16);
+  --ink-bubble-bg: #e6e4de;
+  --ink-bubble-chip-bg: #ead8cf;
+  --ink-bubble-chip-bg-hover: #e2c8bc;
+  --ink-bubble-chip-fg: #8f452b;
+  --ink-bubble-link-accent: #bf5d3a;
+  --ink-bubble-link-wash: rgba(191,93,58,0.16);
+  --ink-bubble-showmore: rgba(61,57,41,0.62);
+  --ink-bubble-showmore-hover: #0d0d0d;
+  --ink-bubble-text: #0d0d0d;
+  --ink-cce-badge-active-bg: #e6e4de;
+  --ink-cce-badge-active-bg-2: #dddbd5;
+  --ink-cce-badge-hover-bg: #dddbd5;
+  --ink-cce-badge-val-fg: #a39f8e;
+  --ink-cce-context-stack-bg: #e6e4de;
+  --ink-cce-context-stack-shadow: inset 0 0 0 1px rgba(60,55,40,0.07);
+  --ink-cce-edit-cell-bg: #e6e4de;
+  --ink-cce-edit-cell-bg-2: rgba(168,137,110,0.32);
+  --ink-cce-edit-cell-bg-3: rgba(168,137,110,0.50);
+  --ink-cce-edit-cell-bg-4: rgba(168,137,110,0.68);
+  --ink-cce-edit-cell-bg-5: rgba(168,137,110,0.90);
+  --ink-cce-edit-cell-shadow: inset 0 0 0 1px rgba(60,55,40,0.08);
+  --ink-cce-edit-chip-active-bg: #e6e4de;
+  --ink-cce-edit-chip-active-hover-bg: #dddbd5;
+  --ink-cce-edit-chip-fg: #3f3d38;
+  --ink-cce-edit-legend-cells-bg: #e6e4de;
+  --ink-cce-edit-legend-cells-bg-2: rgba(168,137,110,0.32);
+  --ink-cce-edit-legend-cells-bg-3: rgba(168,137,110,0.50);
+  --ink-cce-edit-legend-cells-bg-4: rgba(168,137,110,0.68);
+  --ink-cce-edit-legend-cells-bg-5: rgba(168,137,110,0.90);
+  --ink-cce-edit-legend-cells-shadow: inset 0 0 0 1px rgba(60,55,40,0.08);
+  --ink-cce-edit-popup-border: 1px solid rgba(0,0,0,0.08);
+  --ink-cce-edit-popup-fg: #0d0d0d;
+  --ink-cce-edit-popup-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
+  --ink-cce-edit-project-name-fg: #0d0d0d;
+  --ink-cce-edit-rule-bg: rgba(60,55,40,0.14);
+  --ink-cce-edit-scope-fg: #797569;
+  --ink-cce-edit-status-bg: rgba(168,137,110,0.16);
+  --ink-cce-edit-status-fg: #8d725b;
+  --ink-cce-edit-tooltip-bg: rgba(255,255,255,0.94);
+  --ink-cce-edit-tooltip-shadow: 0 2px 8px rgba(60,55,40,0.16);
+  --ink-cce-flow-bar-bg: rgba(121,117,105,0.70);
+  --ink-cce-flow-bar-bg-2: #e6e4de;
+  --ink-cce-flow-header-fg: #0d0d0d;
+  --ink-cce-flow-value-fg: #0d0d0d;
+  --ink-cce-hit-chart-shell-bg: transparent;
+  --ink-cce-hit-chart-shell-shadow: none;
+  --ink-cce-hit-grid-stroke: rgba(60,55,40,0.13);
+  --ink-cce-hit-hover-label-bg: rgba(255,255,255,0.92);
+  --ink-cce-hit-hover-label-shadow: 0 2px 8px rgba(60,55,40,0.16);
+  --ink-cce-hit-hover-line-stroke: rgba(60,55,40,0.38);
+  --ink-cce-hit-hover-point-fill: #ffffff;
+  --ink-cce-hit-hover-point-stroke: #a8896e;
+  --ink-cce-hit-hover-time-fg: #797569;
+  --ink-cce-hit-line-stroke: #a8896e;
+  --ink-cce-hit-point-fill: #ffffff;
+  --ink-cce-hit-point-latest-fill: #ffffff;
+  --ink-cce-hit-point-low-fill: #a8896e;
+  --ink-cce-hit-point-stroke: #a8896e;
+  --ink-cce-hit-stat-bg: transparent;
+  --ink-cce-hit-stat-border-left-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-hit-stat-fg: #0d0d0d;
+  --ink-cce-hit-stats-border-top-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-hit-xaxis-stroke: rgba(60,55,40,0.18);
+  --ink-cce-hit-xtick-stroke: rgba(60,55,40,0.20);
+  --ink-cce-legend-fresh-bg: rgba(60,55,40,0.30);
+  --ink-cce-legend-read-bg: rgba(168,137,110,0.82);
+  --ink-cce-legend-write-bg: rgba(168,137,110,0.48);
+  --ink-cce-note-btn-active-bg: #3a3b3a;
+  --ink-cce-note-btn-active-bg-override: #e6e4de;
+  --ink-cce-note-btn-fg: #f8f8f6;
+  --ink-cce-note-btn-fg-override: #0d0d0d;
+  --ink-cce-note-btn-hover-bg: #3a3b3a;
+  --ink-cce-note-btn-hover-bg-override: #e6e4de;
+  --ink-cce-note-btn-hover-fg: #f8f8f6;
+  --ink-cce-note-btn-hover-fg-override: #0d0d0d;
+  --ink-cce-note-btn-nudge-fg: #c9a657;
+  --ink-cce-note-btn-nudge-fg-override: #b05545;
+  --ink-cce-range-handle-stroke: #a8896e;
+  --ink-cce-range-line-stroke: rgba(168,137,110,0.68);
+  --ink-cce-range-track-stroke: rgba(60,55,40,0.20);
+  --ink-cce-range-window-fill: rgba(168,137,110,0.12);
+  --ink-cce-range-window-stroke: rgba(168,137,110,0.44);
+  --ink-cce-selected-metric-bg: transparent;
+  --ink-cce-selected-metric-border-top-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-selected-metric-fg: #0d0d0d;
+  --ink-cce-stat-divider-bg: rgba(0,0,0,0.08);
+  --ink-cce-stat-empty-fg: #b8b4a4;
+  --ink-cce-stat-metric-bg: transparent;
+  --ink-cce-stat-metric-border-left-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-stat-metric-shadow: none;
+  --ink-cce-stat-overview-border-bottom-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-stat-popup-border: 1px solid rgba(0,0,0,0.08);
+  --ink-cce-stat-popup-fg: #0d0d0d;
+  --ink-cce-stat-popup-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
+  --ink-change-review-counts-fg: rgba(13,13,13,0.48);
+  --ink-change-review-error-bg: rgba(199,104,73,0.12);
+  --ink-change-review-error-fg: #b4543a;
+  --ink-change-review-file-border-top: 1px solid rgba(13,13,13,0.07);
+  --ink-change-review-file-name-fg: rgba(13,13,13,0.68);
+  --ink-change-review-file-name-fg-2: rgba(13,13,13,0.52);
+  --ink-change-review-file-name-hover-fg: rgba(13,13,13,0.88);
+  --ink-change-review-file-name-hover-fg-2: rgba(13,13,13,0.52);
+  --ink-change-review-flash-shadow: 0 0 0 1px rgba(217,119,87,0.42),0 6px 18px rgba(0,0,0,0.26);
+  --ink-change-review-modal-bg: rgba(60,55,40,0.32);
+  --ink-change-review-modal-message-fg: rgba(13,13,13,0.74);
+  --ink-change-review-more-fg: rgba(13,13,13,0.5);
+  --ink-change-review-more-hover-fg: rgba(13,13,13,0.86);
+  --ink-change-review-reject-file-fg: #c76849;
+  --ink-change-review-reject-file-hover-fg: #b4543a;
+  --ink-change-review-status-fg: rgba(13,13,13,0.48);
+  --ink-change-review-subagent-badge-bg: rgba(13,13,13,0.045);
+  --ink-change-review-subagent-badge-border: 1px solid rgba(248,248,246,0.14);
+  --ink-change-review-subagent-badge-border-override: rgba(13,13,13,0.14);
+  --ink-change-review-subagent-badge-fg: rgba(13,13,13,0.50);
+  --ink-change-review-turn-bg: rgba(13,13,13,0.018);
+  --ink-change-review-turn-border: 1px solid rgba(248,248,246,0.08);
+  --ink-change-review-turn-border-override: rgba(13,13,13,0.10);
+  --ink-change-review-turn-fg: rgba(13,13,13,0.84);
+  --ink-change-review-turn-title-fg: rgba(13,13,13,0.88);
+  --ink-chip-bg: #ead8cf;
+  --ink-chip-bg-hover: #e2c8bc;
+  --ink-chip-fg: #8f452b;
+  --ink-composer-badge-label: #0d0d0d;
+  --ink-composer-badge-value: #797569;
+  --ink-composer-input-bg: #ffffff;
+  --ink-custom-model-action-after-fg: rgba(180,84,58,0.56);
+  --ink-custom-model-action-hover-fg: rgba(180,84,58,0.80);
+  --ink-custom-model-cancel-border: 1px solid rgba(255,255,255,0.10);
+  --ink-custom-model-cancel-border-override: rgba(60,55,40,0.14);
+  --ink-custom-model-cancel-fg: rgba(13,13,13,0.70);
+  --ink-custom-model-close-fg: rgba(13,13,13,0.56);
+  --ink-custom-model-dialog-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
+  --ink-custom-model-error-fg: #b4543a;
+  --ink-custom-model-header-border-bottom: 1px solid rgba(255,255,255,0.08);
+  --ink-custom-model-header-border-bottom-override: rgba(60,55,40,0.10);
+  --ink-custom-model-input-bg: #faf9f5;
+  --ink-custom-model-input-border: 1px solid rgba(255,255,255,0.08);
+  --ink-custom-model-input-border-override: rgba(60,55,40,0.12);
+  --ink-custom-model-input-caret: #a8896e;
+  --ink-custom-model-input-focus-border: rgba(60,55,40,0.12);
+  --ink-custom-model-input-placeholder-fg: rgba(61,57,41,0.42);
+  --ink-custom-model-label-fg: rgba(13,13,13,0.58);
+  --ink-custom-model-modal-bg: rgba(60,55,40,0.32);
+  --ink-custom-model-submit-bg: #a8896e;
+  --ink-custom-model-submit-fg: #1f1f1e;
+  --ink-deferred-dragging-bg: rgba(13,13,13,0.05);
+  --ink-deferred-dragging-shadow: 0 6px 18px rgba(60,55,40,0.20);
+  --ink-deferred-next-bg: #efeee9;
+  --ink-deferred-next-edit-cancel-fg: rgba(248,248,246,0.62);
+  --ink-deferred-next-edit-cancel-fg-override: rgba(13,13,13,0.58);
+  --ink-deferred-next-edit-cancel-hover-bg: rgba(13,13,13,0.06);
+  --ink-deferred-next-edit-cancel-hover-fg: rgba(248,248,246,0.92);
+  --ink-deferred-next-edit-cancel-hover-fg-override: rgba(13,13,13,0.88);
+  --ink-deferred-next-edit-save-fg: #c76849;
+  --ink-deferred-next-edit-save-hover-fg-override: #c76849;
+  --ink-deferred-next-error-bg: rgba(199,104,73,0.12);
+  --ink-deferred-next-error-fg: #b4543a;
+  --ink-deferred-next-fg: rgba(13,13,13,0.84);
+  --ink-deferred-next-grip-fg: rgba(13,13,13,0.26);
+  --ink-deferred-next-grip-hover-fg: rgba(13,13,13,0.5);
+  --ink-deferred-next-guide-fg: rgba(13,13,13,0.68);
+  --ink-deferred-next-guide-hover-fg: #c76849;
+  --ink-deferred-next-shadow: 0 2px 10px rgba(0,0,0,0.08),0 1px 3px rgba(0,0,0,0.06);
+  --ink-deferred-next-text-fg: rgba(13,13,13,0.64);
+  --ink-deferred-next-textarea-bg: #f8f8f6;
+  --ink-deferred-next-textarea-fg: rgba(13,13,13,0.88);
+  --ink-deferred-next-textarea-shadow: inset 0 0 0 1px rgba(13,13,13,0.10);
+  --ink-deferred-row-border-top: 1px solid rgba(13,13,13,0.07);
+  --ink-del-bar: #cf222e;
+  --ink-del-char-bg: #ff818266;
+  --ink-del-fg: #c92626;
+  --ink-del-line-bg: #ffebe980;
+  --ink-dialog-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
+  --ink-diff-add-border: rgba(40, 132, 55, 0.34);
+  --ink-diff-border: rgba(0, 0, 0, 0.10);
+  --ink-diff-button-bg: #fafaf5;
+  --ink-diff-button-bg-hover: #f2f2eb;
+  --ink-diff-button-border: rgba(0, 0, 0, 0.12);
+  --ink-diff-button-text: #0d0d0d;
+  --ink-diff-del-border: rgba(176, 62, 54, 0.34);
+  --ink-diff-divider: rgba(0, 0, 0, 0.08);
+  --ink-diff-editor-container-bg: rgba(0,0,0,0.20);
+  --ink-diff-gradient-start: rgba(250, 250, 245, 0);
+  --ink-diff-header-bg: #e6e4de;
+  --ink-diff-header-border: rgba(31, 35, 40, 0.08);
+  --ink-diff-header-text: #3f3d38;
+  --ink-diff-muted: #666258;
+  --ink-diff-overlay-hover: rgba(60, 55, 40, 0.055);
+  --ink-diff-overview: rgba(60, 55, 40, 0.045);
+  --ink-diff-shadow: rgba(60, 55, 40, 0.10);
+  --ink-diff-surface: #fafaf5;
+  --ink-diff-text: #0d0d0d;
+  --ink-disabled-fg: rgba(60,55,40,0.40);
+  --ink-disabled-hover-fg: rgba(60,55,40,0.40);
+  --ink-disabled-hover-fg-2: #bf5d3a;
+  --ink-dropdown-bg: #faf9f5;
+  --ink-dropdown-border: rgba(60,55,40,0.12);
+  --ink-dropdown-border-2: rgba(0,0,0,0.06);
+  --ink-dropdown-placeholder-fg: rgba(61,57,41,0.46);
+  --ink-dropdown-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
+  --ink-edit-hover-preview-bg: #272727;
+  --ink-edit-hover-preview-bg-override: #e6e4de;
+  --ink-editor-bg: #e6e4de;
+  --ink-file-drag-hint-after-bg: #ffffff;
+  --ink-file-drag-hint-after-border: 1px solid rgba(217,119,87,0.36);
+  --ink-file-drag-hint-after-border-override: rgba(191,93,58,0.42);
+  --ink-file-drag-hint-after-fg: #797569;
+  --ink-file-drag-hint-after-shadow: 0 4px 14px rgba(60,55,40,0.12);
+  --ink-file-drag-hint-bg: #fffdf8;
+  --ink-file-drag-hint-shadow: 0 6px 22px rgba(60,55,40,0.08),0 1px 4px rgba(60,55,40,0.06),inset 0 0 0 1px rgba(191,93,58,0.42);
+  --ink-fill-bg: #a8896e;
+  --ink-image-preview-bg: rgba(0,0,0,0.78);
+  --ink-image-preview-close-bg: rgba(0,0,0,0.55);
+  --ink-image-preview-close-border: 1px solid rgba(255,255,255,0.10);
+  --ink-image-preview-close-fg: #ffffff;
+  --ink-image-preview-close-hover-bg: rgba(0,0,0,0.78);
+  --ink-image-preview-img-shadow: 0 8px 36px rgba(0,0,0,0.55);
+  --ink-incipit-ask-collapsed-meta-fg: rgba(61,57,41,0.46);
+  --ink-incipit-edit-chip-add-border: 1px dashed rgba(255,255,255,0.20);
+  --ink-incipit-edit-chip-add-border-override: rgba(60,55,40,0.22);
+  --ink-incipit-edit-chip-add-fg: rgba(255,255,255,0.5);
+  --ink-incipit-edit-chip-add-fg-override: rgba(60,55,40,0.50);
+  --ink-incipit-edit-chip-add-hover-border: rgba(217,119,87,0.65);
+  --ink-incipit-edit-chip-add-hover-border-override: rgba(191,93,58,0.65);
+  --ink-incipit-edit-chip-add-hover-fg: rgba(217,119,87,0.95);
+  --ink-incipit-edit-chip-add-hover-fg-override: rgba(191,93,58,0.95);
+  --ink-incipit-edit-chip-bg: rgba(255,255,255,0.06);
+  --ink-incipit-edit-chip-bg-override: rgba(60,55,40,0.06);
+  --ink-incipit-edit-chip-border: 1px solid rgba(255,255,255,0.08);
+  --ink-incipit-edit-chip-border-override: rgba(60,55,40,0.14);
+  --ink-incipit-edit-chip-fg: #bcbcb9;
+  --ink-incipit-edit-chip-fg-override: #5e5b50;
+  --ink-incipit-edit-chip-icon-fg: rgba(217,119,87,0.85);
+  --ink-incipit-edit-chip-icon-fg-override: rgba(191,93,58,0.95);
+  --ink-incipit-edit-chip-image-bg: rgba(255,255,255,0.06);
+  --ink-incipit-edit-chip-image-bg-override: rgba(60,55,40,0.06);
+  --ink-incipit-edit-chip-x-bg: rgba(0,0,0,0.55);
+  --ink-incipit-edit-chip-x-fg: #ffffff;
+  --ink-incipit-edit-chip-x-hover-bg: rgba(0,0,0,0.72);
+  --ink-incipit-inline-edit-textarea-caret: #d97757;
+  --ink-incipit-inline-edit-textarea-caret-override: #bf5d3a;
+  --ink-incipit-permission-collapse-btn-fg: rgba(61,57,41,0.56);
+  --ink-incipit-permission-collapse-btn-hover-bg: #f4f2ec;
+  --ink-incipit-transcript-action-rerun-hover-bg: rgba(191,93,58,0.10);
+  --ink-incipit-transcript-action-save-fg: rgba(217,119,87,0.92);
+  --ink-incipit-transcript-action-save-fg-override: #bf5d3a;
+  --ink-incipit-transcript-action-save-hover-bg: rgba(255,255,255,0.06);
+  --ink-incipit-transcript-action-save-hover-bg-override: rgba(60,55,40,0.06);
+  --ink-incipit-transcript-action-save-hover-fg: #e3937a;
+  --ink-incipit-transcript-action-save-hover-fg-override: #a64f30;
+  --ink-inline-edit-shell-bg: #272727;
+  --ink-inline-edit-shell-bg-override: #e6e4de;
+  --ink-input-container-background-shadow: 0 2px 10px rgba(60,55,40,0.05),0 1px 3px rgba(60,55,40,0.04),inset 0 0 0 1px rgba(60,55,40,0.13);
+  --ink-keyboard-hints-fg: rgba(61,57,41,0.56);
+  --ink-keys-bg: rgba(60,55,40,0.06);
+  --ink-keys-border: 1px solid rgba(248,246,240,0.24);
+  --ink-keys-border-override: rgba(60,55,40,0.26);
+  --ink-list-active-bg: #e6e4de;
+  --ink-list-active-fg: #0d0d0d;
+  --ink-list-hover-bg: #f4f2ec;
+  --ink-markdown-root-focus-visible-outline: 1px solid rgba(191,93,58,0.6);
+  --ink-markdown-root-image: radial-gradient(circle,rgba(191,93,58,0.85) 1px,transparent 1.6px);
+  --ink-menu-divider-bg: rgba(60,55,40,0.20);
+  --ink-menu-popup-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
+  --ink-message-after-bg: rgba(60,55,40,0.14);
+  --ink-message-bg: linear-gradient(to right,transparent,rgba(150,145,130,0.30) 20%,rgba(150,145,130,0.30) 80%,transparent);
+  --ink-message-border-bottom: 1px solid rgba(160,150,130,0.30);
+  --ink-message-border-bottom-2: 1.5px solid rgba(160,150,130,0.45);
+  --ink-message-border-left: 3px solid rgba(120,115,100,0.35);
+  --ink-message-fg: rgba(61,57,41,0.72);
+  --ink-notes-add-fg: rgba(248,248,246,0.58);
+  --ink-notes-add-fg-override: rgba(13,13,13,0.55);
+  --ink-notes-add-hover-bg: #121212;
+  --ink-notes-add-hover-bg-override: #e6e4de;
+  --ink-notes-add-hover-fg: #f8f8f6;
+  --ink-notes-add-hover-fg-override: #0d0d0d;
+  --ink-notes-bubble-bg: #2c2c2a;
+  --ink-notes-bubble-bg-override: #ffffff;
+  --ink-notes-bubble-dismiss-fg: rgba(248,248,246,0.62);
+  --ink-notes-bubble-dismiss-fg-override: rgba(13,13,13,0.62);
+  --ink-notes-bubble-dismiss-hover-bg: #121212;
+  --ink-notes-bubble-dismiss-hover-bg-override: #e6e4de;
+  --ink-notes-bubble-dismiss-hover-fg: #f8f8f6;
+  --ink-notes-bubble-dismiss-hover-fg-override: #0d0d0d;
+  --ink-notes-bubble-fg: #f8f8f6;
+  --ink-notes-bubble-fg-override: #0d0d0d;
+  --ink-notes-bubble-insert-bg: #a8896e;
+  --ink-notes-bubble-insert-fg: #1f1f1e;
+  --ink-notes-bubble-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-notes-bubble-shadow-override: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
+  --ink-notes-bubble-text-fg: rgba(248,248,246,0.86);
+  --ink-notes-bubble-text-fg-override: rgba(13,13,13,0.82);
+  --ink-notes-delete-fg: rgba(248,248,246,0.50);
+  --ink-notes-delete-fg-override: rgba(13,13,13,0.50);
+  --ink-notes-delete-hover-bg: rgba(255,255,255,0.10);
+  --ink-notes-delete-hover-bg-override: rgba(13,13,13,0.10);
+  --ink-notes-delete-hover-fg: #f8f8f6;
+  --ink-notes-delete-hover-fg-override: #0d0d0d;
+  --ink-notes-editor-cancel-fg: rgba(248,248,246,0.62);
+  --ink-notes-editor-cancel-fg-override: rgba(13,13,13,0.62);
+  --ink-notes-editor-cancel-hover-bg: #121212;
+  --ink-notes-editor-cancel-hover-bg-override: #e6e4de;
+  --ink-notes-editor-cancel-hover-fg: #f8f8f6;
+  --ink-notes-editor-cancel-hover-fg-override: #0d0d0d;
+  --ink-notes-editor-save-bg: #a8896e;
+  --ink-notes-editor-save-fg: #1f1f1e;
+  --ink-notes-empty-fg: rgba(248,248,246,0.40);
+  --ink-notes-empty-fg-override: rgba(13,13,13,0.42);
+  --ink-notes-insert-fg: #f8f8f6;
+  --ink-notes-insert-fg-override: #0d0d0d;
+  --ink-notes-panel-bg: #2c2c2a;
+  --ink-notes-panel-fg: #f8f8f6;
+  --ink-notes-panel-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-notes-row-hover-bg: #121212;
+  --ink-notes-row-hover-bg-override: #e6e4de;
+  --ink-notes-tab-after-bg: #a8896e;
+  --ink-notes-tab-fg: rgba(248,248,246,0.46);
+  --ink-notes-tab-fg-2: #f8f8f6;
+  --ink-notes-tab-fg-override: rgba(13,13,13,0.46);
+  --ink-notes-tab-fg-override-2: #0d0d0d;
+  --ink-notes-tab-hover-fg: rgba(248,248,246,0.80);
+  --ink-notes-tab-hover-fg-override: rgba(13,13,13,0.78);
+  --ink-notes-textarea-bg: #1f1f1e;
+  --ink-notes-textarea-bg-override: #faf9f5;
+  --ink-notes-textarea-caret: #a8896e;
+  --ink-notes-textarea-fg: #f8f8f6;
+  --ink-notes-textarea-fg-override: #0d0d0d;
+  --ink-notes-textarea-placeholder-fg: rgba(248,248,246,0.36);
+  --ink-notes-textarea-placeholder-fg-override: rgba(61,57,41,0.42);
+  --ink-overlay-bg: rgba(60,55,40,0.32);
+  --ink-path-context-menu-item-hover-bg: rgba(60,55,40,0.08);
+  --ink-path-context-menu-shadow: 0 12px 32px rgba(60,55,40,0.14),0 2px 8px rgba(60,55,40,0.08);
+  --ink-path-tooltip-shadow: 0 3px 14px rgba(60,55,40,0.10),0 1px 4px rgba(60,55,40,0.07);
+  --ink-permission-collapsed-bar-bg: transparent;
+  --ink-permission-collapsed-bar-border: 1px solid rgba(245,242,232,0.10);
+  --ink-permission-collapsed-bar-border-override: rgba(60,55,40,0.12);
+  --ink-permission-collapsed-bar-hover-bg: rgba(230,228,222,0.50);
+  --ink-permission-collapsed-bar-hover-border: rgba(60,55,40,0.14);
+  --ink-permission-collapsed-before-bg: rgba(61,57,41,0.62);
+  --ink-permission-collapsed-hover-bg: #f4f2ec;
+  --ink-permission-request-container-bg: #faf9f5;
+  --ink-permission-request-container-caret: #a8896e;
+  --ink-permission-request-container-hover-shadow: inset 0 0 0 1px rgba(60,55,40,0.12);
+  --ink-permission-request-container-placeholder-fg: rgba(61,57,41,0.42);
+  --ink-permission-request-container-shadow: 0 12px 36px rgba(60,55,40,0.20),0 2px 8px rgba(60,55,40,0.12);
+  --ink-permission-request-container-shadow-2: inset 0 0 0 1px rgba(60,55,40,0.12);
+  --ink-plugin-item-bg: #e6e4de;
+  --ink-plugin-item-border: rgba(60,55,40,0.10);
+  --ink-plugin-item-hover-border: rgba(191,93,58,0.45);
+  --ink-plugin-meta-text-decoration-color: rgba(191,93,58,0.7);
+  --ink-primary-fg: #ffffff;
+  --ink-rule: rgba(150,145,130,0.30);
+  --ink-scrollbar-thumb: #b0b0ae;
+  --ink-scrollbar-thumb-active: #6f6f6d;
+  --ink-scrollbar-thumb-hover: #8a8a88;
+  --ink-scrollbar-track: transparent;
+  --ink-search-input-bg: #faf9f5;
+  --ink-search-input-border: rgba(60,55,40,0.14);
+  --ink-search-input-focus-border: rgba(191,93,58,0.55);
+  --ink-section-header-border-bottom: rgba(60,55,40,0.14);
+  --ink-send-bg: #e6e4de;
+  --ink-send-bg-hover: #dddbd5;
+  --ink-send-button-fg: #8a7d5a;
+  --ink-send-button-fg-2: #797569;
+  --ink-send-default-fg: #0d0d0d;
+  --ink-spinner-icon-fg: #797569;
+  --ink-spinner-icon-fg-2: #9a9686;
+  --ink-spinner-icon-fg-3: #b3afa0;
+  --ink-status-dot-enabled-bg: #1c9c1c;
+  --ink-surface-bg: rgba(191,93,58,0.08);
+  --ink-surface-border: rgba(191,93,58,0.40);
+  --ink-surface-border-bottom: 1px dashed #c63a3a;
+  --ink-surface-canvas: #f8f8f6;
+  --ink-surface-code: #e6e4de;
+  --ink-surface-elevated: #ffffff;
+  --ink-surface-fg: #c63a3a;
+  --ink-surface-fg-2: rgba(61,57,41,0.55);
+  --ink-surface-fg-3: rgba(61,57,41,0.55);
+  --ink-surface-fg-4: #8a7d5a;
+  --ink-surface-hover-bg: rgba(60,55,40,0.06);
+  --ink-surface-message-canvas: #f8f8f6;
+  --ink-surface-panel: #ffffff;
+  --ink-surface-raised: #f4f2ec;
+  --ink-surface-recessed: #e6e4de;
+  --ink-tab-badge-bg: rgba(191,93,58,0.14);
+  --ink-tab-bar-border-bottom: rgba(60,55,40,0.14);
+  --ink-text-primary: #0d0d0d;
+  --ink-text-quote: #797569;
+  --ink-text-secondary: #797569;
+  --ink-text-strong: #0d0d0d;
+  --ink-text-tertiary: #797569;
+  --ink-text-tool-secondary: #8c897e;
+  --ink-thinking-summary-fg-override: #8c897e;
+  --ink-thumb-bg-override: #ffffff;
+  --ink-thumb-icon-border: rgba(0,0,0,0.10);
+  --ink-thumb-icon-hover-border: rgba(0,0,0,0.20);
+  --ink-title-group-bg: #f8f8f6;
+  --ink-title-group-shadow: inset 0 -1px 0 rgba(0,0,0,0.14);
+  --ink-tool-added-fg-override: #2f8c3a;
+  --ink-tool-added-hover-fg-override: #1c9c1c;
+  --ink-tool-filepath-hover-bg: rgba(217,119,87,0.22);
+  --ink-tool-filepath-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
+  --ink-tool-fingerprint-aux-fg: #bf5d3a;
+  --ink-tool-fingerprint-aux-hover-fg-override: #bf5d3a;
+  --ink-tool-grep-expansion-border: 1px solid rgba(0,0,0,0.16);
+  --ink-tool-grep-filename-image: radial-gradient(circle,rgba(191,93,58,0.85) 1px,transparent 1.6px);
+  --ink-tool-grep-more-fg: #a39f8e;
+  --ink-tool-out-more-fg: #a39f8e;
+  --ink-tool-removed-fg-override: #b24740;
+  --ink-tool-removed-hover-fg-override: #c92626;
+  --ink-tool-summary-fg: #9c9c9a;
+  --ink-tool-summary-hover-fg-override: #0d0d0d;
+  --ink-tool-use-border: 1px solid rgba(255,255,255,0.16);
+  --ink-tool-use-border-override: rgba(0,0,0,0.16);
+  --ink-tool-use-border-top: 1px solid rgba(255,255,255,0.10);
+  --ink-tool-use-border-top-color-override: rgba(0,0,0,0.10);
+  --ink-track-on-bg: #a8896e;
+  --ink-transcript-toast-border: 1px solid rgba(248,246,240,0.12);
+  --ink-transcript-toast-border-2: rgba(176,62,54,0.30);
+  --ink-transcript-toast-border-override: rgba(60,55,40,0.12);
+  --ink-transcript-toast-fg: #a43a34;
+  --ink-transcript-toast-shadow: 0 8px 28px rgba(60,55,40,0.12);
+  --ink-usage-fill-bg: #a8896e;
+  --ink-usage-track-bg-override: #d8d6cf;
+  --ink-write-diff-modal-bg: rgba(0,0,0,0.45);
+  --ink-write-diff-modal-bg-override: rgba(0,0,0,0.20);
+}
+
 /* ============================================================
-   Warm-white palette overrides — "ivory paper" variant.
+   Warm-white palette — semantic tokens plus structural exceptions.
 
-   Loaded only when `globalThis.__incipitConfig.theme.palette === 'warm-white'`.
-   The dark `theme.css` is always loaded; this file replays the same
-   selectors with light-scheme colors and rides the cascade after it.
-   Layout, spacing, and animation rules are NOT touched. The only
-   typography divergence is the body reading face — see the
-   "Reading face" block below for rationale.
-
-   Anchor colors:
-     #f8f8f6  primary background (warm paper)
-     #ffffff  input fill / popup / dropdown / tooltip
-     #E6E4DE  user bubble = code block = list-active selection
-              = send button base (embedded-content surfaces share one weight)
-     #F4F2EC  list hover (lightest interactive step)
-     #DDDBD5  pill / send / cache-badge active-hover (deepest interactive surface)
-    #0d0d0d  primary foreground (near-black ink)
-     #797569  secondary foreground (ash brown)
-     #bf5d3a  accent (deepened from dark-mode #d97757 for light contrast)
+   The complete colour palette lives in the generated :root block above.
+   Rules retained below are limited to warm-white-only typography and
+   cascade/geometry exceptions that cannot be represented by root tokens
+   without changing the frozen pre-tokenization rendering contract.
    ============================================================ */
 
 /* ---------- Reading face: PaperReading 500 weight bump, opt-in ----------
@@ -66,27 +516,6 @@
    in `enhance.js > applyAppVarOverrides()` continues to handle inline-
    style drift via its MutationObserver. */
 :root {
-  --app-background: #f8f8f6 !important;
-  --app-primary-background: #f8f8f6 !important;
-  --app-root-background: #f8f8f6 !important;
-  --app-secondary-background: #f8f8f6 !important;
-  --app-tool-background: #f8f8f6 !important;
-  --app-header-background: #f8f8f6 !important;
-  --app-input-background: #f8f8f6 !important;
-  --app-input-secondary-background: #f8f8f6 !important;
-  --app-menu-background: #f8f8f6 !important;
-  --app-primary-foreground: #0d0d0d !important;
-  --app-input-foreground: #0d0d0d !important;
-  --app-input-secondary-foreground: #0d0d0d !important;
-  --app-menu-foreground: #0d0d0d !important;
-  --app-secondary-foreground: #797569 !important;
-  --app-secondary-text: #797569 !important;
-  --incipit-message-mention-chip-background: #ead8cf;
-  --incipit-message-mention-chip-foreground: #8f452b;
-  --incipit-message-mention-chip-background-hover: #e2c8bc;
-  --incipit-composer-mention-chip-background: #ead8cf;
-  --incipit-composer-mention-chip-foreground: #8f452b;
-  --incipit-composer-mention-chip-background-hover: #e2c8bc;
   --incipit-mermaid-text: #0d0d0d;
   --incipit-mermaid-muted: #5f5a50;
   --incipit-mermaid-inverse-text: #f8f8f6;
@@ -158,68 +587,6 @@
   font-family: var(--incipit-paper-reading-font, 'PaperReading'), var(--incipit-body-font) !important;
 }
 
-/* ---------- Base surface ---------- */
-[data-incipit-messages-container] {
-  background: #f8f8f6 !important;
-  background-color: #f8f8f6 !important;
-}
-
-/* Timeline vertical connector. */
-[data-incipit-message]::after {
-  background-color: rgba(60,55,40,0.14) !important;
-}
-
-/* ---------- Selection ---------- */
-[data-incipit-message] ::selection,
-[data-incipit-markdown-root] ::selection {
-  background: rgba(191,93,58,0.22) !important;
-}
-
-/* ---------- Links ---------- */
-[data-incipit-message] a,
-[data-incipit-message] a:link,
-[data-incipit-message] a:visited,
-[data-incipit-markdown-root] a,
-[data-incipit-markdown-root] a:link,
-[data-incipit-markdown-root] a:visited {
-  background-image:
-    radial-gradient(circle, rgba(191,93,58,0.85) 1px, transparent 1.6px) !important;
-}
-[data-incipit-message] a:hover,
-[data-incipit-markdown-root] a:hover {
-  background-color: rgba(191,93,58,0.16) !important;
-}
-[data-incipit-message] a:focus-visible,
-[data-incipit-markdown-root] a:focus-visible {
-  outline: 1px solid rgba(191,93,58,0.6);
-}
-
-/* ---------- Horizontal rule ---------- */
-[data-incipit-message] hr {
-  background: linear-gradient(to right,
-    transparent,
-    rgba(150,145,130,0.30) 20%,
-    rgba(150,145,130,0.30) 80%,
-    transparent);
-}
-
-/* ---------- Block quote ---------- */
-[data-incipit-markdown-root] blockquote,
-[data-incipit-message] blockquote {
-  border-left: 3px solid rgba(120,115,100,0.35) !important;
-  color: #797569 !important;
-}
-[data-incipit-markdown-root] blockquote p,
-[data-incipit-message] blockquote p {
-  color: #797569 !important;
-}
-
-/* ---------- KaTeX render error ---------- */
-.claude-math[data-render-error] {
-  color: #c63a3a;
-  border-bottom: 1px dashed #c63a3a;
-}
-
 /* ---------- Tool summary + thinking summary unified middle tone ----------
    Two host elements share the "secondary inactive header" semantic:
      - tool-summary (Bash / Edit / Grep row title) → host has no opacity, we
@@ -234,7 +601,7 @@
 [data-incipit-tool-use] [data-incipit-tool-summary],
 [data-incipit-thinking-summary],
 [class*="thinkingSummary"] {
-  color: #8c897e !important;
+  color: var(--ink-thinking-summary-fg-override) !important;
   opacity: 1 !important;
 }
 
@@ -249,17 +616,9 @@
    click target. */
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover,
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover * {
-  color: #0d0d0d !important;
+  color: var(--ink-tool-summary-hover-fg-override) !important;
   opacity: 1 !important;
 }
-
-/* +N / −M stats keep their semantic accent — vivid hue for light bg.
-   Earlier muted hues (#3d8c3d / #a83a3a) read as washed-out brown-greens
-   and brown-reds against cream paper; warm-white cannot lean on
-   subtractive contrast the way a dark surface does, so push hue
-   saturation up so the marks stay legible at glanceable sizes. */
-[data-incipit-tool-added]   { color: #1c9c1c !important; }
-[data-incipit-tool-removed] { color: #c92626 !important; }
 
 /* Hover-state exception: the `:hover *` universal above (specificity 0,3,0
    + !important) beats the plain `[data-incipit-tool-added]` accent rule
@@ -269,40 +628,13 @@
    !important win the cascade. Re-assert each accent inside `:hover` with
    a 4-attr selector (0,4,0) so it outranks the universal sweep. */
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover [data-incipit-tool-added] {
-  color: #1c9c1c !important;
+  color: var(--ink-tool-added-hover-fg-override) !important;
 }
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover [data-incipit-tool-removed] {
-  color: #c92626 !important;
-}
-
-/* ---------- Grep takeover ---------- */
-[data-incipit-tool-grep-filename] {
-  background-image:
-    radial-gradient(circle, rgba(191,93,58,0.85) 1px, transparent 1.6px);
-}
-[data-incipit-tool-grep-filename]:hover {
-  background-color: rgba(191,93,58,0.16);
-}
-[data-incipit-tool-fingerprint-aux] {
-  color: #bf5d3a !important;
+  color: var(--ink-tool-removed-hover-fg-override) !important;
 }
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover [data-incipit-tool-fingerprint-aux] {
-  color: #bf5d3a !important;
-}
-[data-incipit-tool-grep-expansion] {
-  border: 1px solid rgba(0,0,0,0.16);
-}
-[data-incipit-tool-grep-label] {
-  color: #797569;
-}
-[data-incipit-tool-grep-content] {
-  color: #0d0d0d;
-}
-[data-incipit-tool-grep-more] {
-  color: #a39f8e;
-}
-[data-incipit-tool-grep-more]:hover {
-  color: #0d0d0d;
+  color: var(--ink-tool-fingerprint-aux-hover-fg-override) !important;
 }
 
 /* ---------- Generic IN/OUT block (host shared template) ---------- */
@@ -311,25 +643,10 @@
    toolBodyRowContent` template so Bash, PowerShell, LSP, MCP,
    Read, TodoWrite etc. share the same paper-leaf look as Grep. */
 [data-incipit-tool-use] [class*="toolBodyGrid"] {
-  border-color: rgba(0, 0, 0, 0.16);
+  border-color: var(--ink-tool-use-border-override);
 }
 [data-incipit-tool-use] [class*="toolBodyRow"] {
-  border-top-color: rgba(0, 0, 0, 0.10);
-}
-[data-incipit-tool-use] [class*="toolBodyRowLabel"] {
-  color: #797569;
-}
-[data-incipit-tool-use] [class*="toolBodyRowContent"] {
-  color: #0d0d0d;
-}
-
-/* IN/OUT truncation toggle — mirror the warm-white Grep "show more"
-   colour so all fold-out tools share one affordance vocabulary. */
-[data-incipit-tool-out-more] {
-  color: #a39f8e;
-}
-[data-incipit-tool-out-more]:hover {
-  color: #0d0d0d;
+  border-top-color: var(--ink-tool-use-border-top-color-override);
 }
 
 /* ---------- Path tooltip portal ---------- */
@@ -339,29 +656,10 @@
    frame here, so the ambient halo is bumped one notch above the input's
    pair to carry the edge on its own. */
 [data-incipit-path-tooltip] {
-  background: #ffffff;
-  color: #0d0d0d;
   border: 0;
-  box-shadow: 0 3px 14px rgba(60,55,40,0.10),
-              0 1px 4px rgba(60,55,40,0.07);
 }
 [data-incipit-path-context-menu] {
-  background: #ffffff;
-  color: #0d0d0d;
   border: 0;
-  box-shadow: 0 12px 32px rgba(60,55,40,0.14),
-              0 2px 8px rgba(60,55,40,0.08);
-}
-[data-incipit-path-context-menu-item]:hover,
-[data-incipit-path-context-menu-item]:focus {
-  background: rgba(60,55,40,0.08);
-}
-
-/* ---------- Code block ---------- */
-[data-incipit-markdown-root] pre,
-[data-incipit-message] [data-incipit-markdown-root] pre {
-  background: #E6E4DE !important;
-  background-color: #E6E4DE !important;
 }
 
 /* Tool body pre / code / toolResult must NOT inherit the code-block
@@ -455,56 +753,8 @@
   color: var(--incipit-diff-header-text) !important;
 }
 
-[class*="modalBackdrop_"]:has([class*="diffEditorContainer"]) {
-  background-color: rgba(0, 0, 0, 0.20) !important;
-}
-
 [data-incipit-write-diff-modal] {
-  background-color: rgba(0, 0, 0, 0.20);
-}
-
-/* ---------- Tables ---------- */
-[data-incipit-markdown-root] table th,
-[data-incipit-markdown-root] table td,
-[data-incipit-message] table th,
-[data-incipit-message] table td {
-  border-bottom: 1px solid rgba(160,150,130,0.30) !important;
-}
-[data-incipit-markdown-root] table thead th,
-[data-incipit-message] table thead th {
-  border-bottom: 1.5px solid rgba(160,150,130,0.45) !important;
-  color: rgba(61,57,41,0.72);
-}
-
-/* ---------- Permission-mode "softened" indicator ---------- */
-[data-claude-softened] {
-  color: #bf5d3a !important;
-  background: rgba(191,93,58,0.08) !important;
-  border-color: rgba(191,93,58,0.40) !important;
-}
-[data-claude-softened] * {
-  color: #bf5d3a !important;
-  fill: #bf5d3a !important;
-  stroke: #bf5d3a !important;
-}
-
-/* ---------- Send / stop button ---------- */
-[data-incipit-send-button] {
-  background-color: #E6E4DE !important;
-  color: #0d0d0d !important;
-}
-[data-incipit-send-button]:hover {
-  background-color: #DDDBD5 !important;
-}
-[data-incipit-send-button][data-permission-mode="acceptEdits"] {
-  color: #8a7d5a !important;
-}
-[data-incipit-send-button][data-permission-mode="plan"] {
-  color: #797569 !important;
-}
-[data-incipit-send-button][data-permission-mode="bypassPermissions"],
-[data-incipit-send-button][data-permission-mode="auto"] {
-  color: #bf5d3a !important;
+  background-color: var(--ink-write-diff-modal-bg-override);
 }
 
 /* ---------- Input container (pure white card on cream paper)
@@ -521,14 +771,7 @@ fieldset[class*="inputContainer_"][data-permission-mode]:focus-within,
   outline: none !important;
 }
 [class*="inputContainerBackground"] {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
   border-radius: 10px !important;
-  /* Non-metric edge: an inset line on the host background layer keeps the
-     white card readable without changing the composer editor's client box. */
-  box-shadow: 0 2px 10px rgba(60,55,40,0.05),
-              0 1px 3px rgba(60,55,40,0.04),
-              inset 0 0 0 1px rgba(60,55,40,0.13) !important;
 }
 
 fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"],
@@ -539,330 +782,107 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]:focus-wit
   border-color: transparent !important;
   outline: none !important;
 }
-fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"] [class*="inputContainerBackground"],
-[class*="inputContainer_"][data-incipit-file-drag-hint="over"]:has(> [class*="inputContainerBackground"]) [class*="inputContainerBackground"] {
-  background: #fffdf8 !important;
-  background-color: #fffdf8 !important;
-  box-shadow: 0 6px 22px rgba(60,55,40,0.08),
-              0 1px 4px rgba(60,55,40,0.06),
-              inset 0 0 0 1px rgba(191,93,58,0.42) !important;
-}
 fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 [class*="inputContainer_"][data-incipit-file-drag-hint="over"]:has(> [class*="inputContainerBackground"])::after {
-  background: #ffffff;
-  color: #797569;
-  border-color: rgba(191,93,58,0.42);
-  box-shadow: 0 4px 14px rgba(60,55,40,0.12);
+  border-color: var(--ink-file-drag-hint-after-border-override);
 }
 
 [data-incipit-change-review-turn] {
-  background: rgba(13,13,13,0.018) !important;
-  border-color: rgba(13,13,13,0.10) !important;
-  color: rgba(13,13,13,0.84) !important;
+  border-color: var(--ink-change-review-turn-border-override) !important;
   box-shadow: none !important;
-}
-[data-incipit-deferred-next] {
-  background: #efeee9 !important;
-  color: rgba(13,13,13,0.84) !important;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08),
-              0 1px 3px rgba(0,0,0,0.06) !important;
-}
-[data-incipit-change-review-file-name],
-[data-incipit-change-review-turn-title] {
-  color: rgba(13,13,13,0.68) !important;
-}
-[data-incipit-change-review-turn-title] {
-  color: rgba(13,13,13,0.88) !important;
-}
-[data-incipit-change-review-reject-turn],
-[data-incipit-change-review-reject-file] {
-  color: rgba(13,13,13,0.58) !important;
-}
-[data-incipit-change-review-file-name]:hover,
-[data-incipit-change-review-file][data-incipit-change-review-clickable="1"]:hover
-  [data-incipit-change-review-file-name] {
-  color: rgba(13,13,13,0.88) !important;
-}
-[data-incipit-change-review-reject-turn]:hover,
-[data-incipit-change-review-reject-file]:hover {
-  color: #b4543a !important;
-}
-[data-incipit-change-review-reject-turn],
-[data-incipit-change-review-reject-file] {
-  color: #c76849 !important;
-}
-[data-incipit-change-review-error] {
-  color: #b4543a !important;
-  background: rgba(199,104,73,0.12) !important;
-}
-[data-incipit-change-review-file] {
-  border-top: 1px solid rgba(13,13,13,0.07) !important;
 }
 [data-incipit-change-review-more] {
   background: transparent !important;
-  color: rgba(13,13,13,0.5) !important;
 }
 [data-incipit-change-review-more]:hover {
   background: transparent !important;
-  color: rgba(13,13,13,0.86) !important;
-}
-[data-incipit-change-review-counts],
-[data-incipit-change-review-status] {
-  color: rgba(13,13,13,0.48) !important;
 }
 [data-incipit-change-review-source="subagent"] [data-incipit-change-review-file-name],
 [data-incipit-change-review-source="subagent"] [data-incipit-change-review-file-name]:hover {
   background: transparent !important;
-  color: rgba(13,13,13,0.52) !important;
 }
 [data-incipit-change-review-subagent-badge] {
-  border-color: rgba(13,13,13,0.14) !important;
-  color: rgba(13,13,13,0.50) !important;
-  background: rgba(13,13,13,0.045) !important;
-}
-[data-incipit-change-review-modal] {
-  background: rgba(60,55,40,0.32) !important;
-}
-[data-incipit-change-review-modal-message] {
-  color: rgba(13,13,13,0.74) !important;
-}
-[data-incipit-custom-model-action]::after {
-  color: rgba(180,84,58,0.56) !important;
-}
-[data-incipit-custom-model-action]:hover::after,
-[data-incipit-custom-model-action]:focus-visible::after {
-  color: rgba(180,84,58,0.80) !important;
-}
-[data-incipit-custom-model-modal] {
-  background: rgba(60,55,40,0.32) !important;
-}
-[data-incipit-custom-model-dialog] {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  color: #0d0d0d !important;
-  box-shadow: 0 12px 36px rgba(60,55,40,0.22),
-              0 2px 8px rgba(60,55,40,0.14) !important;
+  border-color: var(--ink-change-review-subagent-badge-border-override) !important;
 }
 [data-incipit-custom-model-header] {
-  border-bottom-color: rgba(60,55,40,0.10) !important;
-}
-[data-incipit-custom-model-close] {
-  color: rgba(13,13,13,0.56) !important;
-}
-[data-incipit-custom-model-close]:hover,
-[data-incipit-custom-model-close]:focus-visible {
-  background: #E6E4DE !important;
-  color: #0d0d0d !important;
-}
-[data-incipit-custom-model-label] {
-  color: rgba(13,13,13,0.58) !important;
+  border-bottom-color: var(--ink-custom-model-header-border-bottom-override) !important;
 }
 [data-incipit-custom-model-input] {
-  background: #faf9f5 !important;
-  background-color: #faf9f5 !important;
-  color: #0d0d0d !important;
-  caret-color: #a8896e !important;
-  border-color: rgba(60,55,40,0.12) !important;
-}
-[data-incipit-custom-model-input]::placeholder {
-  color: rgba(61,57,41,0.42) !important;
+  border-color: var(--ink-custom-model-input-border-override) !important;
 }
 [data-incipit-custom-model-input]:focus {
-  border-color: rgba(60,55,40,0.12) !important;
   box-shadow: none !important;
 }
-[data-incipit-custom-model-error] {
-  color: #b4543a !important;
-}
 [data-incipit-custom-model-cancel] {
-  border-color: rgba(60,55,40,0.14) !important;
-  color: rgba(13,13,13,0.70) !important;
-}
-[data-incipit-custom-model-cancel]:hover,
-[data-incipit-custom-model-cancel]:focus-visible {
-  background: #E6E4DE !important;
-  color: #0d0d0d !important;
-}
-[data-incipit-custom-model-submit] {
-  background: #a8896e !important;
-  background-color: #a8896e !important;
-  color: #1f1f1e !important;
+  border-color: var(--ink-custom-model-cancel-border-override) !important;
 }
 
 /* Notes icon + panel + reject bubble (warm-white). Flat menu language: no
    frames, selection = #E6E4DE fill on hover, fields = #faf9f5, action = #a8896e. */
-.cceNoteBtn { color: #0d0d0d !important; }
+.cceNoteBtn { color: var(--ink-cce-note-btn-fg-override) !important; }
 .cceNoteBtn:hover,
-.cceNoteBtn:focus-visible { background: #E6E4DE !important; color: #0d0d0d !important; }
-.cceNoteBtn.cceNoteBtnActive { background: #E6E4DE !important; }
-.cceNoteBtn.cceNoteBtnNudge { color: #b05545 !important; }
+.cceNoteBtn:focus-visible { background: var(--ink-cce-note-btn-hover-bg-override) !important; color: var(--ink-cce-note-btn-hover-fg-override) !important; }
+.cceNoteBtn.cceNoteBtnActive { background: var(--ink-cce-note-btn-active-bg-override) !important; }
+.cceNoteBtn.cceNoteBtnNudge { color: var(--ink-cce-note-btn-nudge-fg-override) !important; }
 [data-incipit-notes-panel],
 [data-incipit-notes-bubble] {
-  background: #ffffff !important;
-  box-shadow: 0 12px 36px rgba(60,55,40,0.22), 0 2px 8px rgba(60,55,40,0.14) !important;
-  color: #0d0d0d !important;
+  background: var(--ink-notes-bubble-bg-override) !important;
+  box-shadow: var(--ink-notes-bubble-shadow-override) !important;
+  color: var(--ink-notes-bubble-fg-override) !important;
 }
-[data-incipit-notes-tab] { color: rgba(13,13,13,0.46) !important; }
-[data-incipit-notes-tab]:hover { color: rgba(13,13,13,0.78) !important; }
-[data-incipit-notes-tab][data-active="1"] { color: #0d0d0d !important; }
-[data-incipit-notes-tab][data-active="1"]::after { background: #a8896e !important; }
-[data-incipit-notes-empty] { color: rgba(13,13,13,0.42) !important; }
-[data-incipit-notes-row]:hover { background: #E6E4DE !important; }
-[data-incipit-notes-insert] { color: #0d0d0d !important; }
+[data-incipit-notes-tab] { color: var(--ink-notes-tab-fg-override) !important; }
+[data-incipit-notes-tab]:hover { color: var(--ink-notes-tab-hover-fg-override) !important; }
+[data-incipit-notes-tab][data-active="1"] { color: var(--ink-notes-tab-fg-override-2) !important; }
+[data-incipit-notes-tab][data-active="1"]::after { background: var(--ink-notes-tab-after-bg) !important; }
+[data-incipit-notes-empty] { color: var(--ink-notes-empty-fg-override) !important; }
+[data-incipit-notes-row]:hover { background: var(--ink-notes-row-hover-bg-override) !important; }
+[data-incipit-notes-insert] { color: var(--ink-notes-insert-fg-override) !important; }
 [data-incipit-notes-edit],
-[data-incipit-notes-delete] { color: rgba(13,13,13,0.50) !important; }
+[data-incipit-notes-delete] { color: var(--ink-notes-delete-fg-override) !important; }
 [data-incipit-notes-edit]:hover,
-[data-incipit-notes-delete]:hover { background: rgba(13,13,13,0.10) !important; color: #0d0d0d !important; }
-[data-incipit-notes-add] { color: rgba(13,13,13,0.55) !important; }
-[data-incipit-notes-add]:hover { background: #E6E4DE !important; color: #0d0d0d !important; }
+[data-incipit-notes-delete]:hover { background: var(--ink-notes-delete-hover-bg-override) !important; color: var(--ink-notes-delete-hover-fg-override) !important; }
+[data-incipit-notes-add] { color: var(--ink-notes-add-fg-override) !important; }
+[data-incipit-notes-add]:hover { background: var(--ink-notes-add-hover-bg-override) !important; color: var(--ink-notes-add-hover-fg-override) !important; }
 [data-incipit-notes-textarea] {
-  background: #faf9f5 !important;
-  color: #0d0d0d !important;
-  caret-color: #a8896e !important;
+  background: var(--ink-notes-textarea-bg-override) !important;
+  color: var(--ink-notes-textarea-fg-override) !important;
+  caret-color: var(--ink-notes-textarea-caret) !important;
 }
-[data-incipit-notes-textarea]::placeholder { color: rgba(61,57,41,0.42) !important; }
-[data-incipit-notes-editor-cancel] { color: rgba(13,13,13,0.62) !important; }
-[data-incipit-notes-editor-cancel]:hover { background: #E6E4DE !important; color: #0d0d0d !important; }
+[data-incipit-notes-textarea]::placeholder { color: var(--ink-notes-textarea-placeholder-fg-override) !important; }
+[data-incipit-notes-editor-cancel] { color: var(--ink-notes-editor-cancel-fg-override) !important; }
+[data-incipit-notes-editor-cancel]:hover { background: var(--ink-notes-editor-cancel-hover-bg-override) !important; color: var(--ink-notes-editor-cancel-hover-fg-override) !important; }
 [data-incipit-notes-editor-save],
 [data-incipit-notes-bubble-insert] {
-  background: #a8896e !important;
-  color: #1f1f1e !important;
+  background: var(--ink-notes-bubble-insert-bg) !important;
+  color: var(--ink-notes-bubble-insert-fg) !important;
 }
-[data-incipit-notes-bubble-text] { color: rgba(13,13,13,0.82) !important; }
-[data-incipit-notes-bubble-dismiss] { color: rgba(13,13,13,0.62) !important; }
-[data-incipit-notes-bubble-dismiss]:hover { background: #E6E4DE !important; color: #0d0d0d !important; }
-
-[data-incipit-deferred-next-grip] {
-  color: rgba(13,13,13,0.26) !important;
-}
-[data-incipit-deferred-next-text] {
-  color: rgba(13,13,13,0.64) !important;
-}
+[data-incipit-notes-bubble-text] { color: var(--ink-notes-bubble-text-fg-override) !important; }
+[data-incipit-notes-bubble-dismiss] { color: var(--ink-notes-bubble-dismiss-fg-override) !important; }
+[data-incipit-notes-bubble-dismiss]:hover { background: var(--ink-notes-bubble-dismiss-hover-bg-override) !important; color: var(--ink-notes-bubble-dismiss-hover-fg-override) !important; }
 [data-incipit-deferred-next-guide],
 [data-incipit-deferred-next-icon-btn],
 [data-incipit-deferred-next-edit-save],
 [data-incipit-deferred-next-edit-cancel] {
-  color: rgba(13,13,13,0.58) !important;
+  color: var(--ink-deferred-next-edit-cancel-fg-override) !important;
 }
 [data-incipit-deferred-next-guide]:hover,
 [data-incipit-deferred-next-icon-btn]:hover,
 [data-incipit-deferred-next-edit-save]:hover,
 [data-incipit-deferred-next-edit-cancel]:hover {
-  background: rgba(13,13,13,0.06) !important;
-  color: rgba(13,13,13,0.88) !important;
+  color: var(--ink-deferred-next-edit-cancel-hover-fg-override) !important;
 }
 [data-incipit-deferred-next-guide] {
-  color: rgba(13,13,13,0.68) !important;
+  color: var(--ink-deferred-next-guide-fg) !important;
 }
 [data-incipit-deferred-next-guide]:hover,
 [data-incipit-deferred-next-edit-save] {
-  color: #c76849 !important;
-}
-/* Attachment chips reuse `.incipit-edit-chip*`, whose warm-white
-   overrides already live further down this file — no card-local
-   colour override needed here. */
-[data-incipit-deferred-next-textarea] {
-  background: #f8f8f6 !important;
-  color: rgba(13,13,13,0.88) !important;
-  box-shadow: inset 0 0 0 1px rgba(13,13,13,0.10) !important;
-}
-[data-incipit-deferred-row] + [data-incipit-deferred-row] {
-  border-top: 1px solid rgba(13,13,13,0.07) !important;
-}
-[data-incipit-deferred-row][data-incipit-deferred-dragging] {
-  background: rgba(13,13,13,0.05) !important;
-  box-shadow: 0 6px 18px rgba(60,55,40,0.20) !important;
-}
-[data-incipit-deferred-next-error] {
-  color: #b4543a !important;
-  background: rgba(199,104,73,0.12) !important;
-}
-[data-incipit-deferred-next-grip]:hover {
-  color: rgba(13,13,13,0.5) !important;
-}
-
-/* ---------- Top chat-panel header ----------
-   Mirror of the dark-palette rule in `theme.css`: top bar surface is the
-   same paper colour as the chat body, with a single ruled hairline at the
-   bottom doing all the "heading ends here" work. Single continuous paper
-   page; no two-toned panel. */
-[class^="header_"]:has([class*="titleGroup"]) {
-  background: #f8f8f6 !important;
-  background-color: #f8f8f6 !important;
-  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.14) !important;
-}
-
-.cceEditChip {
-  color: #3f3d38;
-}
-.cceEditChip:hover,
-.cceEditChip:focus-visible,
-.cceEditChip.cceEditChipActive {
-  background: #DDDBD5;
-  color: #0d0d0d;
-}
-.cceEditChip:active {
-  background: #E6E4DE;
-}
-.cceEditPopup {
-  background: #ffffff;
-  border: 1px solid rgba(0,0,0,0.08);
-  box-shadow: 0 12px 36px rgba(60,55,40,0.22), 0 2px 8px rgba(60,55,40,0.14);
-  color: #0d0d0d;
-}
-.cceEditKicker,
-.cceEditScope,
-.cceEditFacts,
-.cceEditProjectLabel,
-.cceEditMonths,
-.cceEditWeekdays,
-.cceEditLegend {
-  color: #797569;
-}
-.cceEditProjectName {
-  color: #0d0d0d;
-}
-.cceEditRule {
-  background: rgba(60,55,40,0.14);
-}
-.cceEditTotal {
-  color: #0d0d0d;
+  color: var(--ink-deferred-next-edit-save-hover-fg-override) !important;
 }
 .cceEditPopup [data-incipit-tool-added] {
-  color: #2f8c3a !important;
+  color: var(--ink-tool-added-fg-override) !important;
 }
 .cceEditPopup [data-incipit-tool-removed] {
-  color: #b24740 !important;
-}
-.cceEditStatus {
-  background: rgba(168,137,110,0.16);
-  color: #8d725b;
-}
-.cceEditCell,
-.cceEditLegendCells i {
-  background: #E6E4DE;
-  box-shadow: inset 0 0 0 1px rgba(60,55,40,0.08);
-}
-.cceEditCell[data-level="1"],
-.cceEditLegendCells i[data-level="1"] {
-  background: rgba(168,137,110,0.32);
-}
-.cceEditCell[data-level="2"],
-.cceEditLegendCells i[data-level="2"] {
-  background: rgba(168,137,110,0.50);
-}
-.cceEditCell[data-level="3"],
-.cceEditLegendCells i[data-level="3"] {
-  background: rgba(168,137,110,0.68);
-}
-.cceEditCell[data-level="4"],
-.cceEditLegendCells i[data-level="4"] {
-  background: rgba(168,137,110,0.90);
-}
-.cceEditTooltip {
-  background: rgba(255,255,255,0.94);
-  box-shadow: 0 2px 8px rgba(60,55,40,0.16);
-  color: #0d0d0d;
+  color: var(--ink-tool-removed-fg-override) !important;
 }
 
 /* ---------- Image-attachment chip ----------
@@ -870,61 +890,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
    intent — only the rgba flips so the soft hairline reads as paper-toned
    pressure rather than a white veil. */
 [class*="pill_"]:has([class*="thumbIcon"]) {
-  border-color: rgba(0,0,0,0.10) !important;
   border-radius: 6px !important;
-}
-[class*="pill_"]:has([class*="thumbIcon"]):hover {
-  border-color: rgba(0,0,0,0.20) !important;
-}
-
-/* ---------- Menu popup / dropdown / tooltip surfaces ----------
-   Pure white floats off the cream paper, but on its own a hard fill
-   reads as a flat sticker. Add the same warm ambient shadow used by
-   `.cceStatPopup` so every floating surface lifts off the page. The
-   shadow uses the deep-brown `rgba(60,55,40, …)` instead of pure
-   black — pure black on light paper looks bruise-coloured. */
-[data-incipit-menu-popup] {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  box-shadow: 0 12px 36px rgba(60,55,40,0.22),
-              0 2px 8px rgba(60,55,40,0.14) !important;
-}
-[data-incipit-menu-popup] input,
-[data-incipit-menu-popup] textarea,
-[data-incipit-menu-popup] [class*="filterInput"],
-[data-incipit-dropdown] input,
-[data-incipit-dropdown] textarea {
-  background: #faf9f5 !important;
-  background-color: #faf9f5 !important;
-  color: #0d0d0d !important;
-  border-color: rgba(60, 55, 40, 0.12) !important;
-}
-[data-incipit-menu-popup] input::placeholder,
-[data-incipit-menu-popup] textarea::placeholder,
-[data-incipit-menu-popup] [class*="filterInput"]::placeholder,
-[data-incipit-dropdown] input::placeholder,
-[data-incipit-dropdown] textarea::placeholder {
-  color: rgba(61, 57, 41, 0.46) !important;
-}
-[data-incipit-menu-popup] [class*="sectionHeader"],
-[data-incipit-menu-popup] [class*="sectionTitle"] {
-  color: #797569 !important;
-}
-[data-incipit-menu-popup] [class*="modelIndicator"],
-[data-incipit-input-footer] [class*="modelIndicator"] {
-  color: #797569 !important;
-}
-[data-incipit-dropdown] {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  box-shadow: 0 12px 36px rgba(60,55,40,0.22),
-              0 2px 8px rgba(60,55,40,0.14) !important;
-}
-
-/* ---------- User bubble (one step deeper than background) ---------- */
-[data-incipit-user-bubble] {
-  background: #E6E4DE !important;
-  background-color: #E6E4DE !important;
 }
 
 /* Interrupted markers borrow the host's user-message DOM shape but are not
@@ -950,142 +916,19 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 [data-incipit-dropdown],
 [data-incipit-command-list],
 [data-incipit-command-item] {
-  --app-list-active-background: #E6E4DE !important;
-  --app-list-active-foreground: #0d0d0d !important;
   --vscode-list-activeSelectionBackground: #E6E4DE !important;
   --vscode-list-focusBackground: #E6E4DE !important;
   --vscode-list-hoverBackground: #F4F2EC !important;
 }
-[data-incipit-command-item-active],
-[data-incipit-command-item][aria-selected="true"],
-[data-incipit-command-item].active,
-[data-incipit-dropdown] [aria-selected="true"],
-[data-incipit-dropdown] .active {
-  background: #E6E4DE !important;
-  background-color: #E6E4DE !important;
-  color: #0d0d0d !important;
-}
-
-/* ---------- Custom show-more button ---------- */
-.claude-show-more-btn {
-  color: rgba(61,57,41,0.55);
-}
-.claude-show-more-btn:hover {
-  color: #0d0d0d;
-}
-
-/* ---------- Spinner permission-mode colors ---------- */
-[data-incipit-spinner-row] [data-incipit-spinner-container] [data-incipit-spinner-icon],
-[class*="spinnerRow"] [class*="container_"] [class*="icon_"] {
-  color: #797569 !important;
-}
-[data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="acceptEdits"] [data-incipit-spinner-icon],
-[class*="spinnerRow"] [class*="container_"][data-permission-mode="acceptEdits"] [class*="icon_"] {
-  color: #9a9686 !important;
-}
-[data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="plan"] [data-incipit-spinner-icon],
-[class*="spinnerRow"] [class*="container_"][data-permission-mode="plan"] [class*="icon_"] {
-  color: #b3afa0 !important;
-}
-[data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="bypassPermissions"] [data-incipit-spinner-icon],
-[data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="auto"] [data-incipit-spinner-icon],
-[class*="spinnerRow"] [class*="container_"][data-permission-mode="bypassPermissions"] [class*="icon_"],
-[class*="spinnerRow"] [class*="container_"][data-permission-mode="auto"] [class*="icon_"] {
-  color: #bf5d3a !important;
-}
-
-/* ---------- User-message copy button ---------- */
-.claude-user-copy-btn {
-  color: rgba(61,57,41,0.55);
-}
-.claude-user-copy-btn:hover {
-  color: #0d0d0d;
-  background: rgba(60,55,40,0.06);
-}
-.claude-user-copy-btn.copied {
-  color: #8a7d5a;
-}
-/* Rerun (reprise arrow) — terra orange in live state, muted in disabled. */
-.incipit-transcript-action-rerun {
-  color: #bf5d3a;
-}
-.incipit-transcript-action-rerun:hover {
-  color: #bf5d3a;
-  background: rgba(191, 93, 58, 0.10);
-}
-.incipit-transcript-action-rerun[data-incipit-disabled="1"] {
-  color: rgba(60, 55, 40, 0.40) !important;
-}
-.incipit-transcript-action-rerun[data-incipit-disabled="1"]:hover {
-  color: rgba(60, 55, 40, 0.40) !important;
-}
-/* Fork (git-branch Y) — body-foreground in live state (no terra to
-   keep rerun's destructive accent the only one in the row), muted in
-   disabled state matching rerun's disabled treatment. */
-.incipit-transcript-action-fork[data-incipit-disabled="1"] {
-  color: rgba(60, 55, 40, 0.40) !important;
-}
-.incipit-transcript-action-fork[data-incipit-disabled="1"]:hover {
-  color: rgba(60, 55, 40, 0.40) !important;
-}
 [data-incipit-transcript-toast] {
-  border-color: rgba(60,55,40,0.12);
-  background: #ffffff;
-  color: #0d0d0d;
-  box-shadow: 0 8px 28px rgba(60,55,40,0.12);
-}
-[data-incipit-transcript-toast][data-kind="error"] {
-  border-color: rgba(176,62,54,0.30);
-  color: #a43a34;
+  border-color: var(--ink-transcript-toast-border-override);
 }
 [data-incipit-action-dropdown] {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  color: #0d0d0d;
   border: none;
-  box-shadow: 0 12px 36px rgba(60,55,40,0.22),
-              0 2px 8px rgba(60,55,40,0.14);
-}
-[data-incipit-action-dropdown-item]:hover,
-[data-incipit-action-dropdown-item]:focus {
-  background: #E6E4DE;
 }
 [data-incipit-action-dropdown-item][data-incipit-disabled="1"]:hover,
 [data-incipit-action-dropdown-item][data-incipit-disabled="1"]:focus {
   background: transparent !important;
-}
-[data-incipit-action-dropdown-icon] {
-  color: #0d0d0d;
-}
-/* Separator hairline tinted to warm-white palette so it reads as a
-   quiet group divider, not a hard rule. */
-[data-incipit-action-dropdown-separator] {
-  background: rgba(60, 55, 40, 0.14);
-}
-
-/* ---------- Generic permission request panels ---------- */
-[class*="permissionRequestContainer_"] {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  color: #0d0d0d !important;
-  box-shadow: 0 12px 36px rgba(60,55,40,0.20),
-              0 2px 8px rgba(60,55,40,0.12) !important;
-}
-
-[class*="permissionRequestContainer_"] [class*="permissionRequestContent_"] {
-  color: #0d0d0d !important;
-}
-
-[class*="permissionRequestContainer_"] [class*="title_"],
-[class*="permissionRequestContainer_"] [class*="questionText_"],
-[class*="permissionRequestContainer_"] [class*="questionTextLarge_"] {
-  color: #0d0d0d !important;
-}
-
-[class*="permissionRequestContainer_"] [class*="description_"],
-[class*="permissionRequestContainer_"] [class*="hint_"],
-[class*="permissionRequestContainer_"] [class*="keyboardHints_"] {
-  color: rgba(61,57,41,0.56) !important;
 }
 
 [class*="permissionRequestContainer_"] [class*="option_"],
@@ -1096,8 +939,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar]) {
   background: transparent !important;
   background-color: transparent !important;
-  border-color: rgba(60,55,40,0.12) !important;
-  color: #0d0d0d !important;
+  border-color: var(--ink-permission-collapsed-bar-border-override) !important;
   box-shadow: none !important;
 }
 
@@ -1113,19 +955,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar]):hover,
 [class*="permissionRequestContainer_"] [class*="permissionRequestContent_"]
   button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar]):focus {
-  background: rgba(230,228,222,0.50) !important;
-  background-color: rgba(230,228,222,0.50) !important;
-  border-color: rgba(60,55,40,0.14) !important;
   box-shadow: none !important;
-}
-
-[class*="permissionRequestContainer_"] input:not([type="checkbox"]):not([type="radio"]),
-[class*="permissionRequestContainer_"] textarea {
-  background: #faf9f5 !important;
-  background-color: #faf9f5 !important;
-  color: #0d0d0d !important;
-  caret-color: #a8896e !important;
-  box-shadow: inset 0 0 0 1px rgba(60,55,40,0.12) !important;
 }
 
 [class*="permissionRequestContainer_"] input:not([type="checkbox"]):not([type="radio"]):hover,
@@ -1134,65 +964,24 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 [class*="permissionRequestContainer_"] textarea:focus {
   border: none !important;
   outline: none !important;
-  box-shadow: inset 0 0 0 1px rgba(60,55,40,0.12) !important;
-}
-
-[class*="permissionRequestContainer_"] input::placeholder,
-[class*="permissionRequestContainer_"] textarea::placeholder {
-  color: rgba(61,57,41,0.42) !important;
 }
 
 /* ---------- AskUserQuestion panel ---------- */
 [data-incipit-ask-request],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  box-shadow: 0 12px 36px rgba(60,55,40,0.20),
-              0 2px 8px rgba(60,55,40,0.12) !important;
+  box-shadow: var(--ink-ask-request-shadow-override) !important;
 }
 
 [data-incipit-ask-request] [class*="permissionRequestContent_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="permissionRequestContent_"] {
-  color: #0d0d0d !important;
+  color: var(--ink-ask-request-fg-override) !important;
 }
 
 [data-incipit-ask-request] [class*="navTab_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="navTab_"] {
-  color: rgba(61,57,41,0.62) !important;
   border-bottom-color: transparent !important;
-}
-
-[data-incipit-ask-request] [class*="navTabActive_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
-  [class*="navTabActive_"] {
-  color: #0d0d0d !important;
-  border-bottom-color: rgba(191,93,58,0.72) !important;
-}
-
-[data-incipit-ask-request] [class*="navTabAnswered_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
-  [class*="navTabAnswered_"] {
-  color: rgba(61,57,41,0.44) !important;
-}
-
-[data-incipit-ask-request] [class*="questionTextLarge_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
-  [class*="questionTextLarge_"],
-[data-incipit-ask-request] [class*="optionLabel_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
-  [class*="optionLabel_"] {
-  color: #0d0d0d !important;
-}
-
-[data-incipit-ask-request] [class*="optionDescription_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
-  [class*="optionDescription_"],
-[data-incipit-ask-request] [class*="keyboardHints_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
-  [class*="keyboardHints_"] {
-  color: rgba(61,57,41,0.56) !important;
 }
 
 [data-incipit-ask-request] [class*="optionsContainer_"],
@@ -1206,9 +995,8 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   [class*="option_"] {
   background: transparent !important;
   background-color: transparent !important;
-  border-top: 1px solid rgba(60,55,40,0.10) !important;
+  border-top: var(--ink-ask-request-border-top-override) !important;
   border-radius: 0 !important;
-  color: #0d0d0d !important;
   box-shadow: none !important;
 }
 
@@ -1218,137 +1006,13 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   [class*="option_"]:hover,
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="option_"]:focus {
-  background: rgba(230,228,222,0.50) !important;
-  background-color: rgba(230,228,222,0.50) !important;
   box-shadow: none !important;
-}
-
-[data-incipit-ask-request] [class*="radio_"],
-[data-incipit-ask-request] [class*="checkbox_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="radio_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="checkbox_"] {
-  border-color: rgba(60,55,40,0.28) !important;
-}
-
-[data-incipit-ask-request] [class*="radioChecked_"],
-[data-incipit-ask-request] [class*="checkboxChecked_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
-  [class*="radioChecked_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
-  [class*="checkboxChecked_"] {
-  border-color: #bf5d3a !important;
-  color: #bf5d3a !important;
-}
-
-[data-incipit-ask-request] [class*="radioDot_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="radioDot_"] {
-  background: #bf5d3a !important;
-  background-color: #bf5d3a !important;
-}
-
-[data-incipit-ask-request] [class*="otherInput_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="otherInput_"] {
-  background: #faf9f5 !important;
-  background-color: #faf9f5 !important;
-  color: #0d0d0d !important;
-  box-shadow: inset 0 0 0 1px rgba(60,55,40,0.12) !important;
-}
-
-[data-incipit-ask-request] [class*="button_"],
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="button_"] {
-  background: #E6E4DE !important;
-  background-color: #E6E4DE !important;
-  color: #0d0d0d !important;
-}
-
-[data-incipit-ask-request] [class*="button_"]:hover:not(:disabled),
-[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
-  [class*="button_"]:hover:not(:disabled) {
-  background: #DDDBD5 !important;
-  background-color: #DDDBD5 !important;
-}
-
-.incipit-ask-collapse-btn,
-.incipit-permission-collapse-btn {
-  color: rgba(61,57,41,0.56);
-}
-.incipit-ask-collapse-btn:hover,
-.incipit-ask-collapse-btn:focus-visible,
-.incipit-permission-collapse-btn:hover,
-.incipit-permission-collapse-btn:focus-visible {
-  background: #F4F2EC;
-  color: #0d0d0d;
-}
-
-[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-ask-collapsed-bar,
-[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-permission-collapsed-bar,
-[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-ask-collapsed-bar,
-[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar {
-  color: #0d0d0d;
-}
-[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-ask-collapsed-bar::before,
-[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-permission-collapsed-bar::before,
-[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-ask-collapsed-bar::before,
-[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar::before {
-  background: rgba(61,57,41,0.62);
-}
-.incipit-ask-collapsed-meta {
-  color: rgba(61,57,41,0.46);
-}
-[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-ask-collapsed-bar:hover,
-[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-ask-collapsed-bar:focus-visible,
-[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-permission-collapsed-bar:hover,
-[data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-permission-collapsed-bar:focus-visible,
-[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-ask-collapsed-bar:hover,
-[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-ask-collapsed-bar:focus-visible,
-[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar:hover,
-[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar:focus-visible {
-  background: #F4F2EC;
-}
-
-/* ---------- Cache badge ---------- */
-.cceBadge {
-  color: #0d0d0d;
-}
-.cceBadge:hover,
-.cceBadge:focus-visible {
-  background: #DDDBD5;
-  color: #0d0d0d;
-}
-.cceBadge:active {
-  background: #E6E4DE;
-}
-.cceBadgeIcon {
-  color: #0d0d0d;
-}
-.cceBadgeLabel {
-  color: #0d0d0d;
-}
-.cceBadgeVal {
-  color: #a39f8e;
-}
-.cceBadge.cceBadgeActive {
-  background: #DDDBD5;
-}
-
-/* ---------- Cache popup ---------- */
-.cceStatPopup {
-  background: #ffffff;
-  border: 1px solid rgba(0,0,0,0.08);
-  box-shadow: 0 12px 36px rgba(60,55,40,0.22), 0 2px 8px rgba(60,55,40,0.14);
-  color: #0d0d0d;
 }
 .cceStatOverview {
   gap: 0;
   margin-bottom: 11px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(60,55,40,0.10);
-}
-.cceStatHeading {
-  color: #0d0d0d;
-}
-.cceStatDivider {
-  background: rgba(0,0,0,0.08);
+  border-bottom: var(--ink-cce-stat-overview-border-bottom-override);
 }
 .cceStatMetric,
 .cceHitChartShell,
@@ -1363,7 +1027,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 }
 .cceStatMetric + .cceStatMetric {
   padding: 0 0 0 12px;
-  border-left: 1px solid rgba(60,55,40,0.10);
+  border-left: var(--ink-cce-stat-metric-border-left-override);
 }
 .cceHitChartShell {
   padding: 2px 0 0;
@@ -1372,7 +1036,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   gap: 0;
   margin-top: 8px;
   padding-top: 7px;
-  border-top: 1px solid rgba(60,55,40,0.10);
+  border-top: var(--ink-cce-hit-stats-border-top-override);
 }
 .cceHitStat {
   padding: 0 8px;
@@ -1381,7 +1045,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   padding-left: 0;
 }
 .cceHitStat + .cceHitStat {
-  border-left: 1px solid rgba(60,55,40,0.10);
+  border-left: var(--ink-cce-hit-stat-border-left-override);
 }
 .cceStatTotals {
   gap: 12px;
@@ -1391,115 +1055,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 }
 .cceSelectedMetric {
   padding: 5px 0 0;
-  border-top: 1px solid rgba(60,55,40,0.10);
-}
-.cceStatMetricLabel,
-.cceHitChartMeta,
-.cceHitStat span,
-.cceSelectedMetric span,
-.cceFlowRangeTime {
-  color: #797569;
-}
-.cceHitAxisLabel {
-  fill: #797569;
-}
-.cceStatMetricValue,
-.cceHitStat strong,
-.cceSelectedMetric strong {
-  color: #0d0d0d;
-}
-.cceHitGrid {
-  stroke: rgba(60,55,40,0.13);
-}
-.cceHitXAxis {
-  stroke: rgba(60,55,40,0.18);
-}
-.cceHitXTick {
-  stroke: rgba(60,55,40,0.20);
-}
-.cceHitLine {
-  stroke: #a8896e;
-}
-.cceRangeLine {
-  stroke: rgba(168,137,110,0.68);
-}
-.cceRangeTrack {
-  stroke: rgba(60,55,40,0.20);
-}
-.cceRangeWindow {
-  fill: rgba(168,137,110,0.12);
-  stroke: rgba(168,137,110,0.44);
-}
-.cceRangeHandle {
-  stroke: #a8896e;
-}
-.cceHitPoint {
-  fill: #ffffff;
-  stroke: #a8896e;
-}
-.cceHitPointLow {
-  fill: #a8896e;
-}
-.cceHitPointLatest {
-  fill: #ffffff;
-}
-.cceHitHoverLine {
-  stroke: rgba(60,55,40,0.38);
-}
-.cceHitHoverPoint {
-  fill: #ffffff;
-  stroke: #a8896e;
-}
-.cceHitHoverLabel {
-  background: rgba(255,255,255,0.92);
-  box-shadow: 0 2px 8px rgba(60,55,40,0.16);
-  color: #0d0d0d;
-}
-.cceHitHoverPct {
-  color: #0d0d0d;
-}
-.cceHitHoverTime {
-  color: #797569;
-}
-.cceHitChartMeta span:nth-child(2) {
-  color: #797569;
-}
-.cceFlowHeader span,
-.cceFlowLegend,
-.cceFlowLabel {
-  color: #797569;
-}
-.cceFlowHeader strong,
-.cceFlowValue {
-  color: #0d0d0d;
-}
-.cceContextStack {
-  background: #E6E4DE;
-  box-shadow: inset 0 0 0 1px rgba(60,55,40,0.07);
-}
-.cceFlowBar {
-  background: #E6E4DE;
-}
-.cceContextSeg-fresh,
-.cceFlowRow-fresh .cceFlowBar span,
-.cceLegendFresh {
-  background: rgba(60,55,40,0.30);
-}
-.cceContextSeg-write,
-.cceFlowRow-write .cceFlowBar span,
-.cceLegendWrite {
-  background: rgba(168,137,110,0.48);
-}
-.cceContextSeg-read,
-.cceFlowRow-read .cceFlowBar span,
-.cceLegendRead {
-  background: rgba(168,137,110,0.82);
-}
-.cceFlowRow-output .cceFlowBar span {
-  background: rgba(121,117,105,0.70);
-}
-.cceStatEmpty {
-  color: #b8b4a4;
+  border-top: var(--ink-cce-selected-metric-border-top-override);
 }
 
 /* ---------- Effort slider / thinking toggle / usage bar ----------
@@ -1531,13 +1087,13 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 [class*="toggle_"]:has(> [class*="fill_"]),
 [class*="track_"]:not([class*="trackOn_"]),
 [class*="usageTrack_"] {
-  background: #d8d6cf !important;
-  background-color: #d8d6cf !important;
+  background: var(--ink-usage-track-bg-override) !important;
+  background-color: var(--ink-usage-track-bg-override) !important;
 }
 
 [class*="toggle_"] [class*="thumb_"] {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
+  background: var(--ink-thumb-bg-override) !important;
+  background-color: var(--ink-thumb-bg-override) !important;
 }
 
 /* ---------- Effort brain icon — black-ink files for warm-white ----------
@@ -1556,15 +1112,6 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   --eb-max: url("effort-brain/effort-brain-max.svg") !important;
 }
 
-/* ---------- Menu popup divider softening (light palette) ----------
-   Mirrors the dark-palette rule in `theme.css`, but inverts the alpha
-   colour so the line reads as paper-coloured pressure instead of a
-   white veil. Same selector, same intent — only the rgba flips. */
-[data-incipit-menu-popup] *,
-[data-incipit-dropdown] * {
-  border-color: rgba(0, 0, 0, 0.06) !important;
-}
-
 /* ---------- Section divider inside menu popups ----------
    Host renders the horizontal section break as `.sectionDivider_*`
    with `background: var(--app-input-border)`, NOT a border — so the
@@ -1579,21 +1126,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
    the horizontal section break, so the surgical rule has no fallout. */
 [class*="sectionDivider"],
 [class*="menuDivider"] {
-  background: rgba(60, 55, 40, 0.20) !important;
   height: 2px !important;
-}
-
-/* ---------- Scrollbar thumb (light palette) ----------
-   Native Chromium scrollbars inherit these variables from the shared
-   `theme.css` rule; Monaco virtual sliders are repeated below as a
-   direct override for already-mounted editor widgets. Hover darkens
-   one notch instead of lightening, opposite of the dark palette,
-   because contrast against a light surface grows when the thumb gets
-   darker. */
-:root {
-  --incipit-scrollbar-thumb: #b0b0ae;
-  --incipit-scrollbar-thumb-hover: #8a8a88;
-  --incipit-scrollbar-thumb-active: #6f6f6d;
 }
 
 .monaco-scrollable-element > .scrollbar > .slider {
@@ -1606,96 +1139,9 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   background: var(--incipit-scrollbar-thumb-active) !important;
 }
 
-/* ============================================================
-   Modal dialogs — warm-white mirror.
-
-   Mirror the white-paper card treatment used for `[data-incipit-
-   menu-popup]`. The dark-palette rule in theme.css already strips
-   the host's blue `:focus-within` ring; here we just swap the
-   surface and shadow to paper tones. The override-cascade iron
-   rule applies: theme.css writes `border: none` then
-   `border-color: transparent` for `:focus-within`, both still hold
-   here because we don't re-declare the basic dialog border.
-   ============================================================ */
-[class*="dialog_"] {
-  background: #ffffff !important;
-  background-color: #ffffff !important;
-  box-shadow: 0 12px 36px rgba(60,55,40,0.22),
-              0 2px 8px rgba(60,55,40,0.14) !important;
-}
-
-[class*="overlay_"] {
-  background-color: rgba(60, 55, 40, 0.32) !important;
-}
-
-/* ---------- Manage Plugins dialog (yumWmQ) — warm-white ---------- */
-
-/* Tab bar bottom rule — paper-toned. */
-[class*="tabBar_yumWmQ"] {
-  border-bottom-color: rgba(60, 55, 40, 0.14) !important;
-}
-
-/* Active tab underline — keep terra; deepen slightly for paper. */
-[class*="tab_yumWmQ"][class*="active_yumWmQ"] {
-  border-bottom-color: #bf5d3a !important;
-}
-
-/* Tab badge — terra-tinted chip. */
-[class*="tabBadge_yumWmQ"] {
-  background-color: rgba(191, 93, 58, 0.14) !important;
-  color: #bf5d3a !important;
-}
-
-/* Search input — light paper card. */
-[class*="searchInput_yumWmQ"] {
-  background-color: #faf9f5 !important;
-  border-color: rgba(60, 55, 40, 0.14) !important;
-  color: #0d0d0d !important;
-}
-[class*="searchInput_yumWmQ"]:focus {
-  border-color: rgba(191, 93, 58, 0.55) !important;
-}
-
-/* Section headers — soften the underline for paper. */
-[class*="sectionHeader_yumWmQ"] {
-  border-bottom-color: rgba(60, 55, 40, 0.14) !important;
-}
-
-/* Plugin item card — sit on the same `#E6E4DE` embedded surface
-   used by user bubble / code block / list active. This way the
-   dialog's white card and the plugin chips share the same surface
-   hierarchy as the rest of the app. */
-[class*="pluginItem_yumWmQ"] {
-  background-color: #E6E4DE !important;
-  border-color: rgba(60, 55, 40, 0.10) !important;
-}
-[class*="pluginItem_yumWmQ"]:hover {
-  border-color: rgba(191, 93, 58, 0.45) !important;
-}
-
 /* Generic action button — paper ghost. */
 [class*="actionButton_yumWmQ"] {
-  border-color: rgba(60, 55, 40, 0.18) !important;
-  color: #0d0d0d !important;
-}
-[class*="actionButton_yumWmQ"]:hover {
-  background-color: rgba(60, 55, 40, 0.06) !important;
-}
-
-/* Primary Install button — terra on paper. */
-[class*="actionButton_yumWmQ"][class*="primary_yumWmQ"] {
-  background-color: #bf5d3a !important;
-  color: #ffffff !important;
-}
-
-/* Status dot — slightly deeper green for paper contrast. */
-[class*="statusDotEnabled_yumWmQ"] {
-  background-color: #1c9c1c !important;
-}
-
-/* Source link — terra underline on paper. */
-[class*="pluginMeta_yumWmQ"] a {
-  text-decoration-color: rgba(191, 93, 58, 0.7) !important;
+  color: var(--ink-action-button-fg-override) !important;
 }
 
 /* ---------- Inline keyboard hints — warm-white mirror ----------
@@ -1705,9 +1151,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
    on every platform) — only colour fields change here. */
 [class*="menuHeaderHint"] kbd,
 [class*="keys_"] kbd {
-  background: rgba(60, 55, 40, 0.06) !important;
-  border-color: rgba(60, 55, 40, 0.26) !important;
-  color: #0d0d0d !important;
+  border-color: var(--ink-keys-border-override) !important;
 }
 
 /* ---------- Inline edit (warm-white draft card) ----------
@@ -1717,31 +1161,30 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
    deeper #bf5d3a accent. User bubble keeps its own #E6E4DE fill
    (set elsewhere); no extra chrome needed when expanded. */
 [data-incipit-inline-edit-shell="assistant"] {
-  background: #E6E4DE !important;
+  background: var(--ink-inline-edit-shell-bg-override) !important;
 }
 /* Edit hover preview — same paper-tone draft fill the inline-edit
    shell uses when actually opened. theme.css defines the transition
    and base behaviour; this only flips the colour for warm-white so
    the preview matches the (now-paper) draft card. */
 [data-incipit-markdown-root][data-incipit-edit-hover-preview] {
-  background-color: #E6E4DE !important;
+  background-color: var(--ink-edit-hover-preview-bg-override) !important;
 }
 .incipit-inline-edit-textarea {
-  caret-color: #bf5d3a !important;
+  caret-color: var(--ink-incipit-inline-edit-textarea-caret-override) !important;
 }
 /* Save button — primary commit, deep terra on paper. */
 .incipit-transcript-action-save {
-  color: #bf5d3a !important;
+  color: var(--ink-incipit-transcript-action-save-fg-override) !important;
 }
 .incipit-transcript-action-save:hover {
-  color: #a64f30 !important;
-  background: rgba(60, 55, 40, 0.06) !important;
+  color: var(--ink-incipit-transcript-action-save-hover-fg-override) !important;
+  background: var(--ink-incipit-transcript-action-save-hover-bg-override) !important;
 }
 /* Streaming-disabled save: dim but keep the deep-terra hue,
    override the base disabled-hover `color: inherit` rule. */
 .incipit-transcript-action-save[data-incipit-disabled="1"]:hover {
   background: transparent !important;
-  color: #bf5d3a !important;
 }
 
 /* ---- Inline editor chip strip — warm-white ----
@@ -1750,29 +1193,29 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
    used elsewhere on warm-white. Image-chip X overlay stays dark
    (image content background unknown) so the cross stays legible. */
 .incipit-edit-chip {
-  background: rgba(60, 55, 40, 0.06) !important;
-  border-color: rgba(60, 55, 40, 0.14) !important;
-  color: #5e5b50 !important;
+  background: var(--ink-incipit-edit-chip-bg-override) !important;
+  border-color: var(--ink-incipit-edit-chip-border-override) !important;
+  color: var(--ink-incipit-edit-chip-fg-override) !important;
 }
 .incipit-edit-chip-icon {
-  color: rgba(191, 93, 58, 0.95) !important;
+  color: var(--ink-incipit-edit-chip-icon-fg-override) !important;
 }
 .incipit-edit-chip--image {
-  background: rgba(60, 55, 40, 0.06) !important;
+  background: var(--ink-incipit-edit-chip-image-bg-override) !important;
   border-color: transparent !important;
 }
 .incipit-edit-chip--image .incipit-edit-chip-x {
-  background: rgba(0, 0, 0, 0.55) !important;
-  color: #ffffff !important;
+  background: var(--ink-incipit-edit-chip-x-bg) !important;
+  color: var(--ink-incipit-edit-chip-x-fg) !important;
 }
 .incipit-edit-chip--image .incipit-edit-chip-x:hover {
-  background: rgba(0, 0, 0, 0.72) !important;
+  background: var(--ink-incipit-edit-chip-x-hover-bg) !important;
 }
 .incipit-edit-chip-add {
-  border-color: rgba(60, 55, 40, 0.22) !important;
-  color: rgba(60, 55, 40, 0.50) !important;
+  border-color: var(--ink-incipit-edit-chip-add-border-override) !important;
+  color: var(--ink-incipit-edit-chip-add-fg-override) !important;
 }
 .incipit-edit-chip-add:hover {
-  border-color: rgba(191, 93, 58, 0.65) !important;
-  color: rgba(191, 93, 58, 0.95) !important;
+  border-color: var(--ink-incipit-edit-chip-add-hover-border-override) !important;
+  color: var(--ink-incipit-edit-chip-add-hover-fg-override) !important;
 }

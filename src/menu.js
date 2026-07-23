@@ -14,6 +14,7 @@ const {
   BACKUP_ROOT,
   OFFICIAL_RESTORE_ROOT,
   ensureOfficialRestorePoint,
+  readOfficialIconRestorePayloads,
   isMissingOfficialRestorePointError,
   restoreOfficialTarget,
   legacyBackupStats,
@@ -33,6 +34,9 @@ const {
   setBodyBold,
   setBodyFontFamily,
   setCodeFontFamily,
+  getCustomIcon,
+  setCustomIconPath,
+  clearCustomIcon,
   resetConfigurable,
   BODY_FONT_SIZE_OPTIONS,
   BODY_FONT_FAMILY_OPTIONS,
@@ -55,10 +59,16 @@ const {
 } = require('./workbench-overlay');
 const {
   pickFolder,
+  pickFile,
   isDialogAvailable,
   dialogUnavailableReason,
   DialogUnavailableError,
 } = require('./file-dialog');
+const {
+  CUSTOM_ICON_NAMES,
+  prepareCustomIcon,
+  prepareConfiguredCustomIcon,
+} = require('./custom-icon');
 const { t, setLocale } = require('./i18n');
 const {
   Ansi,
@@ -136,6 +146,7 @@ const WEBVIEW_FILE_DESC_KEYS = Object.freeze({
   'math_rewriter.js':        'apply.report.desc.math_rewriter_js',
   'theme.css':               'apply.report.desc.theme_css',
   'warm-white-override.css': 'apply.report.desc.warm_white_css',
+  'ink-black-override.css':  'apply.report.desc.ink_black_css',
 });
 
 const ASSET_TREE_DESC_KEYS = Object.freeze({
@@ -215,9 +226,18 @@ async function handleApply({
 
   if (!silent) clearScreen({ history: true });
 
+  let preparedCustomIcon;
+  try {
+    preparedCustomIcon = prepareConfiguredCustomIcon(getCustomIcon());
+  } catch (exc) {
+    console.log(color(t('apply.custom_icon_invalid', { msg: customIconFailureMessage(exc) }), Ansi.RED));
+    return 1;
+  }
+  const includeCustomIcons = Boolean(preparedCustomIcon);
+
   let restorePoint;
   try {
-    restorePoint = await ensureOfficialRestorePoint(target);
+    restorePoint = await ensureOfficialRestorePoint(target, { includeCustomIcons });
   } catch (exc) {
     if (isMissingOfficialRestorePointError(exc)) {
       if (!process.stdin.isTTY) {
@@ -231,7 +251,10 @@ async function handleApply({
       }
       console.log(color(t('apply.restore_missing.downloading'), Ansi.GREY));
       try {
-        restorePoint = await ensureOfficialRestorePoint(target, { allowMarketplaceDownload: true });
+        restorePoint = await ensureOfficialRestorePoint(target, {
+          allowMarketplaceDownload: true,
+          includeCustomIcons,
+        });
       } catch (downloadExc) {
         const msg = t('apply.restore_missing.download_failed', { msg: downloadExc.message });
         console.log(color(t('apply.restore_point_failed', { msg }), Ansi.RED));
@@ -244,9 +267,23 @@ async function handleApply({
       return 1;
     }
   }
+  let officialIconPayloads = null;
+  if (preparedCustomIcon) {
+    try {
+      officialIconPayloads = readOfficialIconRestorePayloads(restorePoint, CUSTOM_ICON_NAMES);
+    } catch (exc) {
+      console.log(color(t('apply.restore_point_failed', { msg: exc.message }), Ansi.RED));
+      if (exc.stack) console.log(exc.stack);
+      return 1;
+    }
+  }
   let result;
   try {
-    result = installClaudeCodeVSCodeEnhance(PACKAGE_ROOT, { target });
+    result = installClaudeCodeVSCodeEnhance(PACKAGE_ROOT, {
+      target,
+      preparedCustomIcon,
+      officialIconPayloads,
+    });
   } catch (exc) {
     console.log(color(t('apply.apply_failed', { msg: exc.message }), Ansi.RED));
     if (exc.stack) console.log(exc.stack);
@@ -303,10 +340,20 @@ async function chooseApplyTargetInteractive() {
 // `bodyBold` flag flipped on — it is NOT a separate palette internally,
 // only a presentation choice in the UI.
 function paletteDisplayLabel(theme) {
+  if (theme.palette === 'ink-black') return t('configure.palette_ink_black');
   if (theme.palette !== 'warm-white') return t('configure.palette_warm_black');
   return theme.bodyBold
     ? t('configure.palette_warm_white_bold')
     : t('configure.palette_warm_white');
+}
+
+function iconDisplayLabel(icon) {
+  if (!icon || !icon.configured) return t('configure.icon_official');
+  if (icon.errorCode === 'missing') return t('configure.icon_missing');
+  if (icon.status !== 'ready' || !icon.sourcePath) return t('configure.icon_invalid');
+  const name = path.basename(icon.sourcePath);
+  const compact = name.length > 30 ? `${name.slice(0, 27)}…` : name;
+  return t('configure.icon_custom', { name: compact });
 }
 
 function languageDisplayLabel(lang) {
@@ -363,7 +410,7 @@ function printApplyReport({ target, restorePoint, result }) {
   console.log();
 
   printOverlayDegradedNotice(result && result.report ? result.report : {});
-  console.log(formatApplyConfigInline(result.features, result.theme));
+  console.log(formatApplyConfigInline(result.features, result.theme, result.report.customIcon));
   const warnings = collectApplyWarnings(result && result.report ? result.report : {});
   if (warnings.length) {
     console.log(color(t('apply.report.warnings_heading'), Ansi.YELLOW));
@@ -437,10 +484,17 @@ function buildRestorePointTree(restorePoint) {
     e && typeof e.logicalName === 'string' && e.logicalName.startsWith('webview/') &&
     e.logicalName !== 'webview/index.js'
   ).length;
+  const iconCount = entries.filter(e =>
+    e && typeof e.logicalName === 'string' && e.logicalName.startsWith('resources/claude-logo')
+  ).length;
   return [
     { name: 'official files', desc: t(`apply.report.restore_${status}`) },
     { name: 'extension.js', desc: t('apply.report.restore_extension_desc') },
     { name: 'webview/index.js', desc: t('apply.report.restore_webview_index_desc') },
+    ...(iconCount > 0 ? [{
+      name: 'resources/claude-logo*',
+      desc: t('apply.report.restore_icons_desc', { count: iconCount }),
+    }] : []),
     {
       name: 'incipit-owned paths',
       desc: t('apply.report.restore_cleanup_desc', {
@@ -471,15 +525,30 @@ function buildPatchTree(result) {
     ? report.systemFonts.total
     : 0;
   const workbench = report.workbenchOverlay || { status: 'off' };
+  const customIcon = report.customIcon || { status: 'official-unmanaged', files: [] };
+  const customIconFiles = Array.isArray(customIcon.files) ? customIcon.files : [];
   return [
     { name: 'extension.js', desc: t('apply.report.desc.extension_js') },
     { name: 'webview/', desc: t('apply.report.desc.webview_dir'), children: webviewChildren },
+    ...(customIcon.status === 'customized' ? [{
+      name: 'resources/',
+      desc: t('apply.report.desc.custom_icon_dir', {
+        name: path.basename(customIcon.sourcePath || ''),
+        files: fileCount(customIconFiles.length),
+      }),
+      children: customIconFiles.map(file => ({
+        name: file.name,
+        desc: t(file.mode === 'official-restored'
+          ? 'apply.report.desc.custom_icon_official_slot'
+          : 'apply.report.desc.custom_icon_slot'),
+      })),
+    }] : []),
     { name: 'editor overlay', desc: t(`apply.report.desc.workbench_overlay_${workbench.status.replace(/-/g, '_')}`) },
     { name: 'system fonts', desc: t('apply.report.desc.system_fonts', { files: fileCount(fontTotal) }) },
   ];
 }
 
-function formatApplyConfigInline(features, theme) {
+function formatApplyConfigInline(features, theme, customIcon = null) {
   const on = t('apply.summary_on');
   const off = t('apply.summary_off');
   const label = t('apply.report.config_label');
@@ -494,6 +563,9 @@ function formatApplyConfigInline(features, theme) {
     paletteDisplayLabel(theme || DEFAULT_THEME),
     `${t('configure.param_body_font')} ${bodyFontLabel}`,
     `${t('configure.param_code_font')} ${codeFontLabel}`,
+    `${t('configure.param_icon')} ${customIcon && customIcon.status === 'customized'
+      ? t('configure.icon_custom', { name: path.basename(customIcon.sourcePath || '') })
+      : t('configure.icon_official')}`,
   ];
   return color(label, Ansi.GREY) + separator + color(parts.join(' · '), Ansi.IVORY);
 }
@@ -562,6 +634,10 @@ function countApplyReportEntries(report) {
     if (report.workbenchOverlay.status === 'patched' || report.workbenchOverlay.status === 'restored') {
       changed++;
     }
+  }
+  if (report.customIcon && Array.isArray(report.customIcon.files)) {
+    total += report.customIcon.files.length;
+    changed += report.customIcon.files.filter(file => file.written).length;
   }
   if (!Number.isFinite(total) || total < 0) total = changed;
   return { changed, total };
@@ -854,6 +930,7 @@ async function handleConfigure() {
   while (true) {
     const features = getFeatures();
     const theme = getTheme();
+    const icon = getCustomIcon();
 
     const paletteValue = paletteDisplayLabel(theme);
 
@@ -881,14 +958,16 @@ async function handleConfigure() {
         bodyFontValue: bodyFontLabel,
         codeFont: t('configure.param_code_font'),
         codeFontValue: codeFontLabel,
+        icon: t('configure.param_icon'),
+        iconValue: iconDisplayLabel(icon),
         reset: t('configure.reset'),
         back: t('configure.back'),
       },
     });
 
     // Rows: math, session, experimental submenu, bodysize, palette,
-    // bodyfont, codefont, reset, back.
-    const ROW_COUNT = 9;
+    // bodyfont, codefont, icon, reset, back.
+    const ROW_COUNT = 10;
 
     const outcome = await keyLoop({
       render,
@@ -924,8 +1003,9 @@ async function handleConfigure() {
           if (index === 4) return { done: true, result: { action: 'palette' } };
           if (index === 5) return { done: true, result: { action: 'bodyfont' } };
           if (index === 6) return { done: true, result: { action: 'codefont' } };
-          if (index === 7) return { done: true, result: { action: 'reset' } };
-          if (index === 8) return { done: true, result: { action: 'back' } };
+          if (index === 7) return { done: true, result: { action: 'icon' } };
+          if (index === 8) return { done: true, result: { action: 'reset' } };
+          if (index === 9) return { done: true, result: { action: 'back' } };
           return;
         }
         // Letter shortcuts (r for reset, number for direct row activation).
@@ -939,6 +1019,7 @@ async function handleConfigure() {
         if (str === '5') { index = 4; return { done: true, result: { action: 'palette' } }; }
         if (str === '6') { index = 5; return { done: true, result: { action: 'bodyfont' } }; }
         if (str === '7') { index = 6; return { done: true, result: { action: 'codefont' } }; }
+        if (str === '8') { index = 7; return { done: true, result: { action: 'icon' } }; }
       },
     });
 
@@ -966,6 +1047,10 @@ async function handleConfigure() {
     }
     if (outcome.action === 'codefont') {
       await runScreenTransition(chooseCodeFontFamily);
+      continue;
+    }
+    if (outcome.action === 'icon') {
+      await runScreenTransition(handleCustomIcon);
       continue;
     }
     if (outcome.action === 'reset') {
@@ -2236,18 +2321,20 @@ async function choosePalette() {
   const defaultMark = t('configure.body_size_default_mark');
   const current = getTheme();
 
-  // The picker exposes three rows but writes to two orthogonal config
+  // The picker exposes four rows but writes to two orthogonal config
   // fields (palette + bodyBold). "Warm white (bold body)" is the same
   // warm-white palette with the body-weight gate enabled, NOT a third
   // palette — keeping it factored this way means future warm-white CSS /
   // Monaco theme / hljs work flows to both states automatically.
   const PICKS = [
     { palette: 'warm-black', bodyBold: false, key: 'warm-black' },
+    { palette: 'ink-black', bodyBold: false, key: 'ink-black' },
     { palette: 'warm-white', bodyBold: false, key: 'warm-white' },
     { palette: 'warm-white', bodyBold: true,  key: 'warm-white-bold' },
   ];
 
   const labelFor = pick => {
+    if (pick.palette === 'ink-black') return t('configure.palette_ink_black');
     if (pick.palette !== 'warm-white') return t('configure.palette_warm_black');
     return pick.bodyBold
       ? t('configure.palette_warm_white_bold')
@@ -2310,6 +2397,108 @@ async function choosePalette() {
   if (outcome.pick != null) {
     setPalette(outcome.pick.palette);
     setBodyBold(outcome.pick.bodyBold);
+  }
+}
+
+function customIconFailureMessage(exc) {
+  const code = exc && exc.code ? String(exc.code) : '';
+  if (code === 'ICON_PNG_OPAQUE') return t('configure.icon_error_opaque_png');
+  if (code.startsWith('ICON_SVG_')) return t('configure.icon_error_svg', { code });
+  if (code.startsWith('ICON_PNG_')) return t('configure.icon_error_png', { code });
+  if (code.startsWith('ICON_SOURCE_') || code.startsWith('ICON_CONFIG_') || code === 'ICON_FORMAT') {
+    return t('configure.icon_error_source', { code: code || 'ICON_SOURCE' });
+  }
+  return t('configure.icon_error_generic', { msg: exc && exc.message ? exc.message : String(exc) });
+}
+
+async function handleCustomIcon() {
+  let index = 0;
+  while (true) {
+    const icon = getCustomIcon();
+    const rows = [
+      { action: 'choose', mark: '1.', label: t('configure.icon_choose') },
+      ...(icon.configured ? [{ action: 'clear', mark: '2.', label: t('configure.icon_clear') }] : []),
+      { action: 'back', mark: 'b.', label: t('configure.back') },
+    ];
+    if (index >= rows.length) index = rows.length - 1;
+    const outcome = await keyLoop({
+      render: () => renderLanguagePicker({
+        version: PACKAGE_VERSION,
+        heading: t('configure.icon_heading'),
+        optionsList: rows.map((row, rowIndex) => ({
+          mark: row.mark,
+          label: row.label,
+          selected: rowIndex === index,
+        })),
+        hint: t('hint.picker'),
+      }),
+      onKey: (str, key) => {
+        if (!key) return;
+        if (key.name === 'up' || key.name === 'k') {
+          index = (index - 1 + rows.length) % rows.length;
+          return;
+        }
+        if (key.name === 'down' || key.name === 'j') {
+          index = (index + 1) % rows.length;
+          return;
+        }
+        if (key.name === 'backspace' || key.name === 'escape' ||
+            key.name === 'b' || key.name === 'q' || str === 'b' || str === 'q') {
+          return { done: true, result: 'back' };
+        }
+        if (key.name === 'return' || key.name === 'enter') {
+          return { done: true, result: rows[index].action };
+        }
+        const numeric = Number.parseInt(str, 10);
+        if (Number.isFinite(numeric) && numeric >= 1 && numeric <= rows.length - 1) {
+          return { done: true, result: rows[numeric - 1].action };
+        }
+      },
+    });
+
+    if (outcome === 'back') return;
+    if (outcome === 'clear') {
+      clearCustomIcon();
+      resetScreenForPrompt();
+      console.log(color(t('configure.icon_cleared'), Ansi.TERRA));
+      console.log(color(t('configure.icon_restore_hint'), Ansi.GREY));
+      await pause();
+      index = 0;
+      continue;
+    }
+    if (outcome !== 'choose') continue;
+
+    let picked;
+    try {
+      picked = pickFile({
+        title: t('configure.icon_dialog_title'),
+        extensions: ['.svg', '.png'],
+      });
+    } catch (exc) {
+      resetScreenForPrompt();
+      if (exc instanceof DialogUnavailableError) {
+        const reasonKey = `configure.icon_dialog_unavailable_${String(exc.code || '').replace(/-/g, '_')}`;
+        const localized = t(reasonKey);
+        console.log(color(localized === reasonKey ? exc.message : localized, Ansi.RED));
+      } else {
+        console.log(color(t('configure.icon_dialog_failed', { msg: exc.message }), Ansi.RED));
+      }
+      await pause();
+      continue;
+    }
+    if (!picked) continue;
+    try {
+      const plan = prepareCustomIcon(picked);
+      setCustomIconPath(plan.sourcePath);
+      resetScreenForPrompt();
+      console.log(color(t('configure.icon_saved', { name: path.basename(plan.sourcePath) }), Ansi.TERRA));
+      console.log(color(t('configure.saved_hint'), Ansi.GREY));
+    } catch (exc) {
+      resetScreenForPrompt();
+      console.log(color(customIconFailureMessage(exc), Ansi.RED));
+    }
+    await pause();
+    index = 0;
   }
 }
 

@@ -1,7 +1,7 @@
 // User preferences for the `incipit` CLI.
 //
 // The file lives at `~/.incipit/config.json` and stores the UI language,
-// feature toggles, visual theme, and target metadata. `language` is still
+// feature toggles, visual theme, optional custom icon, and target metadata. `language` is still
 // the sole trigger for the first-run picker: if it is missing or invalid,
 // the interactive menu asks once and saves the choice here.
 //
@@ -31,15 +31,16 @@ const DEFAULT_FEATURES = Object.freeze({
 
 // User-adjustable visual knobs. `bodyFontSize` must match one of the
 // discrete options; anything else snaps back to the default. `palette`
-// switches the entire color scheme between the dark `warm-black` (default)
-// and the light `warm-white` ivory-paper variant. `bodyBold` is an
+// switches the entire color scheme between the dark `warm-black` (default),
+// neutral `ink-black`, and light `warm-white` ivory-paper variants. `bodyBold` is an
 // orthogonal opt-in that swaps the warm-white body face from `Reading`
 // (Plex Serif 400) to `PaperReading` (Plex Serif 500 real cuts) to fight
 // irradiation thinning on light surfaces — meaningful only on warm-white,
 // which the UI enforces at pick time and `getTheme()` enforces at read time
-// so warm-black always reports `bodyBold: false`.
+// so non-warm-white palettes always report `bodyBold: false`.
 const BODY_FONT_SIZE_OPTIONS = Object.freeze([12, 13, 14, 15, 16]);
-const PALETTE_OPTIONS = Object.freeze(['warm-black', 'warm-white']);
+const PALETTE_OPTIONS = Object.freeze(['warm-black', 'ink-black', 'warm-white']);
+const CUSTOM_ICON_EXTENSIONS = Object.freeze(['.svg', '.png']);
 
 // Preset font-family options. Each entry is [labelKey, cssValue].
 // The labelKey is looked up via i18n; cssValue is the raw body stack.
@@ -186,13 +187,72 @@ function getTheme() {
     ? raw.palette
     : DEFAULT_THEME.palette;
   // bodyBold only takes effect on warm-white. Coerce to false when the
-  // active palette is warm-black so a stale `bodyBold:true` left in the
+  // active palette is dark so a stale `bodyBold:true` left in the
   // config from a previous warm-white session can never spuriously
   // activate the PaperReading gate after the user switched themes.
   const bodyBold = (palette === 'warm-white' && raw.bodyBold === true);
   const bodyFontFamily = resolveBodyFontFamily(raw.bodyFontFamily);
   const codeFontFamily = resolveCodeFontFamily(raw.codeFontFamily);
   return { bodyFontSize: size, palette, bodyBold, bodyFontFamily, codeFontFamily };
+}
+
+function normalizeCustomIconPath(saved) {
+  if (typeof saved !== 'string') return null;
+  const trimmed = saved.trim();
+  if (!trimmed || !path.isAbsolute(trimmed)) return null;
+  if (!CUSTOM_ICON_EXTENSIONS.includes(path.extname(trimmed).toLowerCase())) return null;
+  return path.normalize(trimmed);
+}
+
+// The caller needs to distinguish "not configured" from a stale or malformed
+// saved path: the former keeps official assets, while the latter must surface
+// a diagnostic instead of silently pretending the custom icon succeeded.
+function getCustomIcon() {
+  const cfg = readConfig();
+  const raw = cfg && cfg.icon;
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw) ||
+      !Object.prototype.hasOwnProperty.call(raw, 'sourcePath')) {
+    return { configured: false, sourcePath: null, status: 'official', errorCode: null };
+  }
+  const sourcePath = normalizeCustomIconPath(raw.sourcePath);
+  if (!sourcePath) {
+    return { configured: true, sourcePath: null, status: 'invalid', errorCode: 'invalid-path' };
+  }
+  try {
+    const stat = fs.statSync(sourcePath);
+    if (!stat.isFile()) {
+      return { configured: true, sourcePath, status: 'invalid', errorCode: 'not-file' };
+    }
+  } catch (exc) {
+    const errorCode = exc && exc.code === 'ENOENT' ? 'missing' : 'unreadable';
+    return { configured: true, sourcePath, status: 'invalid', errorCode };
+  }
+  return { configured: true, sourcePath, status: 'ready', errorCode: null };
+}
+
+function setCustomIconPath(sourcePath) {
+  const normalized = normalizeCustomIconPath(sourcePath);
+  if (!normalized) {
+    throw new Error('Custom icon must be an absolute .svg or .png file path');
+  }
+  let stat;
+  try {
+    stat = fs.statSync(normalized);
+  } catch (exc) {
+    throw new Error(`Custom icon is not readable: ${exc.message}`);
+  }
+  if (!stat.isFile()) throw new Error('Custom icon path must point to a file');
+  const cfg = readConfig();
+  cfg.icon = { sourcePath: normalized };
+  writeConfig(cfg);
+}
+
+function clearCustomIcon() {
+  const cfg = readConfig();
+  if (!Object.prototype.hasOwnProperty.call(cfg, 'icon')) return false;
+  delete cfg.icon;
+  writeConfig(cfg);
+  return true;
 }
 
 function withBodyFace(key, css) {
@@ -275,6 +335,7 @@ function resetConfigurable() {
   const cfg = readConfig();
   delete cfg.features;
   delete cfg.theme;
+  delete cfg.icon;
   writeConfig(cfg);
 }
 
@@ -391,6 +452,7 @@ module.exports = {
   DEFAULT_THEME,
   BODY_FONT_SIZE_OPTIONS,
   PALETTE_OPTIONS,
+  CUSTOM_ICON_EXTENSIONS,
   BODY_FONT_FAMILY_OPTIONS,
   BODY_FONT_FACE_BY_KEY,
   CODE_FONT_FAMILY_OPTIONS,
@@ -407,6 +469,10 @@ module.exports = {
   setBodyBold,
   setBodyFontFamily,
   setCodeFontFamily,
+  normalizeCustomIconPath,
+  getCustomIcon,
+  setCustomIconPath,
+  clearCustomIcon,
   resetConfigurable,
   getStoredTargets,
   setLastUsedTargetId,

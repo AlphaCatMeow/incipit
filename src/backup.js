@@ -62,6 +62,7 @@ const {
   LOCAL_ASSET_TREES,
   LEGACY_ASSET_TREES,
 } = require('./install');
+const { CUSTOM_ICON_NAMES } = require('./custom-icon');
 
 const BACKUP_ROOT = path.join(os.homedir(), '.incipit-backup');
 const OFFICIAL_RESTORE_ROOT = path.join(os.homedir(), '.incipit', 'official-restore-points-v1');
@@ -80,6 +81,7 @@ const INCIPIT_MARKERS = [
   'host-badge.cjs',
   'claude-enhance-styles-link',
   'incipit-warm-white-link',
+  'incipit-ink-black-link',
   '__CLAUDE_ENHANCE_PREPROCESS_MARKDOWN__',
   'import("./enhance.js")',
 ];
@@ -218,6 +220,38 @@ function incipitWebviewTreeNames() {
   return Array.from(new Set([...(LOCAL_ASSET_TREES || []), ...(LEGACY_ASSET_TREES || [])]));
 }
 
+function customIconLogicalName(name) {
+  if (!CUSTOM_ICON_NAMES.includes(name)) throw new Error(`Unknown custom icon slot: ${name}`);
+  return `resources/${name}`;
+}
+
+function customIconPathForTarget(target, name) {
+  return path.join(target.extensionDir, 'resources', name);
+}
+
+function appendCustomIconEntriesFromCurrent(target, restoreDir, entries, names = CUSTOM_ICON_NAMES) {
+  for (const name of names) {
+    entries.push(snapshotFile(
+      customIconLogicalName(name),
+      customIconPathForTarget(target, name),
+      restoreDir,
+    ));
+  }
+  return entries;
+}
+
+function appendCustomIconEntriesFromExtensionRoot(target, extensionRoot, restoreDir, entries) {
+  for (const name of CUSTOM_ICON_NAMES) {
+    entries.push(snapshotFileFromSource(
+      customIconLogicalName(name),
+      customIconPathForTarget(target, name),
+      path.join(extensionRoot, 'resources', name),
+      restoreDir,
+    ));
+  }
+  return entries;
+}
+
 function manifestClaudeCodeVersion(manifest) {
   return String(
     manifest.claudeCodeVersion ||
@@ -250,7 +284,28 @@ function isManifestCompatibleWithTarget(manifest, target) {
       return false;
     }
   }
+  if (Array.isArray(manifest.entries)) {
+    for (const entry of manifest.entries) {
+      const expectedPath = expectedManifestEntryPath(entry, target);
+      if (!expectedPath || !samePath(entry.originalPath, expectedPath)) return false;
+    }
+  }
   return true;
+}
+
+function expectedManifestEntryPath(entry, target) {
+  if (!entry || !target || typeof entry.logicalName !== 'string') return null;
+  if (entry.type === 'sparse_json') {
+    if (entry.logicalName !== 'vscode_settings.json' || !target.settingsPath) return null;
+    return target.settingsPath;
+  }
+  if (entry.type !== 'file' && entry.type !== 'directory') return null;
+  if (entry.type === 'directory' && entry.logicalName === 'webview_dir') {
+    return webviewDirForTarget(target);
+  }
+  const relativePath = fromManifestRelativePath(entry.logicalName);
+  if (!relativePath || !target.extensionDir) return null;
+  return path.join(target.extensionDir, relativePath);
 }
 
 function assertManifestCompatibleWithTarget(manifest, target) {
@@ -300,8 +355,8 @@ function directoryShape(root) {
 function directoryMatchesManifest(root, entry) {
   if (!fs.existsSync(root)) return false;
   let stat;
-  try { stat = fs.statSync(root); } catch (_) { return false; }
-  if (!stat.isDirectory()) return false;
+  try { stat = fs.lstatSync(root); } catch (_) { return false; }
+  if (stat.isSymbolicLink() || !stat.isDirectory()) return false;
   let shape;
   try { shape = directoryShape(root); } catch (_) { return false; }
   const expectedFiles = entry.files || [];
@@ -330,6 +385,8 @@ function fileEntryBytesAvailable(e) {
   if (!e.existedBefore) return true;
   if (!fs.existsSync(e.backupPath)) return false;
   try {
+    const stat = fs.lstatSync(e.backupPath);
+    if (stat.isSymbolicLink() || !stat.isFile()) return false;
     const buf = fs.readFileSync(e.backupPath);
     return !e.sha256 || sha256Bytes(buf) === e.sha256;
   } catch (_) {
@@ -363,6 +420,7 @@ function writeManifest(backupDir, manifest) {
     extension_version: manifest.extensionVersion,
     extension_dir: manifest.extensionDir,
     source: manifest.source || undefined,
+    source_url: manifest.sourceUrl || undefined,
     entries: manifest.entries.map(serializeEntry),
   };
   atomicWrite(
@@ -417,9 +475,13 @@ function readManifest(backupDir) {
   } catch (_) {
     return null;
   }
-  const entries = (data.entries || [])
-    .map(e => deserializeEntry(e, backupDir))
-    .filter(Boolean);
+  if (!Array.isArray(data.entries)) return null;
+  const entries = [];
+  for (const rawEntry of data.entries) {
+    const entry = deserializeEntry(rawEntry, backupDir);
+    if (!entry) return null;
+    entries.push(entry);
+  }
   return {
     schemaVersion:    data.version || 1,
     createdAt:        data.created_at || '',
@@ -428,20 +490,26 @@ function readManifest(backupDir) {
     extensionVersion: data.extension_version || '',
     extensionDir:     data.extension_dir || '',
     source:           data.source || '',
+    sourceUrl:        data.source_url || '',
     entries,
   };
 }
 
 function deserializeEntry(e, backupDir) {
+  const originalPath = e && typeof e.original_path === 'string' && path.isAbsolute(e.original_path)
+    ? e.original_path
+    : null;
   if (!e || !e.type) {
     // v1 manifest: untyped entries were always whole-file. Migrate.
-    if (e && e.logical_name && e.original_path) {
+    if (e && e.logical_name && originalPath) {
+      const backupFile = path.basename(e.backup_path || '');
+      if (!backupFile) return null;
       return {
         type:          'file',
         logicalName:   e.logical_name,
-        originalPath:  e.original_path,
-        backupFile:    path.basename(e.backup_path || ''),
-        backupPath:    e.backup_path || path.join(backupDir, path.basename(e.backup_path || '')),
+        originalPath,
+        backupFile,
+        backupPath:    path.join(backupDir, backupFile),
         existedBefore: Boolean(e.existed_before),
         sha256:        e.sha256 || '',
       };
@@ -450,11 +518,11 @@ function deserializeEntry(e, backupDir) {
   }
   if (e.type === 'file') {
     const backupFile = fromManifestRelativePath(e.backup_file || e.logical_name || '');
-    if (!backupFile) return null;
+    if (!backupFile || !originalPath) return null;
     return {
       type:          'file',
       logicalName:   e.logical_name,
-      originalPath:  e.original_path,
+      originalPath,
       backupFile,
       backupPath:    path.join(backupDir, backupFile),
       existedBefore: Boolean(e.existed_before),
@@ -463,11 +531,11 @@ function deserializeEntry(e, backupDir) {
   }
   if (e.type === 'directory') {
     const backupDirName = fromManifestRelativePath(e.backup_dir || e.logical_name || '');
-    if (!backupDirName) return null;
+    if (!backupDirName || !originalPath) return null;
     return {
       type:          'directory',
       logicalName:   e.logical_name,
-      originalPath:  e.original_path,
+      originalPath,
       backupDirName,
       backupPath:    path.join(backupDir, backupDirName),
       existedBefore: Boolean(e.existed_before),
@@ -485,10 +553,11 @@ function deserializeEntry(e, backupDir) {
     };
   }
   if (e.type === 'sparse_json') {
+    if (!originalPath) return null;
     return {
       type:         'sparse_json',
       logicalName:  e.logical_name,
-      originalPath: e.original_path,
+      originalPath,
       keys: (e.keys || []).map(k => ({
         key:       k.key,
         hadBefore: Boolean(k.had_before),
@@ -512,6 +581,10 @@ function snapshotFile(logicalName, src, backupDir) {
       existedBefore: false,
       sha256:        '',
     };
+  }
+  const stat = fs.lstatSync(src);
+  if (stat.isSymbolicLink() || !stat.isFile()) {
+    throw new Error(`Expected regular file for backup: ${src}`);
   }
   const buf = fs.readFileSync(src);
   const dst = path.join(backupDir, logicalName);
@@ -541,8 +614,8 @@ function snapshotDirectory(logicalName, src, backupDir) {
       files:         [],
     };
   }
-  const stat = fs.statSync(src);
-  if (!stat.isDirectory()) {
+  const stat = fs.lstatSync(src);
+  if (stat.isSymbolicLink() || !stat.isDirectory()) {
     throw new Error(`Expected directory for backup: ${src}`);
   }
   if (fs.existsSync(dst)) fs.rmSync(dst, { recursive: true, force: true });
@@ -572,6 +645,10 @@ function snapshotFileFromSource(logicalName, originalPath, sourcePath, backupDir
       sha256:        '',
     };
   }
+  const stat = fs.lstatSync(sourcePath);
+  if (stat.isSymbolicLink() || !stat.isFile()) {
+    throw new Error(`Expected regular file for restore point: ${sourcePath}`);
+  }
   const buf = fs.readFileSync(sourcePath);
   const dst = path.join(backupDir, logicalName);
   atomicWrite(dst, buf);
@@ -600,8 +677,8 @@ function snapshotDirectoryFromSource(logicalName, originalPath, sourcePath, back
       files:         [],
     };
   }
-  const stat = fs.statSync(sourcePath);
-  if (!stat.isDirectory()) {
+  const stat = fs.lstatSync(sourcePath);
+  if (stat.isSymbolicLink() || !stat.isDirectory()) {
     throw new Error(`Expected directory for restore point: ${sourcePath}`);
   }
   if (fs.existsSync(dst)) fs.rmSync(dst, { recursive: true, force: true });
@@ -791,7 +868,7 @@ function readZipEntryData(buf, localOffset, compressedSize, uncompressedSize, me
   return data;
 }
 
-function officialRestorePointEntriesFromExtensionRoot(target, extensionRoot, restoreDir) {
+function officialRestorePointEntriesFromExtensionRoot(target, extensionRoot, restoreDir, options = {}) {
   const webviewDir = webviewDirForTarget(target);
   const sourceWebviewDir = path.join(extensionRoot, 'webview');
   const entries = [
@@ -813,6 +890,9 @@ function officialRestorePointEntriesFromExtensionRoot(target, extensionRoot, res
       path.join(sourceWebviewDir, name),
       restoreDir,
     ));
+  }
+  if (options.includeCustomIcons === true) {
+    appendCustomIconEntriesFromExtensionRoot(target, extensionRoot, restoreDir, entries);
   }
   return entries;
 }
@@ -891,7 +971,7 @@ function targetHasIncipitPatch(target) {
   return false;
 }
 
-function officialRestorePointEntriesFromCurrent(target, restoreDir) {
+function officialRestorePointEntriesFromCurrent(target, restoreDir, options = {}) {
   const webviewDir = webviewDirForTarget(target);
   const entries = [
     snapshotFile('extension.js', target.extensionJsPath, restoreDir),
@@ -902,6 +982,9 @@ function officialRestorePointEntriesFromCurrent(target, restoreDir) {
   }
   for (const name of incipitWebviewTreeNames()) {
     entries.push(snapshotDirectory(`webview/${name}`, path.join(webviewDir, name), restoreDir));
+  }
+  if (options.includeCustomIcons === true) {
+    appendCustomIconEntriesFromCurrent(target, restoreDir, entries);
   }
   return entries;
 }
@@ -920,10 +1003,10 @@ function writeOfficialRestorePoint(target, entries, restoreDir, source) {
   return manifest;
 }
 
-function createOfficialRestorePointFromCurrent(target, restoreDir) {
+function createOfficialRestorePointFromCurrent(target, restoreDir, options = {}) {
   if (fs.existsSync(restoreDir)) fs.rmSync(restoreDir, { recursive: true, force: true });
   fs.mkdirSync(restoreDir, { recursive: true });
-  const entries = officialRestorePointEntriesFromCurrent(target, restoreDir);
+  const entries = officialRestorePointEntriesFromCurrent(target, restoreDir, options);
   const manifest = writeOfficialRestorePoint(target, entries, restoreDir, 'current-official');
   return {
     status: 'created',
@@ -943,6 +1026,85 @@ function loadOfficialRestorePoint(target) {
     restorePointDir: restoreDir,
     manifest,
   };
+}
+
+function extendOfficialRestorePointWithOwnedWebviewEntries(target, point) {
+  const manifest = point && point.manifest;
+  if (!manifest || !Array.isArray(manifest.entries)) {
+    throw new Error('Cannot extend an invalid official restore point.');
+  }
+  const webviewDir = webviewDirForTarget(target);
+  const existingNames = new Set(manifest.entries.map(entry => entry && entry.logicalName).filter(Boolean));
+  const additions = [];
+  for (const name of incipitRootWebviewFileNames()) {
+    const logicalName = `webview/${name}`;
+    if (!existingNames.has(logicalName)) {
+      additions.push(snapshotFile(logicalName, path.join(webviewDir, name), point.restorePointDir));
+    }
+  }
+  for (const name of incipitWebviewTreeNames()) {
+    const logicalName = `webview/${name}`;
+    if (!existingNames.has(logicalName)) {
+      additions.push(snapshotDirectory(logicalName, path.join(webviewDir, name), point.restorePointDir));
+    }
+  }
+  if (!additions.length) return point;
+  manifest.entries = [...manifest.entries, ...additions];
+  writeManifest(point.restorePointDir, manifest);
+  return {
+    ...point,
+    status: 'extended',
+    manifest,
+    ownedWebviewEntriesAdded: additions.length,
+  };
+}
+
+function extendOfficialRestorePointWithCustomIcons(target, point) {
+  const manifest = point && point.manifest;
+  if (!manifest || !Array.isArray(manifest.entries)) {
+    throw new Error('Cannot extend an invalid official restore point.');
+  }
+  const existingNames = new Set(manifest.entries.map(entry => entry && entry.logicalName).filter(Boolean));
+  const missingNames = CUSTOM_ICON_NAMES.filter(name => !existingNames.has(customIconLogicalName(name)));
+  if (!missingNames.length) return point;
+
+  const additions = [];
+  appendCustomIconEntriesFromCurrent(target, point.restorePointDir, additions, missingNames);
+  manifest.entries = [...manifest.entries, ...additions];
+  writeManifest(point.restorePointDir, manifest);
+  return {
+    ...point,
+    status: 'extended',
+    manifest,
+    iconEntriesAdded: additions.length,
+  };
+}
+
+function readOfficialIconRestorePayloads(point, names = CUSTOM_ICON_NAMES) {
+  if (!point || !point.manifest || !Array.isArray(point.manifest.entries)) {
+    throw new Error('An official restore point is required for custom icon apply.');
+  }
+  return names.map(name => {
+    const logicalName = customIconLogicalName(name);
+    const entry = point.manifest.entries.find(candidate =>
+      candidate && candidate.type === 'file' && candidate.logicalName === logicalName
+    );
+    if (!entry) throw new Error(`Official restore point is missing ${logicalName}.`);
+    if (!entry.existedBefore) return { name, existedBefore: false, bytes: null };
+    if (!/^[a-f0-9]{64}$/.test(String(entry.sha256 || ''))) {
+      throw new Error(`Official restore payload has no valid fingerprint for ${logicalName}.`);
+    }
+    if (!fs.existsSync(entry.backupPath)) throw new Error(`Official restore payload is missing ${logicalName}.`);
+    const stat = fs.lstatSync(entry.backupPath);
+    if (stat.isSymbolicLink() || !stat.isFile()) {
+      throw new Error(`Official restore payload is not a regular file for ${logicalName}.`);
+    }
+    const bytes = fs.readFileSync(entry.backupPath);
+    if (sha256Bytes(bytes) !== entry.sha256) {
+      throw new Error(`Official restore payload failed verification for ${logicalName}.`);
+    }
+    return { name, existedBefore: true, bytes };
+  });
 }
 
 function legacyEntry(manifest, logicalName) {
@@ -1015,6 +1177,10 @@ function officialRestorePointEntriesFromLegacy(target, legacyManifest, restoreDi
       restoreDir,
     ));
   }
+  // No custom-icon entries here: a legacy backup never captured the official
+  // resources/ icons, so it cannot supply a provable official icon source.
+  // ensureOfficialRestorePoint routes icon-carrying applies to a Marketplace
+  // recovery instead, keeping legacy migration structurally icon-free.
   return entries;
 }
 
@@ -1036,7 +1202,7 @@ function migrateOfficialRestorePointFromLegacy(target) {
   };
 }
 
-async function createOfficialRestorePointFromMarketplace(target) {
+async function createOfficialRestorePointFromMarketplace(target, options = {}) {
   const restoreDir = officialRestorePointDir(target);
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'incipit-vsix-'));
   try {
@@ -1046,7 +1212,7 @@ async function createOfficialRestorePointFromMarketplace(target) {
     validateOfficialExtensionPayload(target, extensionRoot);
     if (fs.existsSync(restoreDir)) fs.rmSync(restoreDir, { recursive: true, force: true });
     fs.mkdirSync(restoreDir, { recursive: true });
-    const entries = officialRestorePointEntriesFromExtensionRoot(target, extensionRoot, restoreDir);
+    const entries = officialRestorePointEntriesFromExtensionRoot(target, extensionRoot, restoreDir, options);
     const manifest = writeOfficialRestorePoint(target, entries, restoreDir, 'marketplace-vsix');
     manifest.sourceUrl = url;
     writeManifest(restoreDir, manifest);
@@ -1063,17 +1229,29 @@ async function createOfficialRestorePointFromMarketplace(target) {
 
 async function ensureOfficialRestorePoint(target, options = {}) {
   const allowMarketplaceDownload = options.allowMarketplaceDownload === true;
+  const includeCustomIcons = options.includeCustomIcons === true;
   const existing = loadOfficialRestorePoint(target);
-  if (existing) return existing;
+  if (existing) {
+    const withOwnedWebview = extendOfficialRestorePointWithOwnedWebviewEntries(target, existing);
+    return includeCustomIcons
+      ? extendOfficialRestorePointWithCustomIcons(target, withOwnedWebview)
+      : withOwnedWebview;
+  }
   const restoreDir = officialRestorePointDir(target);
   if (targetHasIncipitPatch(target)) {
-    const migrated = migrateOfficialRestorePointFromLegacy(target);
+    // Legacy backups predate icon customization and never captured the
+    // extension-root resources/ icons, so a legacy migration cannot prove an
+    // official icon source. When a custom icon is being applied, refuse to
+    // fabricate one from the current resources/ bytes (which may already be a
+    // previously applied custom icon) and require a Marketplace recovery that
+    // carries the genuine packaged icons. Non-icon applies still migrate.
+    const migrated = includeCustomIcons ? null : migrateOfficialRestorePointFromLegacy(target);
     if (migrated) return migrated;
     if (!allowMarketplaceDownload) {
       throw new MissingOfficialRestorePointError(target);
     }
     try {
-      return await createOfficialRestorePointFromMarketplace(target);
+      return await createOfficialRestorePointFromMarketplace(target, { includeCustomIcons });
     } catch (exc) {
       throw new Error(
         'Current Claude Code already contains incipit, but no official restore point exists. ' +
@@ -1081,7 +1259,7 @@ async function ensureOfficialRestorePoint(target, options = {}) {
       );
     }
   }
-  return createOfficialRestorePointFromCurrent(target, restoreDir);
+  return createOfficialRestorePointFromCurrent(target, restoreDir, { includeCustomIcons });
 }
 
 async function restoreOfficialTarget(target) {
@@ -1202,9 +1380,15 @@ function restoreBackup(manifest, options = {}) {
 function restoreFileEntry(e) {
   if (e.existedBefore) {
     if (!fs.existsSync(e.backupPath)) return false;
+    const backupStat = fs.lstatSync(e.backupPath);
+    if (backupStat.isSymbolicLink() || !backupStat.isFile()) return false;
     const buf = fs.readFileSync(e.backupPath);
     // sha256 gate: refuse to write corrupted backup bytes back to disk.
     if (e.sha256 && sha256Bytes(buf) !== e.sha256) return false;
+    if (fs.existsSync(e.originalPath)) {
+      const destinationStat = fs.lstatSync(e.originalPath);
+      if (destinationStat.isSymbolicLink() || !destinationStat.isFile()) return false;
+    }
     fs.mkdirSync(path.dirname(e.originalPath), { recursive: true });
     atomicWrite(e.originalPath, buf);
     return true;
@@ -1214,6 +1398,8 @@ function restoreFileEntry(e) {
   // always a sparse_json entry and never takes this path.
   if (fs.existsSync(e.originalPath)) {
     try {
+      const destinationStat = fs.lstatSync(e.originalPath);
+      if (destinationStat.isSymbolicLink() || !destinationStat.isFile()) return false;
       fs.unlinkSync(e.originalPath);
       return true;
     } catch (_) {
@@ -1242,6 +1428,8 @@ function restoreDirectoryEntry(e) {
         return false;
       }
       if (fs.existsSync(e.originalPath)) {
+        const destinationStat = fs.lstatSync(e.originalPath);
+        if (destinationStat.isSymbolicLink() || !destinationStat.isDirectory()) return false;
         fs.renameSync(e.originalPath, old);
       }
       fs.renameSync(stage, e.originalPath);
@@ -1261,6 +1449,8 @@ function restoreDirectoryEntry(e) {
 
   if (fs.existsSync(e.originalPath)) {
     try {
+      const destinationStat = fs.lstatSync(e.originalPath);
+      if (destinationStat.isSymbolicLink() || !destinationStat.isDirectory()) return false;
       fs.rmSync(e.originalPath, { recursive: true, force: true });
       return true;
     } catch (_) {
@@ -1330,7 +1520,17 @@ module.exports = {
   restoreBackup,
   officialRestorePointDir,
   ensureOfficialRestorePoint,
+  readOfficialIconRestorePayloads,
   restoreOfficialTarget,
   legacyBackupStats,
   cleanLegacyBackups,
+  __test: {
+    readManifest,
+    officialRestorePointEntriesFromCurrent,
+    officialRestorePointEntriesFromExtensionRoot,
+    officialRestorePointEntriesFromLegacy,
+    extendOfficialRestorePointWithOwnedWebviewEntries,
+    extendOfficialRestorePointWithCustomIcons,
+    customIconPathForTarget,
+  },
 };

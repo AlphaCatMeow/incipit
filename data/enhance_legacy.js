@@ -316,7 +316,7 @@ import {
   // Body-portal dropdown anchored to a button. Closes on outside click
   // or Esc. Items: { label, icon, onClick } array. Returns the popup node.
   // Style hooks live in theme.css under `[data-incipit-action-dropdown]`
-  // and pick up palette via warm-white-override.css.
+  // and pick up the selected palette through its active override stylesheet.
   function openActionDropdown(anchorBtn, items) {
     // Toggle behaviour: clicking the same anchor that already owns an
     // open dropdown closes it. We tag the popup with its anchor so we

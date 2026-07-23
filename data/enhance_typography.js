@@ -90,6 +90,84 @@ export function configureTypographyHooks(hooks = {}) {
 
 function mermaidThemeVariables() {
   const P = MERMAID_GROUP_PALETTE;
+  if (CFG.palette === 'ink-black') {
+    return {
+      darkMode: true,
+      fontSize: '12px',
+      background: '#0a0b0b',
+      primaryColor: '#1c1d1e',
+      primaryTextColor: '#fbfbfc',
+      primaryBorderColor: '#a8a8a9',
+      secondaryColor: '#232425',
+      secondaryTextColor: '#fbfbfc',
+      secondaryBorderColor: '#555657',
+      tertiaryColor: '#2a2b2c',
+      tertiaryTextColor: '#fbfbfc',
+      tertiaryBorderColor: '#bd7a62',
+      lineColor: '#a8a8a9',
+      textColor: '#fbfbfc',
+      mainBkg: '#1c1d1e',
+      nodeBkg: '#1c1d1e',
+      nodeBorder: '#a8a8a9',
+      nodeTextColor: '#fbfbfc',
+      edgeLabelBackground: '#1c1d1e',
+      clusterBkg: '#232425',
+      clusterBorder: '#555657',
+      titleColor: '#fbfbfc',
+      noteBkgColor: '#1c1d1e',
+      noteTextColor: '#fbfbfc',
+      noteBorderColor: '#bd7a62',
+      actorBkg: '#1c1d1e',
+      actorBorder: '#a8a8a9',
+      actorTextColor: '#fbfbfc',
+      actorLineColor: '#a8a8a9',
+      labelBoxBkgColor: '#1c1d1e',
+      labelBoxBorderColor: '#555657',
+      labelTextColor: '#fbfbfc',
+      loopTextColor: '#fbfbfc',
+      signalColor: '#a8a8a9',
+      signalTextColor: '#fbfbfc',
+      activationBkgColor: '#232425',
+      activationBorderColor: '#a8a8a9',
+      sequenceNumberColor: '#0a0b0b',
+      sectionBkgColor: '#232425',
+      altSectionBkgColor: '#1c1d1e',
+      sectionBkgColor2: '#2a2b2c',
+      excludeBkgColor: '#141516',
+      taskBkgColor: '#1c1d1e',
+      taskBorderColor: '#a8a8a9',
+      taskTextColor: '#fbfbfc',
+      taskTextOutsideColor: '#fbfbfc',
+      taskTextLightColor: '#fbfbfc',
+      taskTextDarkColor: '#0a0b0b',
+      activeTaskBkgColor: '#3a2c25',
+      activeTaskBorderColor: '#bd7a62',
+      doneTaskBkgColor: '#1e2a1e',
+      doneTaskBorderColor: '#7cb27c',
+      critBkgColor: '#3a2c25',
+      critBorderColor: '#bd7a62',
+      gridColor: '#555657',
+      pieTitleTextColor: '#fbfbfc',
+      pieSectionTextColor: '#fbfbfc',
+      pieLegendTextColor: '#fbfbfc',
+      pieStrokeColor: '#0a0b0b',
+      pieOuterStrokeColor: '#0a0b0b',
+      pieStrokeWidth: '2px',
+      pieOuterStrokeWidth: '2px',
+      pieOpacity: '0.88',
+      pie0: P[0], pie1: P[1], pie2: P[2], pie3: P[3], pie4: P[4], pie5: P[5],
+      pie6: P[6], pie7: P[7], pie8: P[8], pie9: P[9], pie10: P[10], pie11: P[11],
+      cScale0: P[0], cScale1: P[1], cScale2: P[2], cScale3: P[3], cScale4: P[4],
+      cScale5: P[5], cScale6: P[6], cScale7: P[7], cScale8: P[8], cScale9: P[9],
+      classText: '#fbfbfc',
+      stateLabelColor: '#fbfbfc',
+      transitionLabelColor: '#fbfbfc',
+      relationLabelColor: '#fbfbfc',
+      branchLabelColor: '#0a0b0b',
+      commitLabelColor: '#fbfbfc',
+      commitLabelBackground: '#232425',
+    };
+  }
   if (CFG.palette === 'warm-white') {
     return {
       darkMode: false,
@@ -247,6 +325,12 @@ function mermaidThemeVariables() {
   };
 }
 
+const HLJS_THEME_FILES = Object.freeze({
+  'warm-black': 'hljs/styles/vs2015.min.css',
+  'ink-black': 'hljs/styles/vs2015.min.css',
+  'warm-white': 'hljs/styles/vs.min.css',
+});
+
 const assets = (() => {
   let katexPromise = null;
   let hljsPromise = null;
@@ -318,9 +402,7 @@ const assets = (() => {
     hljs() {
       if (!hljsPromise) {
         reportHealth('asset.hljs', 'loading');
-        const themeFile = CFG.palette === 'warm-white'
-          ? 'hljs/styles/vs.min.css'
-          : 'hljs/styles/vs2015.min.css';
+        const themeFile = HLJS_THEME_FILES[CFG.palette];
         hljsPromise = Promise.all([
           loadCSS(assetURL(themeFile)),
           loadJS(assetURL('hljs/highlight.min.js')),

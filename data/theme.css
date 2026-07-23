@@ -1,3 +1,466 @@
+/* Semantic colour tokens — warm-black (default palette). */
+:root {
+  --ink-accent: #d97757;
+  --ink-accent-bright: #e0a18b;
+  --ink-accent-dim: #bc8c75;
+  --ink-accent-focus: rgba(217,119,87,0.6);
+  --ink-accent-selection: rgba(217,119,87,0.32);
+  --ink-accent-wash: rgba(217,119,87,0.22);
+  --ink-action-button-border: rgba(255,255,255,0.16);
+  --ink-action-button-fg-override: #0d0d0d;
+  --ink-action-button-hover-bg: rgba(255,255,255,0.06);
+  --ink-action-dropdown-separator-bg: rgba(245,242,232,0.10);
+  --ink-action-dropdown-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-active-border-bottom: #d97757;
+  --ink-add-bar: #3fb950;
+  --ink-add-char-bg: #2ea04366;
+  --ink-add-fg: #7cb27c;
+  --ink-add-line-bg: #23863633;
+  --ink-ask-request-bg: rgba(18,18,18,0.22);
+  --ink-ask-request-bg-2: #121212;
+  --ink-ask-request-border: rgba(245,242,232,0.32);
+  --ink-ask-request-border-bottom: rgba(217,119,87,0.72);
+  --ink-ask-request-border-top-override: 1px solid rgba(60,55,40,0.10);
+  --ink-ask-request-fg: rgba(245,242,232,0.72);
+  --ink-ask-request-fg-2: rgba(245,242,232,0.52);
+  --ink-ask-request-fg-3: rgba(245,242,232,0.58);
+  --ink-ask-request-fg-4: rgba(245,242,232,0.42);
+  --ink-ask-request-fg-override: #0d0d0d;
+  --ink-ask-request-hover-bg: #121212;
+  --ink-ask-request-hover-bg-2: #1a1a19;
+  --ink-ask-request-shadow: inset 0 0 0 1px rgba(245,242,232,0.10);
+  --ink-ask-request-shadow-override: 0 12px 36px rgba(60,55,40,0.20),0 2px 8px rgba(60,55,40,0.12);
+  --ink-border-divider: rgba(245, 242, 232, 0.06);
+  --ink-border-hairline: rgba(245, 242, 232, 0.10);
+  --ink-border-strong: rgba(245, 242, 232, 0.16);
+  --ink-bubble-bg: #121212;
+  --ink-bubble-chip-bg: #3d312d;
+  --ink-bubble-chip-bg-hover: #493932;
+  --ink-bubble-chip-fg: #e0a18b;
+  --ink-bubble-link-accent: #d97757;
+  --ink-bubble-link-wash: rgba(217,119,87,0.22);
+  --ink-bubble-showmore: rgba(245, 242, 232, 0.62);
+  --ink-bubble-showmore-hover: #f5f2e8;
+  --ink-bubble-text: #f5f2e8;
+  --ink-cce-badge-active-bg: #2c2c2a;
+  --ink-cce-badge-active-bg-2: #3a3b3a;
+  --ink-cce-badge-hover-bg: #3a3b3a;
+  --ink-cce-badge-val-fg: #989898;
+  --ink-cce-context-stack-bg: rgba(18,18,18,0.28);
+  --ink-cce-context-stack-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  --ink-cce-edit-cell-bg: rgba(248,246,240,0.055);
+  --ink-cce-edit-cell-bg-2: rgba(168,137,110,0.26);
+  --ink-cce-edit-cell-bg-3: rgba(168,137,110,0.42);
+  --ink-cce-edit-cell-bg-4: rgba(168,137,110,0.62);
+  --ink-cce-edit-cell-bg-5: rgba(168,137,110,0.86);
+  --ink-cce-edit-cell-shadow: inset 0 0 0 1px rgba(248,246,240,0.035);
+  --ink-cce-edit-chip-active-bg: rgba(248,246,240,0.11);
+  --ink-cce-edit-chip-active-hover-bg: rgba(248,246,240,0.07);
+  --ink-cce-edit-chip-fg: #d8d6ce;
+  --ink-cce-edit-legend-cells-bg: rgba(248,246,240,0.055);
+  --ink-cce-edit-legend-cells-bg-2: rgba(168,137,110,0.26);
+  --ink-cce-edit-legend-cells-bg-3: rgba(168,137,110,0.42);
+  --ink-cce-edit-legend-cells-bg-4: rgba(168,137,110,0.62);
+  --ink-cce-edit-legend-cells-bg-5: rgba(168,137,110,0.86);
+  --ink-cce-edit-legend-cells-shadow: inset 0 0 0 1px rgba(248,246,240,0.035);
+  --ink-cce-edit-popup-border: 1px solid rgba(255,255,255,0.08);
+  --ink-cce-edit-popup-fg: #e8e6dd;
+  --ink-cce-edit-popup-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-cce-edit-project-name-fg: #d8d6ce;
+  --ink-cce-edit-rule-bg: rgba(248,246,240,0.08);
+  --ink-cce-edit-scope-fg: #b3b0a8;
+  --ink-cce-edit-status-bg: rgba(168,137,110,0.14);
+  --ink-cce-edit-status-fg: #c8b19d;
+  --ink-cce-edit-tooltip-bg: rgba(31,31,30,0.92);
+  --ink-cce-edit-tooltip-shadow: 0 2px 8px rgba(0,0,0,0.26);
+  --ink-cce-flow-bar-bg: rgba(195,194,183,0.74);
+  --ink-cce-flow-bar-bg-2: rgba(18,18,18,0.22);
+  --ink-cce-flow-header-fg: #e8e6dd;
+  --ink-cce-flow-value-fg: #e8e6dd;
+  --ink-cce-hit-chart-shell-bg: rgba(18,18,18,0.18);
+  --ink-cce-hit-chart-shell-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  --ink-cce-hit-grid-stroke: rgba(245,242,232,0.10);
+  --ink-cce-hit-hover-label-bg: rgba(31,31,30,0.88);
+  --ink-cce-hit-hover-label-shadow: 0 2px 8px rgba(0,0,0,0.22);
+  --ink-cce-hit-hover-line-stroke: rgba(245,242,232,0.42);
+  --ink-cce-hit-hover-point-fill: #2c2c2a;
+  --ink-cce-hit-hover-point-stroke: #a8896e;
+  --ink-cce-hit-hover-time-fg: #b8b7ad;
+  --ink-cce-hit-line-stroke: #a8896e;
+  --ink-cce-hit-point-fill: #2c2c2a;
+  --ink-cce-hit-point-latest-fill: #2c2c2a;
+  --ink-cce-hit-point-low-fill: #a8896e;
+  --ink-cce-hit-point-stroke: #a8896e;
+  --ink-cce-hit-stat-bg: rgba(18,18,18,0.16);
+  --ink-cce-hit-stat-border-left-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-hit-stat-fg: #e8e6dd;
+  --ink-cce-hit-stats-border-top-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-hit-xaxis-stroke: rgba(245,242,232,0.16);
+  --ink-cce-hit-xtick-stroke: rgba(245,242,232,0.18);
+  --ink-cce-legend-fresh-bg: rgba(245,242,232,0.42);
+  --ink-cce-legend-read-bg: rgba(168,137,110,0.82);
+  --ink-cce-legend-write-bg: rgba(168,137,110,0.48);
+  --ink-cce-note-btn-active-bg: #3a3b3a;
+  --ink-cce-note-btn-active-bg-override: #3a3b3a;
+  --ink-cce-note-btn-fg: #f8f8f6;
+  --ink-cce-note-btn-fg-override: #f8f8f6;
+  --ink-cce-note-btn-hover-bg: #3a3b3a;
+  --ink-cce-note-btn-hover-bg-override: #3a3b3a;
+  --ink-cce-note-btn-hover-fg: #f8f8f6;
+  --ink-cce-note-btn-hover-fg-override: #f8f8f6;
+  --ink-cce-note-btn-nudge-fg: #c9a657;
+  --ink-cce-note-btn-nudge-fg-override: #c9a657;
+  --ink-cce-range-handle-stroke: #a8896e;
+  --ink-cce-range-line-stroke: rgba(168,137,110,0.62);
+  --ink-cce-range-track-stroke: rgba(245,242,232,0.18);
+  --ink-cce-range-window-fill: rgba(168,137,110,0.12);
+  --ink-cce-range-window-stroke: rgba(168,137,110,0.42);
+  --ink-cce-selected-metric-bg: rgba(18,18,18,0.16);
+  --ink-cce-selected-metric-border-top-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-selected-metric-fg: #e8e6dd;
+  --ink-cce-stat-divider-bg: rgba(255,255,255,0.07);
+  --ink-cce-stat-empty-fg: #6a6a64;
+  --ink-cce-stat-metric-bg: rgba(18,18,18,0.24);
+  --ink-cce-stat-metric-border-left-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-stat-metric-shadow: inset 0 0 0 1px rgba(255,255,255,0.045);
+  --ink-cce-stat-overview-border-bottom-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-stat-popup-border: 1px solid rgba(255,255,255,0.08);
+  --ink-cce-stat-popup-fg: #e8e6dd;
+  --ink-cce-stat-popup-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-change-review-counts-fg: rgba(248,248,246,0.5);
+  --ink-change-review-error-bg: rgba(217,119,87,0.12);
+  --ink-change-review-error-fg: #e6a08c;
+  --ink-change-review-file-border-top: 1px solid rgba(248,248,246,0.06);
+  --ink-change-review-file-name-fg: rgba(248,248,246,0.66);
+  --ink-change-review-file-name-fg-2: rgba(248,248,246,0.58);
+  --ink-change-review-file-name-hover-fg: rgba(248,248,246,0.94);
+  --ink-change-review-file-name-hover-fg-2: rgba(248,248,246,0.58);
+  --ink-change-review-flash-shadow: 0 0 0 1px rgba(217,119,87,0.42),0 6px 18px rgba(0,0,0,0.26);
+  --ink-change-review-modal-bg: rgba(0,0,0,0.48);
+  --ink-change-review-modal-message-fg: rgba(248,248,246,0.78);
+  --ink-change-review-more-fg: rgba(248,248,246,0.5);
+  --ink-change-review-more-hover-fg: rgba(248,248,246,0.9);
+  --ink-change-review-reject-file-fg: #d97757;
+  --ink-change-review-reject-file-hover-fg: #e8917a;
+  --ink-change-review-status-fg: rgba(248,248,246,0.52);
+  --ink-change-review-subagent-badge-bg: rgba(248,248,246,0.045);
+  --ink-change-review-subagent-badge-border: 1px solid rgba(248,248,246,0.14);
+  --ink-change-review-subagent-badge-border-override: rgba(13,13,13,0.14);
+  --ink-change-review-subagent-badge-fg: rgba(248,248,246,0.52);
+  --ink-change-review-turn-bg: rgba(248,248,246,0.022);
+  --ink-change-review-turn-border: 1px solid rgba(248,248,246,0.08);
+  --ink-change-review-turn-border-override: rgba(13,13,13,0.10);
+  --ink-change-review-turn-fg: rgba(248,248,246,0.82);
+  --ink-change-review-turn-title-fg: rgba(248,248,246,0.92);
+  --ink-chip-bg: #3d312d;
+  --ink-chip-bg-hover: #493932;
+  --ink-chip-fg: #e0a18b;
+  --ink-composer-badge-label: #f8f8f6;
+  --ink-composer-badge-value: #989898;
+  --ink-composer-input-bg: #2c2c2a;
+  --ink-custom-model-action-after-fg: rgba(217,119,87,0.52);
+  --ink-custom-model-action-hover-fg: rgba(217,119,87,0.78);
+  --ink-custom-model-cancel-border: 1px solid rgba(255,255,255,0.10);
+  --ink-custom-model-cancel-border-override: rgba(60,55,40,0.14);
+  --ink-custom-model-cancel-fg: rgba(248,248,246,0.78);
+  --ink-custom-model-close-fg: rgba(248,248,246,0.72);
+  --ink-custom-model-dialog-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-custom-model-error-fg: #ffd2cd;
+  --ink-custom-model-header-border-bottom: 1px solid rgba(255,255,255,0.08);
+  --ink-custom-model-header-border-bottom-override: rgba(60,55,40,0.10);
+  --ink-custom-model-input-bg: #1f1f1e;
+  --ink-custom-model-input-border: 1px solid rgba(255,255,255,0.08);
+  --ink-custom-model-input-border-override: rgba(60,55,40,0.12);
+  --ink-custom-model-input-caret: #a8896e;
+  --ink-custom-model-input-focus-border: rgba(255,255,255,0.08);
+  --ink-custom-model-input-placeholder-fg: rgba(248,248,246,0.36);
+  --ink-custom-model-label-fg: rgba(248,248,246,0.64);
+  --ink-custom-model-modal-bg: rgba(0,0,0,0.50);
+  --ink-custom-model-submit-bg: #a8896e;
+  --ink-custom-model-submit-fg: #1f1f1e;
+  --ink-deferred-dragging-bg: rgba(248,248,246,0.06);
+  --ink-deferred-dragging-shadow: 0 6px 18px rgba(0,0,0,0.32);
+  --ink-deferred-next-bg: #2f2f2c;
+  --ink-deferred-next-edit-cancel-fg: rgba(248,248,246,0.62);
+  --ink-deferred-next-edit-cancel-fg-override: rgba(13,13,13,0.58);
+  --ink-deferred-next-edit-cancel-hover-bg: rgba(248,248,246,0.08);
+  --ink-deferred-next-edit-cancel-hover-fg: rgba(248,248,246,0.92);
+  --ink-deferred-next-edit-cancel-hover-fg-override: rgba(13,13,13,0.88);
+  --ink-deferred-next-edit-save-fg: #d97757;
+  --ink-deferred-next-edit-save-hover-fg-override: #d97757;
+  --ink-deferred-next-error-bg: rgba(217,119,87,0.12);
+  --ink-deferred-next-error-fg: #e6a08c;
+  --ink-deferred-next-fg: rgba(248,248,246,0.86);
+  --ink-deferred-next-grip-fg: rgba(248,248,246,0.28);
+  --ink-deferred-next-grip-hover-fg: rgba(248,248,246,0.5);
+  --ink-deferred-next-guide-fg: rgba(248,248,246,0.74);
+  --ink-deferred-next-guide-hover-fg: #d97757;
+  --ink-deferred-next-shadow: 0 2px 10px rgba(0,0,0,0.20),0 1px 3px rgba(0,0,0,0.16);
+  --ink-deferred-next-text-fg: rgba(248,248,246,0.72);
+  --ink-deferred-next-textarea-bg: #242421;
+  --ink-deferred-next-textarea-fg: rgba(248,248,246,0.88);
+  --ink-deferred-next-textarea-shadow: inset 0 0 0 1px rgba(248,248,246,0.08);
+  --ink-deferred-row-border-top: 1px solid rgba(248,248,246,0.06);
+  --ink-del-bar: #f85149;
+  --ink-del-char-bg: #f8514966;
+  --ink-del-fg: #c96a6a;
+  --ink-del-line-bg: #da363333;
+  --ink-dialog-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-diff-add-border: rgba(124, 178, 124, 0.35);
+  --ink-diff-border: rgba(248, 246, 240, 0.12);
+  --ink-diff-button-bg: #2c2c2a;
+  --ink-diff-button-bg-hover: #333330;
+  --ink-diff-button-border: rgba(248, 246, 240, 0.14);
+  --ink-diff-button-text: #f8f8f6;
+  --ink-diff-del-border: rgba(201, 106, 106, 0.35);
+  --ink-diff-divider: rgba(248, 246, 240, 0.10);
+  --ink-diff-editor-container-bg: rgba(0,0,0,0.45);
+  --ink-diff-gradient-start: rgba(31, 31, 30, 0);
+  --ink-diff-header-bg: #2a2a28;
+  --ink-diff-header-border: rgba(248, 246, 240, 0.08);
+  --ink-diff-header-text: #d8d6ce;
+  --ink-diff-muted: #9c9c9a;
+  --ink-diff-overlay-hover: rgba(248, 246, 240, 0.045);
+  --ink-diff-overview: rgba(248, 246, 240, 0.04);
+  --ink-diff-shadow: rgba(0, 0, 0, 0.28);
+  --ink-diff-surface: #1f1f1e;
+  --ink-diff-text: #f0eee8;
+  --ink-disabled-fg: rgba(255,255,255,0.45);
+  --ink-disabled-hover-fg: rgba(255,255,255,0.45);
+  --ink-disabled-hover-fg-2: rgba(217,119,87,0.92);
+  --ink-dropdown-bg: #1f1f1e;
+  --ink-dropdown-border: rgba(255,255,255,0.06);
+  --ink-dropdown-border-2: rgba(255,255,255,0.06);
+  --ink-dropdown-placeholder-fg: rgba(248,248,246,0.42);
+  --ink-dropdown-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-edit-hover-preview-bg: #272727;
+  --ink-edit-hover-preview-bg-override: #272727;
+  --ink-editor-bg: #121212;
+  --ink-file-drag-hint-after-bg: rgba(31,31,30,0.94);
+  --ink-file-drag-hint-after-border: 1px solid rgba(217,119,87,0.36);
+  --ink-file-drag-hint-after-border-override: rgba(191,93,58,0.42);
+  --ink-file-drag-hint-after-fg: rgba(248,248,246,0.78);
+  --ink-file-drag-hint-after-shadow: 0 4px 14px rgba(0,0,0,0.28);
+  --ink-file-drag-hint-bg: #302d2a;
+  --ink-file-drag-hint-shadow: 0 6px 22px rgba(0,0,0,0.28),0 1px 4px rgba(0,0,0,0.20),inset 0 0 0 1px rgba(217,119,87,0.46);
+  --ink-fill-bg: #a8896e;
+  --ink-image-preview-bg: rgba(0,0,0,0.78);
+  --ink-image-preview-close-bg: rgba(0,0,0,0.55);
+  --ink-image-preview-close-border: 1px solid rgba(255,255,255,0.10);
+  --ink-image-preview-close-fg: #ffffff;
+  --ink-image-preview-close-hover-bg: rgba(0,0,0,0.78);
+  --ink-image-preview-img-shadow: 0 8px 36px rgba(0,0,0,0.55);
+  --ink-incipit-ask-collapsed-meta-fg: rgba(245,242,232,0.45);
+  --ink-incipit-edit-chip-add-border: 1px dashed rgba(255,255,255,0.20);
+  --ink-incipit-edit-chip-add-border-override: rgba(60,55,40,0.22);
+  --ink-incipit-edit-chip-add-fg: rgba(255,255,255,0.5);
+  --ink-incipit-edit-chip-add-fg-override: rgba(255,255,255,0.5);
+  --ink-incipit-edit-chip-add-hover-border: rgba(217,119,87,0.65);
+  --ink-incipit-edit-chip-add-hover-border-override: rgba(217,119,87,0.65);
+  --ink-incipit-edit-chip-add-hover-fg: rgba(217,119,87,0.95);
+  --ink-incipit-edit-chip-add-hover-fg-override: rgba(217,119,87,0.95);
+  --ink-incipit-edit-chip-bg: rgba(255,255,255,0.06);
+  --ink-incipit-edit-chip-bg-override: rgba(255,255,255,0.06);
+  --ink-incipit-edit-chip-border: 1px solid rgba(255,255,255,0.08);
+  --ink-incipit-edit-chip-border-override: rgba(60,55,40,0.14);
+  --ink-incipit-edit-chip-fg: #bcbcb9;
+  --ink-incipit-edit-chip-fg-override: #bcbcb9;
+  --ink-incipit-edit-chip-icon-fg: rgba(217,119,87,0.85);
+  --ink-incipit-edit-chip-icon-fg-override: rgba(217,119,87,0.85);
+  --ink-incipit-edit-chip-image-bg: rgba(255,255,255,0.06);
+  --ink-incipit-edit-chip-image-bg-override: rgba(255,255,255,0.06);
+  --ink-incipit-edit-chip-x-bg: rgba(0,0,0,0.55);
+  --ink-incipit-edit-chip-x-fg: #ffffff;
+  --ink-incipit-edit-chip-x-hover-bg: rgba(0,0,0,0.72);
+  --ink-incipit-inline-edit-textarea-caret: #d97757;
+  --ink-incipit-inline-edit-textarea-caret-override: #d97757;
+  --ink-incipit-permission-collapse-btn-fg: rgba(245,242,232,0.58);
+  --ink-incipit-permission-collapse-btn-hover-bg: #121212;
+  --ink-incipit-transcript-action-rerun-hover-bg: rgba(217,119,87,0.10);
+  --ink-incipit-transcript-action-save-fg: rgba(217,119,87,0.92);
+  --ink-incipit-transcript-action-save-fg-override: rgba(217,119,87,0.92);
+  --ink-incipit-transcript-action-save-hover-bg: rgba(255,255,255,0.06);
+  --ink-incipit-transcript-action-save-hover-bg-override: rgba(255,255,255,0.06);
+  --ink-incipit-transcript-action-save-hover-fg: #e3937a;
+  --ink-incipit-transcript-action-save-hover-fg-override: #e3937a;
+  --ink-inline-edit-shell-bg: #272727;
+  --ink-inline-edit-shell-bg-override: #272727;
+  --ink-input-container-background-shadow: 0 2px 10px rgba(0,0,0,0.20),0 1px 3px rgba(0,0,0,0.15);
+  --ink-keyboard-hints-fg: rgba(245,242,232,0.58);
+  --ink-keys-bg: rgba(248,246,240,0.07);
+  --ink-keys-border: 1px solid rgba(248,246,240,0.24);
+  --ink-keys-border-override: rgba(60,55,40,0.26);
+  --ink-list-active-bg: #121212;
+  --ink-list-active-fg: #f5f2e8;
+  --ink-list-hover-bg: #1a1a19;
+  --ink-markdown-root-focus-visible-outline: 1px solid rgba(217,119,87,0.6);
+  --ink-markdown-root-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
+  --ink-menu-divider-bg: rgba(248,246,240,0.14);
+  --ink-menu-popup-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-message-after-bg: rgba(255,255,255,0.18);
+  --ink-message-bg: linear-gradient(to right,transparent,rgba(200,200,200,0.28) 20%,rgba(200,200,200,0.28) 80%,transparent);
+  --ink-message-border-bottom: 1px solid rgba(220,210,190,0.30);
+  --ink-message-border-bottom-2: 1.5px solid rgba(220,210,190,0.45);
+  --ink-message-border-left: 3px solid rgba(180,180,175,0.22);
+  --ink-message-fg: rgba(248,248,246,0.72);
+  --ink-notes-add-fg: rgba(248,248,246,0.58);
+  --ink-notes-add-fg-override: rgba(248,248,246,0.58);
+  --ink-notes-add-hover-bg: #121212;
+  --ink-notes-add-hover-bg-override: #121212;
+  --ink-notes-add-hover-fg: #f8f8f6;
+  --ink-notes-add-hover-fg-override: #f8f8f6;
+  --ink-notes-bubble-bg: #2c2c2a;
+  --ink-notes-bubble-bg-override: #2c2c2a;
+  --ink-notes-bubble-dismiss-fg: rgba(248,248,246,0.62);
+  --ink-notes-bubble-dismiss-fg-override: rgba(248,248,246,0.62);
+  --ink-notes-bubble-dismiss-hover-bg: #121212;
+  --ink-notes-bubble-dismiss-hover-bg-override: #121212;
+  --ink-notes-bubble-dismiss-hover-fg: #f8f8f6;
+  --ink-notes-bubble-dismiss-hover-fg-override: #f8f8f6;
+  --ink-notes-bubble-fg: #f8f8f6;
+  --ink-notes-bubble-fg-override: #f8f8f6;
+  --ink-notes-bubble-insert-bg: #a8896e;
+  --ink-notes-bubble-insert-fg: #1f1f1e;
+  --ink-notes-bubble-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-notes-bubble-shadow-override: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-notes-bubble-text-fg: rgba(248,248,246,0.86);
+  --ink-notes-bubble-text-fg-override: rgba(248,248,246,0.86);
+  --ink-notes-delete-fg: rgba(248,248,246,0.50);
+  --ink-notes-delete-fg-override: rgba(248,248,246,0.50);
+  --ink-notes-delete-hover-bg: rgba(255,255,255,0.10);
+  --ink-notes-delete-hover-bg-override: rgba(255,255,255,0.10);
+  --ink-notes-delete-hover-fg: #f8f8f6;
+  --ink-notes-delete-hover-fg-override: #f8f8f6;
+  --ink-notes-editor-cancel-fg: rgba(248,248,246,0.62);
+  --ink-notes-editor-cancel-fg-override: rgba(248,248,246,0.62);
+  --ink-notes-editor-cancel-hover-bg: #121212;
+  --ink-notes-editor-cancel-hover-bg-override: #121212;
+  --ink-notes-editor-cancel-hover-fg: #f8f8f6;
+  --ink-notes-editor-cancel-hover-fg-override: #f8f8f6;
+  --ink-notes-editor-save-bg: #a8896e;
+  --ink-notes-editor-save-fg: #1f1f1e;
+  --ink-notes-empty-fg: rgba(248,248,246,0.40);
+  --ink-notes-empty-fg-override: rgba(248,248,246,0.40);
+  --ink-notes-insert-fg: #f8f8f6;
+  --ink-notes-insert-fg-override: #f8f8f6;
+  --ink-notes-panel-bg: #2c2c2a;
+  --ink-notes-panel-fg: #f8f8f6;
+  --ink-notes-panel-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-notes-row-hover-bg: #121212;
+  --ink-notes-row-hover-bg-override: #121212;
+  --ink-notes-tab-after-bg: #a8896e;
+  --ink-notes-tab-fg: rgba(248,248,246,0.46);
+  --ink-notes-tab-fg-2: #f8f8f6;
+  --ink-notes-tab-fg-override: rgba(248,248,246,0.46);
+  --ink-notes-tab-fg-override-2: #f8f8f6;
+  --ink-notes-tab-hover-fg: rgba(248,248,246,0.80);
+  --ink-notes-tab-hover-fg-override: rgba(248,248,246,0.80);
+  --ink-notes-textarea-bg: #1f1f1e;
+  --ink-notes-textarea-bg-override: #1f1f1e;
+  --ink-notes-textarea-caret: #a8896e;
+  --ink-notes-textarea-fg: #f8f8f6;
+  --ink-notes-textarea-fg-override: #f8f8f6;
+  --ink-notes-textarea-placeholder-fg: rgba(248,248,246,0.36);
+  --ink-notes-textarea-placeholder-fg-override: rgba(248,248,246,0.36);
+  --ink-overlay-bg: rgba(0,0,0,0.55);
+  --ink-path-context-menu-item-hover-bg: #121212;
+  --ink-path-context-menu-shadow: 0 12px 36px rgba(0,0,0,0.42),0 2px 8px rgba(0,0,0,0.26);
+  --ink-path-tooltip-shadow: 0 2px 10px rgba(0,0,0,0.20),0 1px 3px rgba(0,0,0,0.15);
+  --ink-permission-collapsed-bar-bg: rgba(18,18,18,0.22);
+  --ink-permission-collapsed-bar-border: 1px solid rgba(245,242,232,0.10);
+  --ink-permission-collapsed-bar-border-override: rgba(60,55,40,0.12);
+  --ink-permission-collapsed-bar-hover-bg: #121212;
+  --ink-permission-collapsed-bar-hover-border: rgba(245,242,232,0.14);
+  --ink-permission-collapsed-before-bg: rgba(245,242,232,0.62);
+  --ink-permission-collapsed-hover-bg: rgba(18,18,18,0.36);
+  --ink-permission-request-container-bg: #121212;
+  --ink-permission-request-container-caret: #a8896e;
+  --ink-permission-request-container-hover-shadow: inset 0 0 0 1px rgba(245,242,232,0.10);
+  --ink-permission-request-container-placeholder-fg: rgba(245,242,232,0.42);
+  --ink-permission-request-container-shadow: 0 12px 34px rgba(0,0,0,0.34),0 2px 8px rgba(0,0,0,0.22);
+  --ink-permission-request-container-shadow-2: inset 0 0 0 1px rgba(245,242,232,0.10);
+  --ink-plugin-item-bg: rgba(0,0,0,0.22);
+  --ink-plugin-item-border: rgba(255,255,255,0.06);
+  --ink-plugin-item-hover-border: rgba(217,119,87,0.40);
+  --ink-plugin-meta-text-decoration-color: rgba(217,119,87,0.6);
+  --ink-primary-fg: #1f1f1e;
+  --ink-rule: rgba(200,200,200,0.28);
+  --ink-scrollbar-thumb: #3c3c3c;
+  --ink-scrollbar-thumb-active: #6a6a6a;
+  --ink-scrollbar-thumb-hover: #5a5a5a;
+  --ink-scrollbar-track: transparent;
+  --ink-search-input-bg: rgba(0,0,0,0.18);
+  --ink-search-input-border: rgba(255,255,255,0.08);
+  --ink-search-input-focus-border: rgba(217,119,87,0.55);
+  --ink-section-header-border-bottom: rgba(255,255,255,0.08);
+  --ink-send-bg: #3d3b36;
+  --ink-send-bg-hover: #48463f;
+  --ink-send-button-fg: #c5b995;
+  --ink-send-button-fg-2: #827b6e;
+  --ink-send-default-fg: #f5f2e8;
+  --ink-spinner-icon-fg: #eae4d5;
+  --ink-spinner-icon-fg-2: #c9c0a8;
+  --ink-spinner-icon-fg-3: #a8a095;
+  --ink-status-dot-enabled-bg: #6fb46f;
+  --ink-surface-bg: rgba(217,119,87,0.08);
+  --ink-surface-border: rgba(217,119,87,0.35);
+  --ink-surface-border-bottom: 1px dashed #ff6b6b;
+  --ink-surface-canvas: #1f1f1e;
+  --ink-surface-code: #272727;
+  --ink-surface-elevated: #2c2c2a;
+  --ink-surface-fg: #ff6b6b;
+  --ink-surface-fg-2: rgba(255,255,255,0.50);
+  --ink-surface-fg-3: rgba(255,255,255,0.55);
+  --ink-surface-fg-4: #c5b995;
+  --ink-surface-hover-bg: rgba(255,255,255,0.06);
+  --ink-surface-message-canvas: #1e1e1e;
+  --ink-surface-panel: #2c2c2a;
+  --ink-surface-raised: #1a1a19;
+  --ink-surface-recessed: #121212;
+  --ink-tab-badge-bg: rgba(217,119,87,0.18);
+  --ink-tab-bar-border-bottom: rgba(255,255,255,0.10);
+  --ink-text-primary: #f8f8f6;
+  --ink-text-quote: #c3c2b7;
+  --ink-text-secondary: #bcbcb9;
+  --ink-text-strong: #f5f2e8;
+  --ink-text-tertiary: #989898;
+  --ink-text-tool-secondary: #9c9c9a;
+  --ink-thinking-summary-fg-override: #8c897e;
+  --ink-thumb-bg-override: #ffffff;
+  --ink-thumb-icon-border: rgba(255,255,255,0.10);
+  --ink-thumb-icon-hover-border: rgba(255,255,255,0.20);
+  --ink-title-group-bg: #1f1f1e;
+  --ink-title-group-shadow: inset 0 -1px 0 rgba(0,0,0,0.55);
+  --ink-tool-added-fg-override: #2f8c3a;
+  --ink-tool-added-hover-fg-override: #1c9c1c;
+  --ink-tool-filepath-hover-bg: rgba(217,119,87,0.22);
+  --ink-tool-filepath-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
+  --ink-tool-fingerprint-aux-fg: #bc8c75;
+  --ink-tool-fingerprint-aux-hover-fg-override: #bf5d3a;
+  --ink-tool-grep-expansion-border: 1px solid rgba(255,255,255,0.16);
+  --ink-tool-grep-filename-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
+  --ink-tool-grep-more-fg: #9c9c9a;
+  --ink-tool-out-more-fg: #9c9c9a;
+  --ink-tool-removed-fg-override: #b24740;
+  --ink-tool-removed-hover-fg-override: #c92626;
+  --ink-tool-summary-fg: #9c9c9a;
+  --ink-tool-summary-hover-fg-override: inherit;
+  --ink-tool-use-border: 1px solid rgba(255,255,255,0.16);
+  --ink-tool-use-border-override: rgba(0,0,0,0.16);
+  --ink-tool-use-border-top: 1px solid rgba(255,255,255,0.10);
+  --ink-tool-use-border-top-color-override: rgba(0,0,0,0.10);
+  --ink-track-on-bg: #a8896e;
+  --ink-transcript-toast-border: 1px solid rgba(248,246,240,0.12);
+  --ink-transcript-toast-border-2: rgba(201,106,106,0.42);
+  --ink-transcript-toast-border-override: rgba(60,55,40,0.12);
+  --ink-transcript-toast-fg: #ffd2cd;
+  --ink-transcript-toast-shadow: 0 8px 28px rgba(0,0,0,0.28);
+  --ink-usage-fill-bg: #a8896e;
+  --ink-usage-track-bg-override: #d8d6cf;
+  --ink-write-diff-modal-bg: rgba(0,0,0,0.45);
+  --ink-write-diff-modal-bg-override: rgba(0,0,0,0.20);
+}
+
 /* ============================================================
    Typography-led webview theme.
 
@@ -141,27 +604,27 @@
    either — they protect different attack surfaces.
    ============================================================ */
 :root {
-  --app-background: #1f1f1e !important;
-  --app-primary-background: #1f1f1e !important;
-  --app-root-background: #1f1f1e !important;
-  --app-secondary-background: #1f1f1e !important;
-  --app-tool-background: #1f1f1e !important;
-  --app-header-background: #1f1f1e !important;
-  --app-input-background: #1f1f1e !important;
-  --app-input-secondary-background: #1f1f1e !important;
-  --app-menu-background: #1f1f1e !important;
-  --app-primary-foreground: #f8f8f6 !important;
-  --app-input-foreground: #f8f8f6 !important;
-  --app-input-secondary-foreground: #f8f8f6 !important;
-  --app-menu-foreground: #f8f8f6 !important;
-  --app-secondary-foreground: #bcbcb9 !important;
-  --app-secondary-text: #bcbcb9 !important;
-  --incipit-message-mention-chip-background: #3d312d;
-  --incipit-message-mention-chip-foreground: #e0a18b;
-  --incipit-message-mention-chip-background-hover: #493932;
-  --incipit-composer-mention-chip-background: #3d312d;
-  --incipit-composer-mention-chip-foreground: #e0a18b;
-  --incipit-composer-mention-chip-background-hover: #493932;
+  --app-background: var(--ink-surface-canvas) !important;
+  --app-primary-background: var(--ink-surface-canvas) !important;
+  --app-root-background: var(--ink-surface-canvas) !important;
+  --app-secondary-background: var(--ink-surface-canvas) !important;
+  --app-tool-background: var(--ink-surface-canvas) !important;
+  --app-header-background: var(--ink-surface-canvas) !important;
+  --app-input-background: var(--ink-surface-canvas) !important;
+  --app-input-secondary-background: var(--ink-surface-canvas) !important;
+  --app-menu-background: var(--ink-surface-canvas) !important;
+  --app-primary-foreground: var(--ink-text-primary) !important;
+  --app-input-foreground: var(--ink-text-primary) !important;
+  --app-input-secondary-foreground: var(--ink-text-primary) !important;
+  --app-menu-foreground: var(--ink-text-primary) !important;
+  --app-secondary-foreground: var(--ink-text-secondary) !important;
+  --app-secondary-text: var(--ink-text-secondary) !important;
+  --incipit-message-mention-chip-background: var(--ink-chip-bg);
+  --incipit-message-mention-chip-foreground: var(--ink-chip-fg);
+  --incipit-message-mention-chip-background-hover: var(--ink-chip-bg-hover);
+  --incipit-composer-mention-chip-background: var(--ink-chip-bg);
+  --incipit-composer-mention-chip-foreground: var(--ink-chip-fg);
+  --incipit-composer-mention-chip-background-hover: var(--ink-chip-bg-hover);
   --incipit-mermaid-text: #f8f8f6;
   --incipit-mermaid-muted: #d8d6ce;
   --incipit-mermaid-inverse-text: #1f1f1e;
@@ -195,8 +658,8 @@
 
 [data-incipit-messages-container] {
   position: relative !important;
-  background: #1e1e1e !important;
-  background-color: #1e1e1e !important;
+  background: var(--ink-surface-message-canvas) !important;
+  background-color: var(--ink-surface-message-canvas) !important;
   background-image: none !important;
   isolation: auto !important;
   contain: none !important;
@@ -296,7 +759,7 @@ details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summa
 [data-incipit-message]::after {
   width: 2px !important;
   left: 11.5px !important;
-  background-color: rgba(255, 255, 255, 0.18) !important;
+  background-color: var(--ink-message-after-bg) !important;
 }
 
 
@@ -410,7 +873,7 @@ details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summa
    ============================================================ */
 [data-incipit-message] ::selection,
 [data-incipit-markdown-root] ::selection {
-  background: rgba(217,119,87,0.32) !important;
+  background: var(--ink-accent-selection) !important;
   color: inherit !important;
 }
 
@@ -431,7 +894,7 @@ details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summa
      that dot size and dot gap are both explicit. Browser-drawn `dotted`
      text-decoration packs the dots too tightly for serif body text. */
   background-image:
-    radial-gradient(circle, rgba(217, 119, 87, 0.92) 1px, transparent 1.6px) !important;
+    var(--ink-markdown-root-image) !important;
   background-size: 7px 2px !important;
   background-repeat: repeat-x !important;
   background-position: 0 100% !important;
@@ -448,11 +911,11 @@ details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summa
   /* Brief highlighter-pen swipe on hover. The gradient dot layer stays on
      top; the color layer sits beneath via `background-color`, so the whole
      link reacts as one element without staining the text ink. */
-  background-color: rgba(217, 119, 87, 0.22) !important;
+  background-color: var(--ink-accent-wash) !important;
 }
 [data-incipit-message] a:focus-visible,
 [data-incipit-markdown-root] a:focus-visible {
-  outline: 1px solid rgba(217,119,87,0.6);
+  outline: var(--ink-markdown-root-focus-visible-outline);
   outline-offset: 2px;
   border-radius: 2px;
 }
@@ -543,11 +1006,7 @@ details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summa
 [data-incipit-message] hr {
   border: none;
   height: 1px;
-  background: linear-gradient(to right,
-    transparent,
-    rgba(200,200,200,0.28) 20%,
-    rgba(200,200,200,0.28) 80%,
-    transparent);
+  background: var(--ink-message-bg);
   margin: 1.8em 0;
 }
 
@@ -558,14 +1017,14 @@ details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summa
 [data-incipit-message] blockquote {
   margin: 0.8em 0 !important;
   padding: 0.15em 0 0.15em 0.9em !important;
-  border-left: 3px solid rgba(180,180,175,0.22) !important;
+  border-left: var(--ink-message-border-left) !important;
   background: transparent !important;
-  color: #c3c2b7 !important;
+  color: var(--ink-text-quote) !important;
 }
 [data-incipit-markdown-root] blockquote p,
 [data-incipit-message] blockquote p {
   margin: 0.2em 0 !important;
-  color: #c3c2b7 !important;
+  color: var(--ink-text-quote) !important;
 }
 
 /* ============================================================
@@ -624,8 +1083,8 @@ details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summa
   font-family: KaTeX_Main, var(--incipit-body-font) !important;
 }
 .claude-math[data-render-error] {
-  color: #ff6b6b;
-  border-bottom: 1px dashed #ff6b6b;
+  color: var(--ink-surface-fg);
+  border-bottom: var(--ink-surface-border-bottom);
 }
 
 /* ============================================================
@@ -853,7 +1312,7 @@ pre.incipit-mermaid-source {
    stats pinned to the row even when the tool-name text is very long. */
 [data-incipit-tool-use] [data-incipit-tool-summary] {
   cursor: pointer;
-  color: #9c9c9a;
+  color: var(--ink-tool-summary-fg);
   transition: color 0.12s ease;
   white-space: nowrap;
 }
@@ -951,8 +1410,8 @@ pre.incipit-mermaid-source {
 /* Plus / minus counters always show their semantic accent colors — they
    are the tool-call's identifying signal and should not fade with the
    idle-row grey. */
-[data-incipit-tool-added]   { color: #7cb27c !important; }
-[data-incipit-tool-removed] { color: #c96a6a !important; }
+[data-incipit-tool-added]   { color: var(--ink-add-fg) !important; }
+[data-incipit-tool-removed] { color: var(--ink-del-fg) !important; }
 
 /* Chevron — identical SVG / mask pattern / rotation to the thinking
    toggle, so both fold affordances read as one visual language. Color
@@ -1059,7 +1518,7 @@ pre.incipit-mermaid-source {
   font-variation-settings: initial;
   white-space: nowrap;
   background-image:
-    radial-gradient(circle, rgba(217, 119, 87, 0.92) 1px, transparent 1.6px);
+    var(--ink-tool-grep-filename-image);
   background-size: 7px 2px;
   background-repeat: repeat-x;
   background-position: 0 100%;
@@ -1069,7 +1528,7 @@ pre.incipit-mermaid-source {
   transition: background-color 0.15s ease;
 }
 [data-incipit-tool-grep-filename]:hover {
-  background-color: rgba(217, 119, 87, 0.22);
+  background-color: var(--ink-accent-wash);
 }
 [data-incipit-tool-use] [data-incipit-tool-summary]
 [data-incipit-tool-grep-filename][data-incipit-tool-grep-openable="1"] {
@@ -1081,7 +1540,7 @@ pre.incipit-mermaid-source {
    does not strip the color. Same approach as +N/−M stats. */
 [data-incipit-tool-fingerprint-aux] {
   margin-left: 0.5em;
-  color: #bc8c75 !important;
+  color: var(--ink-tool-fingerprint-aux-fg) !important;
   font-family: inherit;
   font-style: normal;
   font-variation-settings: initial;
@@ -1109,7 +1568,7 @@ pre.incipit-mermaid-source {
   overflow: hidden;
   display: block;
   margin-top: 0.4em;
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: var(--ink-tool-grep-expansion-border);
   border-radius: 6px;
   padding: 0;
   transition: max-height 0.22s ease,
@@ -1143,7 +1602,7 @@ pre.incipit-mermaid-source {
   font-style: normal;
   font-weight: normal;
   letter-spacing: 0;
-  color: #bcbcb9;
+  color: var(--ink-text-secondary);
   padding: 4px 8px 4px 8px;
   white-space: nowrap;
   text-align: left;
@@ -1155,7 +1614,7 @@ pre.incipit-mermaid-source {
   font-family: var(--incipit-code-font);
   font-size: 11px;
   line-height: 1.5;
-  color: #f8f8f6;
+  color: var(--ink-text-primary);
   padding: 4px 8px 4px 0;
   white-space: pre-wrap;
   word-break: break-word;
@@ -1173,13 +1632,13 @@ pre.incipit-mermaid-source {
   font-family: inherit;
   font-size: inherit;
   font-style: italic;
-  color: #9c9c9a;
+  color: var(--ink-tool-grep-more-fg);
   cursor: pointer;
   user-select: none;
   transition: color 120ms ease;
 }
 [data-incipit-tool-grep-more]:hover {
-  color: #f8f8f6;
+  color: var(--ink-text-primary);
 }
 
 /* ------------------------------------------------------------
@@ -1223,7 +1682,7 @@ pre.incipit-mermaid-source {
   margin: 0 !important;
 }
 [data-incipit-tool-use] [class*="toolBodyGrid"] {
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  border: var(--ink-tool-use-border);
   border-radius: 6px;
   margin-top: 0.4em;
   overflow: hidden;
@@ -1232,7 +1691,7 @@ pre.incipit-mermaid-source {
   background: transparent !important;
 }
 [data-incipit-tool-use] [class*="toolBodyRow"] {
-  border-top: 1px solid rgba(255, 255, 255, 0.10);
+  border-top: var(--ink-tool-use-border-top);
   padding: 0;
 }
 [data-incipit-tool-use] [class*="toolBodyRow"]:first-child {
@@ -1244,7 +1703,7 @@ pre.incipit-mermaid-source {
   font-weight: normal;
   font-style: normal;
   letter-spacing: 0;
-  color: #bcbcb9;
+  color: var(--ink-text-secondary);
   opacity: 1;
   padding: 4px 8px 4px 8px;
   text-align: left;
@@ -1254,7 +1713,7 @@ pre.incipit-mermaid-source {
   font-family: var(--incipit-code-font);
   font-size: 11px;
   line-height: 1.5;
-  color: #f8f8f6;
+  color: var(--ink-text-primary);
   padding: 4px 8px 4px 0;
   white-space: pre-wrap;
   word-break: break-word;
@@ -1322,13 +1781,13 @@ pre.incipit-mermaid-source {
   font-family: inherit;
   font-size: inherit;
   font-style: italic;
-  color: #9c9c9a;
+  color: var(--ink-tool-out-more-fg);
   cursor: pointer;
   user-select: none;
   transition: color 120ms ease;
 }
 [data-incipit-tool-out-more]:hover {
-  color: #f8f8f6;
+  color: var(--ink-text-primary);
 }
 
 /* Generic injected file path for tools whose host renderer does not place
@@ -1343,7 +1802,7 @@ pre.incipit-mermaid-source {
   font-variation-settings: initial;
   white-space: nowrap;
   background-image:
-    radial-gradient(circle, rgba(217, 119, 87, 0.92) 1px, transparent 1.6px);
+    var(--ink-tool-filepath-image);
   background-size: 7px 2px;
   background-repeat: repeat-x;
   background-position: 0 100%;
@@ -1353,7 +1812,7 @@ pre.incipit-mermaid-source {
   transition: background-color 0.15s ease;
 }
 [data-incipit-tool-filepath]:hover {
-  background-color: rgba(217, 119, 87, 0.22);
+  background-color: var(--ink-tool-filepath-hover-bg);
 }
 
 /* Path truncation tooltip.
@@ -1392,16 +1851,15 @@ pre.incipit-mermaid-source {
      two-layer ambient halo the input container uses (theme.css ~2685),
      restated here verbatim. If the input surface tone ever moves, move
      this with it. */
-  background: #2c2c2a;
-  color: #f8f8f6;
+  background: var(--ink-surface-panel);
+  color: var(--ink-text-primary);
   border-radius: 5px;
   font-family: var(--incipit-body-font);
   font-size: 12px;
   line-height: 1.4;
   overflow: visible;
   max-width: 90vw;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.20),
-              0 1px 3px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--ink-path-tooltip-shadow);
   direction: ltr;
   unicode-bidi: isolate;
   z-index: 9999;
@@ -1436,12 +1894,11 @@ pre.incipit-mermaid-source {
   position: fixed;
   min-width: 230px;
   padding: 4px;
-  background: #2c2c2a;
-  color: #F5F2E8;
+  background: var(--ink-surface-panel);
+  color: var(--ink-text-strong);
   border: 0;
   border-radius: 8px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.42),
-              0 2px 8px rgba(0,0,0,0.26);
+  box-shadow: var(--ink-path-context-menu-shadow);
   font-family: var(--incipit-body-font) !important;
   font-size: 12px;
   line-height: 1.45;
@@ -1478,7 +1935,7 @@ pre.incipit-mermaid-source {
 }
 [data-incipit-path-context-menu-item]:hover,
 [data-incipit-path-context-menu-item]:focus {
-  background: #121212;
+  background: var(--ink-path-context-menu-item-hover-bg);
   outline: none;
 }
 
@@ -1810,7 +2267,7 @@ pre.incipit-mermaid-source {
   align-items: center;
   justify-content: center;
   padding: 4vh 4vw;
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--ink-write-diff-modal-bg);
 }
 
 [data-incipit-write-diff-modal-content] {
@@ -1932,7 +2389,7 @@ pre.incipit-mermaid-source {
 /* Modal backdrop dim — keep the host's veiled overlay but tone it with
    our graphite shadow alpha instead of pure VS Code primary. */
 [class*="modalBackdrop_"]:has([class*="diffEditorContainer"]) {
-  background-color: rgba(0, 0, 0, 0.45) !important;
+  background-color: var(--ink-diff-editor-container-bg) !important;
 }
 
 :where([class*="diffEditorWrapper"], [class*="modalContent_"]) [class*="diffEditorContainer"] {
@@ -2319,8 +2776,8 @@ pre {
 /* Code block background only inside assistant markdown, not tool calls. */
 [data-incipit-markdown-root] pre,
 [data-incipit-message] [data-incipit-markdown-root] pre {
-  background: #272727 !important;
-  background-color: #272727 !important;
+  background: var(--ink-surface-code) !important;
+  background-color: var(--ink-surface-code) !important;
 }
 
 /* Prevent hljs theme from overriding back to #1e1e1e inside markdown. */
@@ -2420,7 +2877,7 @@ pre code {
 [data-incipit-message] table th,
 [data-incipit-message] table td {
   border: none !important;
-  border-bottom: 1px solid rgba(220, 210, 190, 0.30) !important;
+  border-bottom: var(--ink-message-border-bottom) !important;
   padding: 7px 14px !important;
   text-align: left;
   vertical-align: top;
@@ -2439,10 +2896,10 @@ pre code {
 }
 [data-incipit-markdown-root] table thead th,
 [data-incipit-message] table thead th {
-  border-bottom: 1.5px solid rgba(220, 210, 190, 0.45) !important;
+  border-bottom: var(--ink-message-border-bottom-2) !important;
   font-family: var(--incipit-emphasis-font) !important;
   font-weight: 400 !important;
-  color: rgba(248, 248, 246, 0.72);
+  color: var(--ink-message-fg);
   padding-bottom: 6px !important;
 }
 [data-incipit-markdown-root] table tbody tr:last-child td,
@@ -2461,14 +2918,13 @@ pre code {
 [class*="permissionRequestContainer_"] {
   box-sizing: border-box !important;
   position: relative !important;
-  background: #2c2c2a !important;
-  background-color: #2c2c2a !important;
-  color: #F5F2E8 !important;
+  background: var(--ink-surface-panel) !important;
+  background-color: var(--ink-surface-panel) !important;
+  color: var(--ink-text-strong) !important;
   border: none !important;
   outline: none !important;
   border-radius: 8px !important;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.34),
-              0 2px 8px rgba(0, 0, 0, 0.22) !important;
+  box-shadow: var(--ink-permission-request-container-shadow) !important;
   padding: 7px 8px !important;
   margin-bottom: 6px !important;
   overflow: hidden !important;
@@ -2479,7 +2935,7 @@ pre code {
 }
 
 [class*="permissionRequestContainer_"] [class*="permissionRequestContent_"] {
-  color: #F5F2E8 !important;
+  color: var(--ink-text-strong) !important;
   font-family: var(--incipit-body-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
   line-height: 1.42 !important;
@@ -2488,7 +2944,7 @@ pre code {
 [class*="permissionRequestContainer_"] [class*="title_"],
 [class*="permissionRequestContainer_"] [class*="questionText_"],
 [class*="permissionRequestContainer_"] [class*="questionTextLarge_"] {
-  color: #F5F2E8 !important;
+  color: var(--ink-text-strong) !important;
   font-family: var(--incipit-emphasis-font) !important;
   font-weight: 400 !important;
 }
@@ -2496,7 +2952,7 @@ pre code {
 [class*="permissionRequestContainer_"] [class*="description_"],
 [class*="permissionRequestContainer_"] [class*="hint_"],
 [class*="permissionRequestContainer_"] [class*="keyboardHints_"] {
-  color: rgba(245, 242, 232, 0.58) !important;
+  color: var(--ink-keyboard-hints-fg) !important;
 }
 
 [class*="permissionRequestContainer_"] [class*="option_"],
@@ -2506,12 +2962,12 @@ pre code {
 [class*="permissionRequestContainer_"] [class*="permissionRequestContent_"]
   button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar]) {
   box-sizing: border-box !important;
-  background: rgba(18, 18, 18, 0.22) !important;
-  background-color: rgba(18, 18, 18, 0.22) !important;
-  border: 1px solid rgba(245, 242, 232, 0.10) !important;
+  background: var(--ink-permission-collapsed-bar-bg) !important;
+  background-color: var(--ink-permission-collapsed-bar-bg) !important;
+  border: var(--ink-permission-collapsed-bar-border) !important;
   border-radius: 5px !important;
   box-shadow: none !important;
-  color: #F5F2E8 !important;
+  color: var(--ink-text-strong) !important;
   font-family: var(--incipit-emphasis-font) !important;
   font-weight: 400 !important;
 }
@@ -2528,21 +2984,21 @@ pre code {
   button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar]):hover,
 [class*="permissionRequestContainer_"] [class*="permissionRequestContent_"]
   button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar]):focus {
-  background: #121212 !important;
-  background-color: #121212 !important;
-  border-color: rgba(245, 242, 232, 0.14) !important;
+  background: var(--ink-permission-collapsed-bar-hover-bg) !important;
+  background-color: var(--ink-permission-collapsed-bar-hover-bg) !important;
+  border-color: var(--ink-permission-collapsed-bar-hover-border) !important;
   box-shadow: none !important;
   outline: none !important;
 }
 
 [class*="permissionRequestContainer_"] input:not([type="checkbox"]):not([type="radio"]),
 [class*="permissionRequestContainer_"] textarea {
-  background: #121212 !important;
-  background-color: #121212 !important;
+  background: var(--ink-permission-request-container-bg) !important;
+  background-color: var(--ink-permission-request-container-bg) !important;
   border: none !important;
-  color: #F5F2E8 !important;
-  caret-color: #a8896e !important;
-  box-shadow: inset 0 0 0 1px rgba(245, 242, 232, 0.10) !important;
+  color: var(--ink-text-strong) !important;
+  caret-color: var(--ink-permission-request-container-caret) !important;
+  box-shadow: var(--ink-permission-request-container-shadow-2) !important;
   border-radius: 5px !important;
   font-family: var(--incipit-body-font) !important;
 }
@@ -2553,12 +3009,12 @@ pre code {
 [class*="permissionRequestContainer_"] textarea:focus {
   border: none !important;
   outline: none !important;
-  box-shadow: inset 0 0 0 1px rgba(245, 242, 232, 0.10) !important;
+  box-shadow: var(--ink-permission-request-container-hover-shadow) !important;
 }
 
 [class*="permissionRequestContainer_"] input::placeholder,
 [class*="permissionRequestContainer_"] textarea::placeholder {
-  color: rgba(245, 242, 232, 0.42) !important;
+  color: var(--ink-permission-request-container-placeholder-fg) !important;
 }
 
 [data-incipit-permission-floating-collapse] [class*="permissionRequestContent_"] {
@@ -2575,8 +3031,8 @@ pre code {
    ============================================================ */
 [data-incipit-ask-request],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) {
-  background: #2c2c2a !important;
-  background-color: #2c2c2a !important;
+  background: var(--ink-surface-panel) !important;
+  background-color: var(--ink-surface-panel) !important;
 }
 
 [data-incipit-ask-request] [class*="permissionRequestContainerBackground_"],
@@ -2604,7 +3060,7 @@ pre code {
 [data-incipit-ask-request] [class*="navTab_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="navTab_"] {
-  color: rgba(245, 242, 232, 0.72) !important;
+  color: var(--ink-ask-request-fg) !important;
   border-bottom-color: transparent !important;
   font-family: var(--incipit-emphasis-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 2px) !important;
@@ -2616,14 +3072,14 @@ pre code {
 [data-incipit-ask-request] [class*="navTabActive_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="navTabActive_"] {
-  color: #F5F2E8 !important;
-  border-bottom-color: rgba(217, 119, 87, 0.72) !important;
+  color: var(--ink-text-strong) !important;
+  border-bottom-color: var(--ink-ask-request-border-bottom) !important;
 }
 
 [data-incipit-ask-request] [class*="navTabAnswered_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="navTabAnswered_"] {
-  color: rgba(245, 242, 232, 0.52) !important;
+  color: var(--ink-ask-request-fg-2) !important;
 }
 
 [data-incipit-ask-request] [class*="questionsContainer_"],
@@ -2646,7 +3102,7 @@ pre code {
 [data-incipit-ask-request] [class*="questionTextLarge_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="questionTextLarge_"] {
-  color: #F5F2E8 !important;
+  color: var(--ink-text-strong) !important;
   font-family: var(--incipit-emphasis-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
   font-weight: 400 !important;
@@ -2665,9 +3121,9 @@ pre code {
   gap: 7px !important;
   padding: 5px 7px !important;
   border-radius: 5px !important;
-  background: rgba(18, 18, 18, 0.22) !important;
-  background-color: rgba(18, 18, 18, 0.22) !important;
-  color: #F5F2E8 !important;
+  background: var(--ink-ask-request-bg) !important;
+  background-color: var(--ink-ask-request-bg) !important;
+  color: var(--ink-text-strong) !important;
 }
 
 [data-incipit-ask-request] [class*="option_"]:hover,
@@ -2676,15 +3132,15 @@ pre code {
   [class*="option_"]:hover,
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="option_"]:focus {
-  background: #121212 !important;
-  background-color: #121212 !important;
+  background: var(--ink-ask-request-hover-bg) !important;
+  background-color: var(--ink-ask-request-hover-bg) !important;
   outline: none !important;
 }
 
 [data-incipit-ask-request] [class*="optionLabel_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="optionLabel_"] {
-  color: #F5F2E8 !important;
+  color: var(--ink-text-strong) !important;
   font-family: var(--incipit-emphasis-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
   line-height: 1.32 !important;
@@ -2694,7 +3150,7 @@ pre code {
 [data-incipit-ask-request] [class*="optionDescription_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="optionDescription_"] {
-  color: rgba(245, 242, 232, 0.58) !important;
+  color: var(--ink-ask-request-fg-3) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 2px) !important;
   line-height: 1.34 !important;
 }
@@ -2703,7 +3159,7 @@ pre code {
 [data-incipit-ask-request] [class*="checkbox_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="radio_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="checkbox_"] {
-  border-color: rgba(245, 242, 232, 0.32) !important;
+  border-color: var(--ink-ask-request-border) !important;
   border-width: 1.25px !important;
   background: transparent !important;
   background-color: transparent !important;
@@ -2717,26 +3173,26 @@ pre code {
   [class*="radioChecked_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="checkboxChecked_"] {
-  border-color: #d97757 !important;
+  border-color: var(--ink-accent) !important;
   background-color: transparent !important;
-  color: #d97757 !important;
+  color: var(--ink-accent) !important;
 }
 
 [data-incipit-ask-request] [class*="radioDot_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="radioDot_"] {
-  background: #d97757 !important;
-  background-color: #d97757 !important;
+  background: var(--ink-accent) !important;
+  background-color: var(--ink-accent) !important;
   width: 6px !important;
   height: 6px !important;
 }
 
 [data-incipit-ask-request] [class*="otherInput_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="otherInput_"] {
-  background: #121212 !important;
-  background-color: #121212 !important;
+  background: var(--ink-ask-request-bg-2) !important;
+  background-color: var(--ink-ask-request-bg-2) !important;
   border: none !important;
-  color: #F5F2E8 !important;
-  box-shadow: inset 0 0 0 1px rgba(245, 242, 232, 0.10) !important;
+  color: var(--ink-text-strong) !important;
+  box-shadow: var(--ink-ask-request-shadow) !important;
   padding: 5px 7px !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
   line-height: 1.32 !important;
@@ -2751,9 +3207,9 @@ pre code {
 
 [data-incipit-ask-request] [class*="button_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"]) [class*="button_"] {
-  background: #121212 !important;
-  background-color: #121212 !important;
-  color: #F5F2E8 !important;
+  background: var(--ink-surface-recessed) !important;
+  background-color: var(--ink-surface-recessed) !important;
+  color: var(--ink-text-strong) !important;
   border: none !important;
   box-shadow: none !important;
   border-radius: 5px !important;
@@ -2768,14 +3224,14 @@ pre code {
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="button_"]:hover:not(:disabled) {
   filter: none !important;
-  background: #1a1a19 !important;
-  background-color: #1a1a19 !important;
+  background: var(--ink-ask-request-hover-bg-2) !important;
+  background-color: var(--ink-ask-request-hover-bg-2) !important;
 }
 
 [data-incipit-ask-request] [class*="keyboardHints_"],
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="keyboardHints_"] {
-  color: rgba(245, 242, 232, 0.42) !important;
+  color: var(--ink-ask-request-fg-4) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 2px) !important;
   margin-top: 6px !important;
 }
@@ -2793,7 +3249,7 @@ pre code {
   border: none;
   border-radius: 5px;
   background: transparent;
-  color: rgba(245, 242, 232, 0.58);
+  color: var(--ink-incipit-permission-collapse-btn-fg);
   cursor: pointer;
 }
 .incipit-ask-collapse-btn[data-incipit-permission-floating],
@@ -2817,8 +3273,8 @@ pre code {
 .incipit-ask-collapse-btn:focus-visible,
 .incipit-permission-collapse-btn:hover,
 .incipit-permission-collapse-btn:focus-visible {
-  background: #121212;
-  color: #F5F2E8;
+  background: var(--ink-incipit-permission-collapse-btn-hover-bg);
+  color: var(--ink-text-strong);
   outline: none;
 }
 
@@ -2869,7 +3325,7 @@ pre code {
   padding: 5px 8px;
   background: transparent;
   border: none;
-  color: #F5F2E8;
+  color: var(--ink-text-strong);
   font-family: var(--incipit-body-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 2px);
   line-height: 1.28;
@@ -2884,7 +3340,7 @@ pre code {
   flex: 0 0 12px;
   width: 12px;
   height: 12px;
-  background: rgba(245, 242, 232, 0.62);
+  background: var(--ink-permission-collapsed-before-bg);
   -webkit-mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5 10 7.5 15 12.5'/%3E%3C/svg%3E") center / contain no-repeat;
   mask: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23000' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5 10 7.5 15 12.5'/%3E%3C/svg%3E") center / contain no-repeat;
 }
@@ -2897,7 +3353,7 @@ pre code {
 .incipit-ask-collapsed-meta {
   margin-left: auto;
   flex: 0 0 auto;
-  color: rgba(245, 242, 232, 0.45);
+  color: var(--ink-incipit-ask-collapsed-meta-fg);
   font-variant-numeric: tabular-nums;
 }
 [data-incipit-ask-request][data-incipit-ask-collapsed="1"] > .incipit-ask-collapsed-bar:hover,
@@ -2908,7 +3364,7 @@ pre code {
 [data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-ask-collapsed-bar:focus-visible,
 [data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar:hover,
 [data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar:focus-visible {
-  background: rgba(18, 18, 18, 0.36);
+  background: var(--ink-permission-collapsed-hover-bg);
   outline: none;
 }
 
@@ -2916,17 +3372,17 @@ pre code {
    Permission-mode indicators.
    ============================================================ */
 [data-claude-softened] {
-  color: #d97757 !important;
-  background: rgba(217,119,87,0.08) !important;
-  border-color: rgba(217,119,87,0.35) !important;
+  color: var(--ink-accent) !important;
+  background: var(--ink-surface-bg) !important;
+  border-color: var(--ink-surface-border) !important;
   box-shadow: none !important;
   text-shadow: none !important;
 }
 [data-claude-softened] * {
-  color: #d97757 !important;
+  color: var(--ink-accent) !important;
   background: transparent !important;
-  fill: #d97757 !important;
-  stroke: #d97757 !important;
+  fill: var(--ink-accent) !important;
+  stroke: var(--ink-accent) !important;
 }
 
 /* ============================================================
@@ -2944,23 +3400,23 @@ pre code {
   outline: none !important;
   box-shadow: none !important;
   border-radius: 8px !important;
-  background-color: #3d3b36 !important;  /* Slightly lighter than the input fill. */
-  color: #F5F2E8 !important;              /* Default ivory icon color. */
+  background-color: var(--ink-send-bg) !important;  /* Slightly lighter than the input fill. */
+  color: var(--ink-send-default-fg) !important;              /* Default ivory icon color. */
   transition: background-color 0.15s ease !important;
 }
 [data-incipit-send-button]:hover {
-  background-color: #48463f !important;
+  background-color: var(--ink-send-bg-hover) !important;
 }
 
 [data-incipit-send-button][data-permission-mode="acceptEdits"] {
-  color: #C5B995 !important;              /* Warm sand. */
+  color: var(--ink-send-button-fg) !important;              /* Warm sand. */
 }
 [data-incipit-send-button][data-permission-mode="plan"] {
-  color: #827B6E !important;              /* Ash brown. */
+  color: var(--ink-send-button-fg-2) !important;              /* Ash brown. */
 }
 [data-incipit-send-button][data-permission-mode="bypassPermissions"],
 [data-incipit-send-button][data-permission-mode="auto"] {
-  color: #D97757 !important;              /* Terracotta accent. */
+  color: var(--ink-accent) !important;              /* Terracotta accent. */
 }
 
 /* Hide the host `send` and `stop` icons.
@@ -3025,13 +3481,12 @@ fieldset[class*="inputContainer_"][data-permission-mode]:focus-within,
   outline: none !important;
 }
 [class*="inputContainerBackground"] {
-  background: #2c2c2a !important;
-  background-color: #2c2c2a !important;
+  background: var(--ink-composer-input-bg) !important;
+  background-color: var(--ink-composer-input-bg) !important;
   border-radius: 10px !important;
   /* Non-metric edge/halo: this layer is already the host's visual
      background, so shadow here does not change the editor scroll box. */
-  box-shadow: 0 2px 10px rgba(0,0,0,0.20),
-              0 1px 3px rgba(0,0,0,0.15) !important;
+  box-shadow: var(--ink-input-container-background-shadow) !important;
 }
 
 /* File drag reference hint.
@@ -3050,11 +3505,9 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]:focus-wit
 }
 fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"] [class*="inputContainerBackground"],
 [class*="inputContainer_"][data-incipit-file-drag-hint="over"]:has(> [class*="inputContainerBackground"]) [class*="inputContainerBackground"] {
-  background: #302d2a !important;
-  background-color: #302d2a !important;
-  box-shadow: 0 6px 22px rgba(0,0,0,0.28),
-              0 1px 4px rgba(0,0,0,0.20),
-              inset 0 0 0 1px rgba(217,119,87,0.46) !important;
+  background: var(--ink-file-drag-hint-bg) !important;
+  background-color: var(--ink-file-drag-hint-bg) !important;
+  box-shadow: var(--ink-file-drag-hint-shadow) !important;
 }
 fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 [class*="inputContainer_"][data-incipit-file-drag-hint="over"]:has(> [class*="inputContainerBackground"])::after {
@@ -3068,10 +3521,10 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   box-sizing: border-box;
   padding: 4px 8px 5px;
   border-radius: 6px;
-  border: 1px solid rgba(217,119,87,0.36);
-  background: rgba(31,31,30,0.94);
-  color: rgba(248,248,246,0.78);
-  box-shadow: 0 4px 14px rgba(0,0,0,0.28);
+  border: var(--ink-file-drag-hint-after-border);
+  background: var(--ink-file-drag-hint-after-bg);
+  color: var(--ink-file-drag-hint-after-fg);
+  box-shadow: var(--ink-file-drag-hint-after-shadow);
   font-family: var(--incipit-body-font);
   font-size: 12px;
   line-height: 1.35;
@@ -3133,9 +3586,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   box-sizing: border-box !important;
   width: 100% !important;
   border-radius: 6px !important;
-  background: rgba(248, 248, 246, 0.022) !important;
-  border: 1px solid rgba(248, 248, 246, 0.08) !important;
-  color: rgba(248, 248, 246, 0.82) !important;
+  background: var(--ink-change-review-turn-bg) !important;
+  border: var(--ink-change-review-turn-border) !important;
+  color: var(--ink-change-review-turn-fg) !important;
   font-family: var(--incipit-body-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
   line-height: 1.35 !important;
@@ -3153,7 +3606,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border: none !important;
   outline: none !important;
   background: transparent !important;
-  color: rgba(248, 248, 246, 0.66) !important;
+  color: var(--ink-change-review-file-name-fg) !important;
   font-family: var(--incipit-body-font) !important;
   font-size: inherit !important;
   line-height: 1.35 !important;
@@ -3177,7 +3630,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border: none !important;
   outline: none !important;
   background: transparent !important;
-  color: #d97757 !important;
+  color: var(--ink-change-review-reject-file-fg) !important;
   font-family: var(--incipit-body-font) !important;
   font-size: 12px !important;
   line-height: 1.4 !important;
@@ -3189,11 +3642,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-change-review-file-name]:hover,
 [data-incipit-change-review-file][data-incipit-change-review-clickable="1"]:hover
   [data-incipit-change-review-file-name] {
-  color: rgba(248, 248, 246, 0.94) !important;
+  color: var(--ink-change-review-file-name-hover-fg) !important;
 }
 [data-incipit-change-review-reject-turn]:hover,
 [data-incipit-change-review-reject-file]:hover {
-  color: #e8917a !important;
+  color: var(--ink-change-review-reject-file-hover-fg) !important;
 }
 [data-incipit-change-review-reject-turn][data-incipit-disabled="1"],
 [data-incipit-change-review-reject-file][data-incipit-disabled="1"],
@@ -3208,8 +3661,8 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border-radius: 6px !important;
   font-size: 11px !important;
   line-height: 1.35 !important;
-  color: #e6a08c !important;
-  background: rgba(217, 119, 87, 0.12) !important;
+  color: var(--ink-change-review-error-fg) !important;
+  background: var(--ink-change-review-error-bg) !important;
 }
 [data-incipit-change-review-turn-files] {
   display: flex !important;
@@ -3218,7 +3671,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   margin-top: 5px !important;
 }
 [data-incipit-change-review-file] {
-  border-top: 1px solid rgba(248, 248, 246, 0.06) !important;
+  border-top: var(--ink-change-review-file-border-top) !important;
   padding-top: 4px !important;
 }
 /* Show-more/less is a quiet text link (like the user-bubble show-more),
@@ -3229,7 +3682,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   width: auto !important;
   border: none !important;
   background: transparent !important;
-  color: rgba(248, 248, 246, 0.5) !important;
+  color: var(--ink-change-review-more-fg) !important;
   font-family: var(--incipit-body-font) !important;
   font-size: 12px !important;
   line-height: 1.4 !important;
@@ -3241,14 +3694,14 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 [data-incipit-change-review-more]:hover {
   background: transparent !important;
-  color: rgba(248, 248, 246, 0.9) !important;
+  color: var(--ink-change-review-more-hover-fg) !important;
 }
 [data-incipit-change-review-counts] {
   flex: 0 0 auto !important;
   display: inline-flex !important;
   align-items: baseline !important;
   gap: 4px !important;
-  color: rgba(248, 248, 246, 0.5) !important;
+  color: var(--ink-change-review-counts-fg) !important;
   font-variant-numeric: tabular-nums !important;
 }
 [data-incipit-change-review-turn-title] [data-incipit-tool-added],
@@ -3260,16 +3713,16 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 [data-incipit-change-review-status] {
   flex: 0 0 auto !important;
-  color: rgba(248, 248, 246, 0.52) !important;
+  color: var(--ink-change-review-status-fg) !important;
   font-size: 11px !important;
 }
 [data-incipit-change-review-source="subagent"] [data-incipit-change-review-file-name] {
-  color: rgba(248, 248, 246, 0.58) !important;
+  color: var(--ink-change-review-file-name-fg-2) !important;
   cursor: default !important;
 }
 [data-incipit-change-review-source="subagent"] [data-incipit-change-review-file-name]:hover {
   background: transparent !important;
-  color: rgba(248, 248, 246, 0.58) !important;
+  color: var(--ink-change-review-file-name-hover-fg-2) !important;
 }
 [data-incipit-change-review-subagent-badge] {
   flex: 0 0 auto !important;
@@ -3277,10 +3730,10 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   align-items: center !important;
   height: 18px !important;
   padding: 0 5px !important;
-  border: 1px solid rgba(248, 248, 246, 0.14) !important;
+  border: var(--ink-change-review-subagent-badge-border) !important;
   border-radius: 5px !important;
-  color: rgba(248, 248, 246, 0.52) !important;
-  background: rgba(248, 248, 246, 0.045) !important;
+  color: var(--ink-change-review-subagent-badge-fg) !important;
+  background: var(--ink-change-review-subagent-badge-bg) !important;
   font-family: var(--incipit-code-font) !important;
   font-size: 10px !important;
   line-height: 1 !important;
@@ -3301,7 +3754,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   white-space: nowrap !important;
-  color: rgba(248, 248, 246, 0.92) !important;
+  color: var(--ink-change-review-turn-title-fg) !important;
   font-weight: 500 !important;
 }
 [data-incipit-change-review-title-label] {
@@ -3312,8 +3765,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   white-space: nowrap !important;
 }
 [data-incipit-change-review-flash] {
-  box-shadow: 0 0 0 1px rgba(217, 119, 87, 0.42),
-              0 6px 18px rgba(0,0,0,0.26) !important;
+  box-shadow: var(--ink-change-review-flash-shadow) !important;
 }
 [data-incipit-change-review-modal] {
   position: fixed !important;
@@ -3323,11 +3775,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   align-items: center !important;
   justify-content: center !important;
   padding: 28px !important;
-  background: rgba(0, 0, 0, 0.48) !important;
+  background: var(--ink-change-review-modal-bg) !important;
 }
 [data-incipit-change-review-modal-message] {
   padding: 18px !important;
-  color: rgba(248, 248, 246, 0.78) !important;
+  color: var(--ink-change-review-modal-message-fg) !important;
   font-family: var(--incipit-body-font) !important;
   font-size: 13px !important;
 }
@@ -3356,11 +3808,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   line-height: 1 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
-  color: rgba(217, 119, 87, 0.52) !important;
+  color: var(--ink-custom-model-action-after-fg) !important;
 }
 [data-incipit-custom-model-action]:hover::after,
 [data-incipit-custom-model-action]:focus-visible::after {
-  color: rgba(217, 119, 87, 0.78) !important;
+  color: var(--ink-custom-model-action-hover-fg) !important;
 }
 [data-incipit-custom-model-modal] {
   position: fixed !important;
@@ -3370,7 +3822,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   align-items: center !important;
   justify-content: center !important;
   padding: 24px !important;
-  background: rgba(0, 0, 0, 0.50) !important;
+  background: var(--ink-custom-model-modal-bg) !important;
 }
 [data-incipit-custom-model-dialog] {
   box-sizing: border-box !important;
@@ -3380,11 +3832,10 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border: none !important;
   outline: none !important;
   border-radius: 10px !important;
-  background: #2c2c2a !important;
-  background-color: #2c2c2a !important;
-  color: #f8f8f6 !important;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55),
-              0 2px 8px rgba(0,0,0,0.35) !important;
+  background: var(--ink-surface-panel) !important;
+  background-color: var(--ink-surface-panel) !important;
+  color: var(--ink-text-primary) !important;
+  box-shadow: var(--ink-custom-model-dialog-shadow) !important;
   font-family: var(--incipit-body-font) !important;
   font-size: var(--incipit-body-size, 13px) !important;
   line-height: 1.45 !important;
@@ -3395,7 +3846,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   gap: 8px !important;
   min-height: 40px !important;
   padding: 0 10px 0 14px !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: var(--ink-custom-model-header-border-bottom) !important;
 }
 [data-incipit-custom-model-title] {
   flex: 1 1 auto !important;
@@ -3418,7 +3869,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border: none !important;
   border-radius: 4px !important;
   background: transparent !important;
-  color: rgba(248, 248, 246, 0.72) !important;
+  color: var(--ink-custom-model-close-fg) !important;
   font-family: Georgia, serif !important;
   font-size: 20px !important;
   line-height: 1 !important;
@@ -3426,8 +3877,8 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 [data-incipit-custom-model-close]:hover,
 [data-incipit-custom-model-close]:focus-visible {
-  background: #121212 !important;
-  color: #f8f8f6 !important;
+  background: var(--ink-surface-recessed) !important;
+  color: var(--ink-text-primary) !important;
   outline: none !important;
 }
 [data-incipit-custom-model-body] {
@@ -3437,7 +3888,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   padding: 14px !important;
 }
 [data-incipit-custom-model-label] {
-  color: rgba(248, 248, 246, 0.64) !important;
+  color: var(--ink-custom-model-label-fg) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
 }
 [data-incipit-custom-model-input] {
@@ -3446,28 +3897,28 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   height: 34px !important;
   margin: 0 !important;
   padding: 6px 9px !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border: var(--ink-custom-model-input-border) !important;
   border-radius: 6px !important;
-  background: #1f1f1e !important;
-  background-color: #1f1f1e !important;
-  color: #f8f8f6 !important;
-  caret-color: #a8896e !important;
+  background: var(--ink-custom-model-input-bg) !important;
+  background-color: var(--ink-custom-model-input-bg) !important;
+  color: var(--ink-text-primary) !important;
+  caret-color: var(--ink-custom-model-input-caret) !important;
   font-family: var(--incipit-code-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
   line-height: 1.45 !important;
   outline: none !important;
 }
 [data-incipit-custom-model-input]::placeholder {
-  color: rgba(248, 248, 246, 0.36) !important;
+  color: var(--ink-custom-model-input-placeholder-fg) !important;
   opacity: 1 !important;
 }
 [data-incipit-custom-model-input]:focus {
-  border-color: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--ink-custom-model-input-focus-border) !important;
   box-shadow: none !important;
 }
 [data-incipit-custom-model-error] {
   min-height: 0 !important;
-  color: #ffd2cd !important;
+  color: var(--ink-custom-model-error-fg) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
   line-height: 1.4 !important;
   display: none !important;
@@ -3494,21 +3945,21 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   cursor: pointer !important;
 }
 [data-incipit-custom-model-cancel] {
-  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border: var(--ink-custom-model-cancel-border) !important;
   background: transparent !important;
-  color: rgba(248, 248, 246, 0.78) !important;
+  color: var(--ink-custom-model-cancel-fg) !important;
 }
 [data-incipit-custom-model-cancel]:hover,
 [data-incipit-custom-model-cancel]:focus-visible {
-  background: #121212 !important;
-  color: #f8f8f6 !important;
+  background: var(--ink-surface-recessed) !important;
+  color: var(--ink-text-primary) !important;
   outline: none !important;
 }
 [data-incipit-custom-model-submit] {
   border: 1px solid transparent !important;
-  background: #a8896e !important;
-  background-color: #a8896e !important;
-  color: #1f1f1e !important;
+  background: var(--ink-custom-model-submit-bg) !important;
+  background-color: var(--ink-custom-model-submit-bg) !important;
+  color: var(--ink-custom-model-submit-fg) !important;
   font-weight: 500 !important;
 }
 [data-incipit-custom-model-submit]:hover,
@@ -3532,10 +3983,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   margin: 0 !important;
   padding: 6px 8px !important;
   border-radius: 10px !important;
-  background: #2f2f2c !important;
-  color: rgba(248, 248, 246, 0.86) !important;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.20),
-              0 1px 3px rgba(0,0,0,0.16) !important;
+  background: var(--ink-deferred-next-bg) !important;
+  color: var(--ink-deferred-next-fg) !important;
+  box-shadow: var(--ink-deferred-next-shadow) !important;
   font-family: var(--incipit-body-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
   line-height: 1.35 !important;
@@ -3558,11 +4008,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   transition: background-color 120ms ease, opacity 120ms ease !important;
 }
 [data-incipit-deferred-row] + [data-incipit-deferred-row] {
-  border-top: 1px solid rgba(248, 248, 246, 0.06) !important;
+  border-top: var(--ink-deferred-row-border-top) !important;
 }
 [data-incipit-deferred-row][data-incipit-deferred-dragging] {
-  background: rgba(248, 248, 246, 0.06) !important;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32) !important;
+  background: var(--ink-deferred-dragging-bg) !important;
+  box-shadow: var(--ink-deferred-dragging-shadow) !important;
   opacity: 0.95 !important;
 }
 [data-incipit-deferred-row][data-incipit-deferred-next-sending] {
@@ -3575,8 +4025,8 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border-radius: 6px !important;
   font-size: 11px !important;
   line-height: 1.35 !important;
-  color: #e6a08c !important;
-  background: rgba(217, 119, 87, 0.12) !important;
+  color: var(--ink-deferred-next-error-fg) !important;
+  background: var(--ink-deferred-next-error-bg) !important;
 }
 [data-incipit-deferred-next-grip] {
   cursor: grab !important;
@@ -3587,7 +4037,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   cursor: grabbing !important;
 }
 [data-incipit-deferred-next-grip]:hover {
-  color: rgba(248, 248, 246, 0.5) !important;
+  color: var(--ink-deferred-next-grip-hover-fg) !important;
 }
 [data-incipit-deferred-next-row] {
   display: flex !important;
@@ -3597,7 +4047,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 [data-incipit-deferred-next-grip] {
   flex: 0 0 auto !important;
-  color: rgba(248, 248, 246, 0.28) !important;
+  color: var(--ink-deferred-next-grip-fg) !important;
   font-family: var(--incipit-code-font, monospace) !important;
   font-size: 12px !important;
   letter-spacing: 0 !important;
@@ -3608,7 +4058,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   overflow: hidden !important;
   white-space: nowrap !important;
   text-overflow: ellipsis !important;
-  color: rgba(248, 248, 246, 0.72) !important;
+  color: var(--ink-deferred-next-text-fg) !important;
 }
 [data-incipit-deferred-next-guide],
 [data-incipit-deferred-next-icon-btn],
@@ -3619,7 +4069,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   outline: none !important;
   border-radius: 7px !important;
   background: transparent !important;
-  color: rgba(248, 248, 246, 0.62) !important;
+  color: var(--ink-deferred-next-edit-cancel-fg) !important;
   font-family: var(--incipit-body-font) !important;
   font-size: 12px !important;
   line-height: 1 !important;
@@ -3658,14 +4108,14 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-deferred-next-icon-btn]:hover,
 [data-incipit-deferred-next-edit-save]:hover,
 [data-incipit-deferred-next-edit-cancel]:hover {
-  background: rgba(248, 248, 246, 0.08) !important;
-  color: rgba(248, 248, 246, 0.92) !important;
+  background: var(--ink-deferred-next-edit-cancel-hover-bg) !important;
+  color: var(--ink-deferred-next-edit-cancel-hover-fg) !important;
 }
 [data-incipit-deferred-next-guide] {
-  color: rgba(248, 248, 246, 0.74) !important;
+  color: var(--ink-deferred-next-guide-fg) !important;
 }
 [data-incipit-deferred-next-guide]:hover {
-  color: #d97757 !important;
+  color: var(--ink-deferred-next-guide-hover-fg) !important;
 }
 [data-incipit-deferred-next][data-incipit-deferred-next-sending] {
   opacity: 0.72 !important;
@@ -3700,9 +4150,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   outline: none !important;
   border-radius: 8px !important;
   padding: 7px 8px !important;
-  background: #242421 !important;
-  color: rgba(248,248,246,0.88) !important;
-  box-shadow: inset 0 0 0 1px rgba(248,248,246,0.08) !important;
+  background: var(--ink-deferred-next-textarea-bg) !important;
+  color: var(--ink-deferred-next-textarea-fg) !important;
+  box-shadow: var(--ink-deferred-next-textarea-shadow) !important;
   font-family: var(--incipit-body-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
   line-height: 1.4 !important;
@@ -3719,7 +4169,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   padding: 0 8px !important;
 }
 [data-incipit-deferred-next-edit-save] {
-  color: #d97757 !important;
+  color: var(--ink-deferred-next-edit-save-fg) !important;
 }
 
 /* Remove the divider above the input footer. */
@@ -3813,9 +4263,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    regardless of sibling paint order. */
 [class^="header_"]:has([class*="titleGroup"]) {
   border-bottom: none !important;
-  background: #1f1f1e !important;
-  background-color: #1f1f1e !important;
-  box-shadow: inset 0 -1px 0 rgba(0,0,0,0.55) !important;
+  background: var(--ink-title-group-bg) !important;
+  background-color: var(--ink-title-group-bg) !important;
+  box-shadow: var(--ink-title-group-shadow) !important;
 }
 
 /* Conversation edit activity: a compact +/- counter beside the right-side
@@ -3839,7 +4289,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: #d8d6ce;
+  color: var(--ink-cce-edit-chip-fg);
   font-family: var(--incipit-body-font);
   font-size: 12px;
   line-height: 1;
@@ -3856,12 +4306,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceEditChip:hover,
 .cceEditChip:focus-visible,
 .cceEditChip.cceEditChipActive {
-  background: rgba(248,246,240,0.07);
-  color: #f8f8f6;
+  background: var(--ink-cce-edit-chip-active-hover-bg);
+  color: var(--ink-text-primary);
   outline: none;
 }
 .cceEditChip:active {
-  background: rgba(248,246,240,0.11);
+  background: var(--ink-cce-edit-chip-active-bg);
 }
 .cceEditChip[hidden] {
   display: none !important;
@@ -3884,11 +4334,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   --cce-edit-weekday-col: 13px;
   --cce-edit-weekday-gap: 5px;
   --cce-edit-matrix-width: 366px;
-  background: #2c2c2a;
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--ink-surface-panel);
+  border: var(--ink-cce-edit-popup-border);
   border-radius: 8px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);
-  color: #e8e6dd;
+  box-shadow: var(--ink-cce-edit-popup-shadow);
+  color: var(--ink-cce-edit-popup-fg);
   font-family: var(--incipit-body-font);
   font-size: var(--incipit-body-size, 13px);
   font-weight: 400;
@@ -3909,7 +4359,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   min-width: 0;
 }
 .cceEditProjectLabel {
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 11px;
   font-weight: 400;
   line-height: 1.2;
@@ -3920,7 +4370,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   max-width: 100%;
   margin-top: 2px;
   overflow: hidden;
-  color: #d8d6ce;
+  color: var(--ink-cce-edit-project-name-fg);
   font-size: 12px;
   font-weight: 400;
   line-height: 1.25;
@@ -3930,7 +4380,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceEditRule {
   height: 1px;
   margin: 12px 0 11px;
-  background: rgba(248,246,240,0.08);
+  background: var(--ink-cce-edit-rule-bg);
 }
 .cceEditHead {
   display: flex;
@@ -3944,7 +4394,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   min-width: 0;
 }
 .cceEditKicker {
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 11px;
   font-weight: 400;
   line-height: 1.2;
@@ -3954,7 +4404,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 .cceEditScope {
   margin-top: 2px;
-  color: #b3b0a8;
+  color: var(--ink-cce-edit-scope-fg);
   font-size: 12px;
   font-weight: 400;
   line-height: 1.25;
@@ -3964,8 +4414,8 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   margin-top: -1px;
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(168,137,110,0.14);
-  color: #c8b19d;
+  background: var(--ink-cce-edit-status-bg);
+  color: var(--ink-cce-edit-status-fg);
   font-size: 11px;
   font-weight: 400;
   line-height: 1.2;
@@ -3976,7 +4426,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   align-items: baseline;
   gap: 0.7em;
   margin-top: 8px;
-  color: #f8f8f6;
+  color: var(--ink-text-primary);
   font-family: var(--incipit-emphasis-font);
   font-size: 18px;
   font-weight: 400;
@@ -3988,7 +4438,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   gap: 5px 10px;
   margin-top: 8px;
   margin-bottom: 12px;
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 12px;
   font-weight: 400;
   line-height: 1.25;
@@ -4017,7 +4467,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   gap: var(--cce-edit-gap);
   width: max-content;
   margin: 0 0 4px calc(var(--cce-edit-weekday-col) + var(--cce-edit-weekday-gap));
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 10px;
   line-height: 1.1;
 }
@@ -4037,7 +4487,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   display: grid;
   grid-template-rows: repeat(7, var(--cce-edit-cell));
   gap: var(--cce-edit-gap);
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 10px;
   line-height: 1;
 }
@@ -4061,13 +4511,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   width: var(--cce-edit-cell);
   height: var(--cce-edit-cell);
   border-radius: 2px;
-  background: rgba(248,246,240,0.055);
-  box-shadow: inset 0 0 0 1px rgba(248,246,240,0.035);
+  background: var(--ink-cce-edit-cell-bg);
+  box-shadow: var(--ink-cce-edit-cell-shadow);
 }
-.cceEditCell[data-level="1"] { background: rgba(168,137,110,0.26); }
-.cceEditCell[data-level="2"] { background: rgba(168,137,110,0.42); }
-.cceEditCell[data-level="3"] { background: rgba(168,137,110,0.62); }
-.cceEditCell[data-level="4"] { background: rgba(168,137,110,0.86); }
+.cceEditCell[data-level="1"] { background: var(--ink-cce-edit-cell-bg-2); }
+.cceEditCell[data-level="2"] { background: var(--ink-cce-edit-cell-bg-3); }
+.cceEditCell[data-level="3"] { background: var(--ink-cce-edit-cell-bg-4); }
+.cceEditCell[data-level="4"] { background: var(--ink-cce-edit-cell-bg-5); }
 .cceEditCellFuture {
   opacity: 0.32;
 }
@@ -4079,7 +4529,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   width: var(--cce-edit-matrix-width);
   max-width: 100%;
   margin: 11px 0 0;
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 11px;
   line-height: 1.2;
 }
@@ -4092,13 +4542,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   width: 10px;
   height: 10px;
   border-radius: 2px;
-  background: rgba(248,246,240,0.055);
-  box-shadow: inset 0 0 0 1px rgba(248,246,240,0.035);
+  background: var(--ink-cce-edit-legend-cells-bg);
+  box-shadow: var(--ink-cce-edit-legend-cells-shadow);
 }
-.cceEditLegendCells i[data-level="1"] { background: rgba(168,137,110,0.26); }
-.cceEditLegendCells i[data-level="2"] { background: rgba(168,137,110,0.42); }
-.cceEditLegendCells i[data-level="3"] { background: rgba(168,137,110,0.62); }
-.cceEditLegendCells i[data-level="4"] { background: rgba(168,137,110,0.86); }
+.cceEditLegendCells i[data-level="1"] { background: var(--ink-cce-edit-legend-cells-bg-2); }
+.cceEditLegendCells i[data-level="2"] { background: var(--ink-cce-edit-legend-cells-bg-3); }
+.cceEditLegendCells i[data-level="3"] { background: var(--ink-cce-edit-legend-cells-bg-4); }
+.cceEditLegendCells i[data-level="4"] { background: var(--ink-cce-edit-legend-cells-bg-5); }
 .cceEditTooltip {
   position: fixed;
   z-index: 100000;
@@ -4106,9 +4556,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   max-width: calc(100vw - 16px);
   padding: 4px 7px;
   border-radius: 4px;
-  background: rgba(31,31,30,0.92);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.26);
-  color: #f8f8f6;
+  background: var(--ink-cce-edit-tooltip-bg);
+  box-shadow: var(--ink-cce-edit-tooltip-shadow);
+  color: var(--ink-text-primary);
   font-family: var(--incipit-body-font);
   font-size: 11px;
   line-height: 1.25;
@@ -4145,11 +4595,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    thumbnail icon. Hover keeps the host's "deeper border" feedback
    pattern, just retoned to soft alpha. */
 [class*="pill_"]:has([class*="thumbIcon"]) {
-  border-color: rgba(255,255,255,0.10) !important;
+  border-color: var(--ink-thumb-icon-border) !important;
   border-radius: 6px !important;
 }
 [class*="pill_"]:has([class*="thumbIcon"]):hover {
-  border-color: rgba(255,255,255,0.20) !important;
+  border-color: var(--ink-thumb-icon-hover-border) !important;
 }
 
 /* Use the same flat fill treatment for menus and user bubbles. The
@@ -4159,12 +4609,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    Same treatment applied to `[data-incipit-dropdown]` further down,
    and matches the `.cceStatPopup` cache-detail surface. */
 [data-incipit-menu-popup] {
-  background: #2c2c2a !important;
-  background-color: #2c2c2a !important;
+  background: var(--ink-surface-panel) !important;
+  background-color: var(--ink-surface-panel) !important;
   border: none !important;
   outline: none !important;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55),
-              0 2px 8px rgba(0,0,0,0.35) !important;
+  box-shadow: var(--ink-menu-popup-shadow) !important;
   border-radius: 10px !important;
 }
 [data-incipit-menu-popup],
@@ -4182,10 +4631,10 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-menu-popup] [class*="filterInput"],
 [data-incipit-dropdown] input,
 [data-incipit-dropdown] textarea {
-  background: #1f1f1e !important;
-  background-color: #1f1f1e !important;
-  color: #f8f8f6 !important;
-  border-color: rgba(255, 255, 255, 0.06) !important;
+  background: var(--ink-dropdown-bg) !important;
+  background-color: var(--ink-dropdown-bg) !important;
+  color: var(--ink-text-primary) !important;
+  border-color: var(--ink-dropdown-border) !important;
   font-size: var(--incipit-body-size, 13px) !important;
   line-height: 1.45 !important;
 }
@@ -4194,13 +4643,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-menu-popup] [class*="filterInput"]::placeholder,
 [data-incipit-dropdown] input::placeholder,
 [data-incipit-dropdown] textarea::placeholder {
-  color: rgba(248, 248, 246, 0.42) !important;
+  color: var(--ink-dropdown-placeholder-fg) !important;
   opacity: 1 !important;
   font-family: inherit !important;
 }
 [data-incipit-menu-popup] [class*="sectionHeader"],
 [data-incipit-menu-popup] [class*="sectionTitle"] {
-  color: #bcbcb9 !important;
+  color: var(--ink-text-secondary) !important;
   opacity: 0.72 !important;
   font-family: var(--incipit-body-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
@@ -4210,7 +4659,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 [data-incipit-menu-popup] [class*="modelIndicator"],
 [data-incipit-input-footer] [class*="modelIndicator"] {
-  color: #bcbcb9 !important;
+  color: var(--ink-text-secondary) !important;
   opacity: 0.8 !important;
   font-family: var(--incipit-body-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px) !important;
@@ -4218,8 +4667,8 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   letter-spacing: 0 !important;
 }
 [data-incipit-user-bubble] {
-  background: #121212 !important;
-  background-color: #121212 !important;
+  background: var(--ink-bubble-bg) !important;
+  background-color: var(--ink-bubble-bg) !important;
   border: none !important;
   outline: none !important;
   box-shadow: none !important;
@@ -4288,8 +4737,8 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-dropdown],
 [data-incipit-command-list],
 [data-incipit-command-item] {
-  --app-list-active-background: #121212 !important;
-  --app-list-active-foreground: #F5F2E8 !important;
+  --app-list-active-background: var(--ink-list-active-bg) !important;
+  --app-list-active-foreground: var(--ink-list-active-fg) !important;
   --vscode-list-activeSelectionBackground: #121212 !important;
   --vscode-list-focusBackground: #121212 !important;
   --vscode-list-hoverBackground: #1a1a19 !important;
@@ -4299,21 +4748,20 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-command-item].active,
 [data-incipit-dropdown] [aria-selected="true"],
 [data-incipit-dropdown] .active {
-  background: #121212 !important;
-  background-color: #121212 !important;
-  color: #F5F2E8 !important;
+  background: var(--ink-surface-recessed) !important;
+  background-color: var(--ink-surface-recessed) !important;
+  color: var(--ink-text-strong) !important;
 }
 
 /* Match the conversation-history dropdown to the flat popup treatment.
    Shadow matches `[data-incipit-menu-popup]` and `.cceStatPopup` so
    every floating surface in the webview lifts off the page the same way. */
 [data-incipit-dropdown] {
-  background: #2c2c2a !important;
-  background-color: #2c2c2a !important;
+  background: var(--ink-surface-panel) !important;
+  background-color: var(--ink-surface-panel) !important;
   border: none !important;
   outline: none !important;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55),
-              0 2px 8px rgba(0,0,0,0.35) !important;
+  box-shadow: var(--ink-dropdown-shadow) !important;
   border-radius: 10px !important;
 }
 
@@ -4385,11 +4833,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   font-family: inherit;
   font-size: var(--incipit-body-size, 13px);
   line-height: 1.4;
-  color: rgba(255,255,255,0.50);
+  color: var(--ink-surface-fg-2);
   transition: color 0.15s;
 }
 .claude-show-more-btn:hover {
-  color: #F5F2E8;
+  color: var(--ink-text-strong);
 }
 
 /* Disable the sticky recent-user-message header without hiding the node. */
@@ -4407,21 +4855,21 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    flashing before MutationObserver tags the nodes. */
 [data-incipit-spinner-row] [data-incipit-spinner-container] [data-incipit-spinner-icon],
 [class*="spinnerRow"] [class*="container_"] [class*="icon_"] {
-  color: #EAE4D5 !important;  /* default */
+  color: var(--ink-spinner-icon-fg) !important;  /* default */
 }
 [data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="acceptEdits"] [data-incipit-spinner-icon],
 [class*="spinnerRow"] [class*="container_"][data-permission-mode="acceptEdits"] [class*="icon_"] {
-  color: #C9C0A8 !important;
+  color: var(--ink-spinner-icon-fg-2) !important;
 }
 [data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="plan"] [data-incipit-spinner-icon],
 [class*="spinnerRow"] [class*="container_"][data-permission-mode="plan"] [class*="icon_"] {
-  color: #A8A095 !important;
+  color: var(--ink-spinner-icon-fg-3) !important;
 }
 [data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="bypassPermissions"] [data-incipit-spinner-icon],
 [data-incipit-spinner-row] [data-incipit-spinner-container][data-permission-mode="auto"] [data-incipit-spinner-icon],
 [class*="spinnerRow"] [class*="container_"][data-permission-mode="bypassPermissions"] [class*="icon_"],
 [class*="spinnerRow"] [class*="container_"][data-permission-mode="auto"] [class*="icon_"] {
-  color: #D97757 !important;
+  color: var(--ink-accent) !important;
 }
 
 /* ============================================================
@@ -4458,7 +4906,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   outline: none;
   border-radius: 6px;
   cursor: pointer;
-  color: rgba(255,255,255,0.55);
+  color: var(--ink-surface-fg-3);
   transition: color 0.15s, background 0.15s;
 }
 .claude-user-copy-btn svg {
@@ -4467,11 +4915,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   display: block;
 }
 .claude-user-copy-btn:hover {
-  color: #F5F2E8;
-  background: rgba(255,255,255,0.06);
+  color: var(--ink-text-strong);
+  background: var(--ink-surface-hover-bg);
 }
 .claude-user-copy-btn.copied {
-  color: #C5B995;
+  color: var(--ink-surface-fg-4);
 }
 
 .incipit-assistant-action-row {
@@ -4506,11 +4954,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 /* Rerun (reprise arrow): terra orange in live state — this is the one
    destructive-ish action in the row, the colour signals weight. */
 .incipit-transcript-action-rerun {
-  color: #d97757;
+  color: var(--ink-accent);
 }
 .incipit-transcript-action-rerun:hover {
-  color: #d97757;
-  background: rgba(217, 119, 87, 0.10);
+  color: var(--ink-accent);
+  background: var(--ink-incipit-transcript-action-rerun-hover-bg);
 }
 .incipit-transcript-action-rerun svg {
   width: 18px;
@@ -4531,10 +4979,10 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    so the reprise arrow reads as a muted glyph identical to other disabled
    icons in the row. */
 .incipit-transcript-action-rerun[data-incipit-disabled="1"] {
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: var(--ink-disabled-fg) !important;
 }
 .incipit-transcript-action-rerun[data-incipit-disabled="1"]:hover {
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: var(--ink-disabled-hover-fg) !important;
 }
 /* Fork (git-branch Y): same colour-only disabled treatment as rerun.
    Live state stays in body foreground (no terra accent — fork is
@@ -4544,10 +4992,10 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   height: 17px;
 }
 .incipit-transcript-action-fork[data-incipit-disabled="1"] {
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: var(--ink-disabled-fg) !important;
 }
 .incipit-transcript-action-fork[data-incipit-disabled="1"]:hover {
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: var(--ink-disabled-hover-fg) !important;
 }
 
 /* ============================================================
@@ -4592,14 +5040,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   z-index: 4000;
   min-width: 198px;
   padding: 4px;
-  background: #2c2c2a !important;
-  background-color: #2c2c2a !important;
-  color: #F5F2E8;
+  background: var(--ink-surface-panel) !important;
+  background-color: var(--ink-surface-panel) !important;
+  color: var(--ink-text-strong);
   border: none;
   outline: none;
   border-radius: 10px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55),
-              0 2px 8px rgba(0,0,0,0.35);
+  box-shadow: var(--ink-action-dropdown-shadow);
   font-family: var(--incipit-body-font) !important;
   font-size: calc(var(--incipit-body-size, 13px) - 1px);
   line-height: 1.45;
@@ -4624,7 +5071,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 [data-incipit-action-dropdown-item]:hover,
 [data-incipit-action-dropdown-item]:focus {
-  background: #121212;
+  background: var(--ink-surface-recessed);
   outline: none;
 }
 /* Disabled item: dim, kill hover, swallow clicks. Used for the
@@ -4645,7 +5092,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-action-dropdown-separator] {
   height: 1px;
   margin: 4px 2px;
-  background: rgba(245, 242, 232, 0.10);
+  background: var(--ink-action-dropdown-separator-bg);
 }
 [data-incipit-action-dropdown-icon] {
   display: inline-flex;
@@ -4654,7 +5101,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   flex: 0 0 18px;
   width: 18px;
   height: 18px;
-  color: #F5F2E8;
+  color: var(--ink-text-strong);
 }
 [data-incipit-action-dropdown-icon] svg {
   display: block;
@@ -4707,7 +5154,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    <pre> blocks — one step lighter than the chat background. Light
    padding + small radius give it the same shape as a code block. */
 [data-incipit-inline-edit-shell="assistant"] {
-  background: #272727;
+  background: var(--ink-inline-edit-shell-bg);
   padding: 8px 10px;
   border-radius: 4px;
 }
@@ -4735,7 +5182,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border-radius: 4px;
 }
 [data-incipit-markdown-root][data-incipit-edit-hover-preview] {
-  background-color: #272727;
+  background-color: var(--ink-edit-hover-preview-bg);
 }
 
 @keyframes incipit-inline-edit-fade-in {
@@ -4758,7 +5205,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   line-height: 1.68;
   padding: 0;
   margin: 0;
-  caret-color: #d97757;
+  caret-color: var(--ink-incipit-inline-edit-textarea-caret);
   white-space: pre-wrap;
   word-break: break-word;
   overflow: hidden;
@@ -4834,15 +5281,15 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    the terra hue on disabled-hover; override here so the dim save
    keeps reading as save. */
 .incipit-transcript-action-save {
-  color: rgba(217, 119, 87, 0.92);
+  color: var(--ink-incipit-transcript-action-save-fg);
 }
 .incipit-transcript-action-save:hover {
-  color: #e3937a;
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink-incipit-transcript-action-save-hover-fg);
+  background: var(--ink-incipit-transcript-action-save-hover-bg);
 }
 .incipit-transcript-action-save[data-incipit-disabled="1"]:hover {
   background: transparent !important;
-  color: rgba(217, 119, 87, 0.92) !important;
+  color: var(--ink-disabled-hover-fg-2) !important;
 }
 /* Inflight (request fired, awaiting host response): freeze the button
    so a double-click won't double-submit or cancel mid-flight. Used by
@@ -4874,9 +5321,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   gap: 5px;
   padding: 3px 4px 3px 7px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: #bcbcb9;
+  background: var(--ink-incipit-edit-chip-bg);
+  border: var(--ink-incipit-edit-chip-border);
+  color: var(--ink-incipit-edit-chip-fg);
   font-family: var(--incipit-code-font);
   font-size: 11px;
   line-height: 1.4;
@@ -4892,7 +5339,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   width: 13px;
   height: 13px;
   flex: 0 0 13px;
-  color: rgba(217, 119, 87, 0.85);
+  color: var(--ink-incipit-edit-chip-icon-fg);
 }
 .incipit-edit-chip-icon svg { width: 100%; height: 100%; display: block; }
 .incipit-edit-chip-label {
@@ -4936,7 +5383,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border-radius: 4px;
   overflow: hidden;
   position: relative;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--ink-incipit-edit-chip-image-bg);
   border-color: transparent;
 }
 .incipit-edit-chip-thumb {
@@ -4953,14 +5400,14 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  color: #ffffff;
+  background: var(--ink-incipit-edit-chip-x-bg);
+  color: var(--ink-incipit-edit-chip-x-fg);
   margin: 0;
   opacity: 0.85;
 }
 .incipit-edit-chip--image .incipit-edit-chip-x svg { width: 9px; height: 9px; }
 .incipit-edit-chip--image .incipit-edit-chip-x:hover {
-  background: rgba(0, 0, 0, 0.72);
+  background: var(--ink-incipit-edit-chip-x-hover-bg);
   opacity: 1;
 }
 
@@ -4976,13 +5423,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   padding: 0;
   border-radius: 4px;
   background: transparent;
-  border: 1px dashed rgba(255, 255, 255, 0.20);
-  color: rgba(255, 255, 255, 0.5);
+  border: var(--ink-incipit-edit-chip-add-border);
+  color: var(--ink-incipit-edit-chip-add-fg);
   cursor: pointer;
 }
 .incipit-edit-chip-add:hover {
-  border-color: rgba(217, 119, 87, 0.65);
-  color: rgba(217, 119, 87, 0.95);
+  border-color: var(--ink-incipit-edit-chip-add-hover-border);
+  color: var(--ink-incipit-edit-chip-add-hover-fg);
 }
 .incipit-edit-chip-add svg { width: 14px; height: 14px; }
 
@@ -5002,7 +5449,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.78);
+  background: var(--ink-image-preview-bg);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   cursor: zoom-out;
@@ -5016,7 +5463,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   display: block;
   cursor: default;
   border-radius: 3px;
-  box-shadow: 0 8px 36px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--ink-image-preview-img-shadow);
   user-select: none;
 }
 [data-incipit-image-preview-close] {
@@ -5026,9 +5473,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  color: #ffffff;
+  background: var(--ink-image-preview-close-bg);
+  border: var(--ink-image-preview-close-border);
+  color: var(--ink-image-preview-close-fg);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -5037,7 +5484,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   padding: 0;
 }
 [data-incipit-image-preview-close]:hover {
-  background: rgba(0, 0, 0, 0.78);
+  background: var(--ink-image-preview-close-hover-bg);
   opacity: 1;
 }
 [data-incipit-image-preview-close] svg {
@@ -5081,10 +5528,10 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   max-width: min(420px, calc(100vw - 36px));
   padding: 9px 12px;
   border-radius: 6px;
-  border: 1px solid rgba(248,246,240,0.12);
-  background: #2c2c2a;
-  color: #f8f8f6;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.28);
+  border: var(--ink-transcript-toast-border);
+  background: var(--ink-surface-panel);
+  color: var(--ink-text-primary);
+  box-shadow: var(--ink-transcript-toast-shadow);
   font-family: var(--incipit-body-font);
   font-size: var(--incipit-body-size, 13px);
   line-height: 1.5;
@@ -5098,8 +5545,8 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   transform: translateY(0);
 }
 [data-incipit-transcript-toast][data-kind="error"] {
-  border-color: rgba(201,106,106,0.42);
-  color: #ffd2cd;
+  border-color: var(--ink-transcript-toast-border-2);
+  color: var(--ink-transcript-toast-fg);
 }
 
 /* ============================================================
@@ -5117,7 +5564,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   font-size: var(--incipit-body-size, 13px);
   font-weight: 400;
   font-variant-numeric: tabular-nums; /* Keep digits monospaced to avoid width jitter. */
-  color: #f8f8f6;                     /* Match the footer button text color. */
+  color: var(--ink-text-primary);                     /* Match the footer button text color. */
   background: transparent;
   border: none;
   border-radius: 4px;
@@ -5134,25 +5581,25 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 .cceBadge:hover,
 .cceBadge:focus-visible {
-  background: #3a3b3a;                /* Solid hover and focus background. */
-  color: #f8f8f6;
+  background: var(--ink-cce-badge-hover-bg);                /* Solid hover and focus background. */
+  color: var(--ink-text-primary);
   outline: none;
 }
 .cceBadge:active {
-  background: #2c2c2a;                /* Deeper pressed state. */
+  background: var(--ink-cce-badge-active-bg);                /* Deeper pressed state. */
 }
 .cceBadgeIcon {
   flex: 0 0 auto;
   display: block;
   width: 18px;                        /* Match the notes icon; serves as Ctx. */
   height: 18px;
-  color: #f8f8f6;                     /* SVG follows `currentColor`. */
+  color: var(--ink-text-primary);                     /* SVG follows `currentColor`. */
 }
 .cceBadgeText {
   display: inline-block;
 }
 .cceBadgeLabel {
-  color: #f8f8f6;
+  color: var(--ink-text-primary);
   display: inline-flex;
   align-items: center;
   vertical-align: middle;
@@ -5167,10 +5614,10 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   color: inherit;
 }
 .cceBadgeVal {
-  color: #989898;
+  color: var(--ink-cce-badge-val-fg);
 }
 .cceBadge.cceBadgeActive {
-  background: #3a3b3a;
+  background: var(--ink-cce-badge-active-bg-2);
 }
 
 /* Preserve width during reveal animation to avoid layout jitter. */
@@ -5194,14 +5641,14 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   max-height: calc(100vh - 16px);
   overflow: auto;
   padding: 12px 14px;
-  background: #2c2c2a;
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--ink-surface-panel);
+  border: var(--ink-cce-stat-popup-border);
   border-radius: 8px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);
+  box-shadow: var(--ink-cce-stat-popup-shadow);
   font-family: var(--incipit-body-font);
   font-size: var(--incipit-body-size, 13px);
   line-height: 1.5;
-  color: #e8e6dd;
+  color: var(--ink-cce-stat-popup-fg);
   font-variant-numeric: tabular-nums;
   user-select: none;
 }
@@ -5220,18 +5667,18 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceStatMetric {
   min-width: 0;
   padding: 7px 8px;
-  background: rgba(18,18,18,0.24);
+  background: var(--ink-cce-stat-metric-bg);
   border-radius: 6px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.045);
+  box-shadow: var(--ink-cce-stat-metric-shadow);
 }
 .cceStatMetricLabel {
   margin-bottom: 2px;
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 12px;
   line-height: 1.25;
 }
 .cceStatMetricValue {
-  color: #f8f8f6;
+  color: var(--ink-text-primary);
   font-family: var(--incipit-emphasis-font);
   font-size: 15px;
   line-height: 1.2;
@@ -5242,12 +5689,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #f8f8f6;        /* Match the badge text as the popup focal color. */
+  color: var(--ink-text-primary);        /* Match the badge text as the popup focal color. */
   margin-bottom: 8px;
 }
 .cceStatDivider {
   height: 1px;
-  background: rgba(255,255,255,0.07);
+  background: var(--ink-cce-stat-divider-bg);
   margin: 10px 0;
 }
 
@@ -5258,9 +5705,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceHitChartShell {
   position: relative;
   padding: 8px 8px 7px;
-  background: rgba(18,18,18,0.18);
+  background: var(--ink-cce-hit-chart-shell-bg);
   border-radius: 6px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  box-shadow: var(--ink-cce-hit-chart-shell-shadow);
 }
 .cceHitSvg {
   display: block;
@@ -5271,45 +5718,45 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   shape-rendering: geometricPrecision;
 }
 .cceHitGrid {
-  stroke: rgba(245,242,232,0.10);
+  stroke: var(--ink-cce-hit-grid-stroke);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 .cceHitXAxis {
-  stroke: rgba(245,242,232,0.16);
+  stroke: var(--ink-cce-hit-xaxis-stroke);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 .cceHitXTick {
-  stroke: rgba(245,242,232,0.18);
+  stroke: var(--ink-cce-hit-xtick-stroke);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 .cceHitAxisLabel {
-  fill: #989898;
+  fill: var(--ink-text-tertiary);
   font-family: var(--incipit-body-font);
   font-size: 11px;
   letter-spacing: 0;
 }
 .cceHitLine {
   fill: none;
-  stroke: #a8896e;
+  stroke: var(--ink-cce-hit-line-stroke);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 .cceHitPoint {
-  fill: #2c2c2a;
-  stroke: #a8896e;
+  fill: var(--ink-cce-hit-point-fill);
+  stroke: var(--ink-cce-hit-point-stroke);
   stroke-width: 1.6;
   vector-effect: non-scaling-stroke;
 }
 .cceHitPointLow {
-  fill: #a8896e;
+  fill: var(--ink-cce-hit-point-low-fill);
 }
 .cceHitPointLatest {
-  fill: #2c2c2a;
+  fill: var(--ink-cce-hit-point-latest-fill);
   stroke-width: 2;
 }
 .cceHitHover {
@@ -5321,13 +5768,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   opacity: 1;
 }
 .cceHitHoverLine {
-  stroke: rgba(245,242,232,0.42);
+  stroke: var(--ink-cce-hit-hover-line-stroke);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 .cceHitHoverPoint {
-  fill: #2c2c2a;
-  stroke: #a8896e;
+  fill: var(--ink-cce-hit-hover-point-fill);
+  stroke: var(--ink-cce-hit-hover-point-stroke);
   stroke-width: 1.7;
   vector-effect: non-scaling-stroke;
 }
@@ -5338,9 +5785,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   transform: translateX(-50%);
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgba(31,31,30,0.88);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.22);
-  color: #f8f8f6;
+  background: var(--ink-cce-hit-hover-label-bg);
+  box-shadow: var(--ink-cce-hit-hover-label-shadow);
+  color: var(--ink-text-primary);
   font-family: var(--incipit-body-font);
   font-size: 12px;
   line-height: 1.25;
@@ -5354,14 +5801,14 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 .cceHitHoverPct {
   display: block;
-  color: #f8f8f6;
+  color: var(--ink-text-primary);
   font-size: 12px;
   line-height: 1.18;
 }
 .cceHitHoverTime {
   display: block;
   margin-top: 1px;
-  color: #b8b7ad;
+  color: var(--ink-cce-hit-hover-time-fg);
   font-size: 10px;
   line-height: 1.15;
 }
@@ -5371,14 +5818,14 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   align-items: center;
   gap: 8px;
   margin-top: 2px;
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 12px;
   line-height: 1.2;
   white-space: nowrap;
 }
 .cceHitChartMeta span:nth-child(2) {
   text-align: center;
-  color: #989898;
+  color: var(--ink-text-tertiary);
 }
 .cceHitChartMeta span:last-child {
   text-align: right;
@@ -5396,26 +5843,26 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 .cceRangeLine {
   fill: none;
-  stroke: rgba(168,137,110,0.62);
+  stroke: var(--ink-cce-range-line-stroke);
   stroke-width: 1.2;
   stroke-linecap: round;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 .cceRangeTrack {
-  stroke: rgba(245,242,232,0.18);
+  stroke: var(--ink-cce-range-track-stroke);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 .cceRangeWindow {
-  fill: rgba(168,137,110,0.12);
-  stroke: rgba(168,137,110,0.42);
+  fill: var(--ink-cce-range-window-fill);
+  stroke: var(--ink-cce-range-window-stroke);
   stroke-width: 1;
   cursor: grab;
   vector-effect: non-scaling-stroke;
 }
 .cceRangeHandle {
-  stroke: #a8896e;
+  stroke: var(--ink-cce-range-handle-stroke);
   stroke-width: 1.5;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
@@ -5442,19 +5889,19 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceHitStat {
   min-width: 0;
   padding: 5px 7px;
-  background: rgba(18,18,18,0.16);
+  background: var(--ink-cce-hit-stat-bg);
   border-radius: 5px;
 }
 .cceHitStat span {
   display: block;
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 11px;
   line-height: 1.2;
 }
 .cceHitStat strong {
   display: block;
   margin-top: 1px;
-  color: #e8e6dd;
+  color: var(--ink-cce-hit-stat-fg);
   font-family: var(--incipit-emphasis-font);
   font-size: 12px;
   font-weight: 400;
@@ -5478,13 +5925,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   margin-bottom: 6px;
 }
 .cceFlowHeader span {
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 12px;
   white-space: nowrap;
 }
 .cceFlowHeader strong {
   min-width: 0;
-  color: #e8e6dd;
+  color: var(--ink-cce-flow-header-fg);
   font-family: var(--incipit-emphasis-font);
   font-size: 12px;
   font-weight: 400;
@@ -5494,7 +5941,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 .cceFlowRangeTime {
   margin: -2px 0 6px;
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 11px;
   line-height: 1.2;
   white-space: nowrap;
@@ -5507,8 +5954,8 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(18,18,18,0.28);
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  background: var(--ink-cce-context-stack-bg);
+  box-shadow: var(--ink-cce-context-stack-shadow);
 }
 .cceContextSeg {
   display: block;
@@ -5520,27 +5967,27 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceContextSeg-fresh,
 .cceFlowRow-fresh .cceFlowBar span,
 .cceLegendFresh {
-  background: rgba(245,242,232,0.42);
+  background: var(--ink-cce-legend-fresh-bg);
 }
 .cceContextSeg-write,
 .cceFlowRow-write .cceFlowBar span,
 .cceLegendWrite {
-  background: rgba(168,137,110,0.48);
+  background: var(--ink-cce-legend-write-bg);
 }
 .cceContextSeg-read,
 .cceFlowRow-read .cceFlowBar span,
 .cceLegendRead {
-  background: rgba(168,137,110,0.82);
+  background: var(--ink-cce-legend-read-bg);
 }
 .cceFlowRow-output .cceFlowBar span {
-  background: rgba(195,194,183,0.74);
+  background: var(--ink-cce-flow-bar-bg);
 }
 .cceFlowLegend {
   display: flex;
   flex-wrap: wrap;
   gap: 6px 12px;
   margin-top: 6px;
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 11px;
   line-height: 1.2;
 }
@@ -5567,12 +6014,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   gap: 8px;
 }
 .cceFlowLabel {
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 12px;
   white-space: nowrap;
 }
 .cceFlowValue {
-  color: #e8e6dd;
+  color: var(--ink-cce-flow-value-fg);
   font-family: var(--incipit-emphasis-font);
   font-size: 12px;
   line-height: 1.2;
@@ -5585,7 +6032,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   height: 6px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(18,18,18,0.22);
+  background: var(--ink-cce-flow-bar-bg-2);
 }
 .cceFlowBar span {
   display: block;
@@ -5601,12 +6048,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceSelectedMetric {
   min-width: 0;
   padding: 5px 7px;
-  background: rgba(18,18,18,0.16);
+  background: var(--ink-cce-selected-metric-bg);
   border-radius: 5px;
 }
 .cceSelectedMetric span {
   display: block;
-  color: #989898;
+  color: var(--ink-text-tertiary);
   font-size: 11px;
   line-height: 1.2;
   white-space: nowrap;
@@ -5614,7 +6061,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceSelectedMetric strong {
   display: block;
   margin-top: 1px;
-  color: #e8e6dd;
+  color: var(--ink-cce-selected-metric-fg);
   font-family: var(--incipit-emphasis-font);
   font-size: 12px;
   font-weight: 400;
@@ -5622,7 +6069,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   white-space: nowrap;
 }
 .cceStatEmpty {
-  color: #6a6a64;
+  color: var(--ink-cce-stat-empty-fg);
   font-size: 12px;
   font-style: italic;
 }
@@ -5646,7 +6093,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   background: transparent;
   border: none;
   border-radius: 4px;
-  color: #f8f8f6;
+  color: var(--ink-cce-note-btn-fg);
   cursor: pointer;
   transition: background 0.12s ease, color 0.12s ease;
   -webkit-appearance: none;
@@ -5654,11 +6101,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 .cceNoteBtn:hover,
 .cceNoteBtn:focus-visible {
-  background: #3a3b3a;
-  color: #f8f8f6;
+  background: var(--ink-cce-note-btn-hover-bg);
+  color: var(--ink-cce-note-btn-hover-fg);
   outline: none;
 }
-.cceNoteBtn.cceNoteBtnActive { background: #3a3b3a; }
+.cceNoteBtn.cceNoteBtnActive { background: var(--ink-cce-note-btn-active-bg); }
 .cceNoteIcon {
   display: block;
   width: 18px;
@@ -5670,7 +6117,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   30%      { transform: translateY(-2px); }
   60%      { transform: translateY(0); }
 }
-.cceNoteBtn.cceNoteBtnNudge { animation: cceNoteNudge 0.45s ease; color: #c9a657; }
+.cceNoteBtn.cceNoteBtnNudge { animation: cceNoteNudge 0.45s ease; color: var(--ink-cce-note-btn-nudge-fg); }
 
 /* Flat menu surface — same language as the right-click path menu (~1422) and
    the slash/permission `[data-incipit-menu-popup]` (~4140): NO frame, NO
@@ -5688,14 +6135,14 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   max-height: calc(100vh - 16px);
   overflow: hidden;
   padding: 4px;
-  background: #2c2c2a;
+  background: var(--ink-notes-panel-bg);
   border: none;
   border-radius: 10px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);
+  box-shadow: var(--ink-notes-panel-shadow);
   font-family: var(--incipit-body-font);
   font-size: calc(var(--incipit-body-size, 13px) - 1px);
   line-height: 1.45;
-  color: #f8f8f6;
+  color: var(--ink-notes-panel-fg);
 }
 [data-incipit-notes-panel].cceNotesOpen { display: flex; }
 [data-incipit-notes-tabs] {
@@ -5709,13 +6156,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   padding: 2px 1px 6px;
   border: none;
   background: transparent;
-  color: rgba(248,248,246,0.46);
+  color: var(--ink-notes-tab-fg);
   font-family: var(--incipit-emphasis-font);
   font-size: calc(var(--incipit-body-size, 13px) - 1px);
   cursor: pointer;
 }
-[data-incipit-notes-tab]:hover { color: rgba(248,248,246,0.80); }
-[data-incipit-notes-tab][data-active="1"] { color: #f8f8f6; }
+[data-incipit-notes-tab]:hover { color: var(--ink-notes-tab-hover-fg); }
+[data-incipit-notes-tab][data-active="1"] { color: var(--ink-notes-tab-fg-2); }
 [data-incipit-notes-tab][data-active="1"]::after {
   content: "";
   position: absolute;
@@ -5724,7 +6171,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   bottom: 0;
   height: 2px;
   border-radius: 2px;
-  background: #a8896e;
+  background: var(--ink-notes-tab-after-bg);
 }
 [data-incipit-notes-list] {
   flex: 1 1 auto;
@@ -5737,7 +6184,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-notes-empty] {
   padding: 22px 12px;
   text-align: center;
-  color: rgba(248,248,246,0.40);
+  color: var(--ink-notes-empty-fg);
 }
 [data-incipit-notes-row] {
   display: flex;
@@ -5745,7 +6192,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   gap: 2px;
   border-radius: 6px;
 }
-[data-incipit-notes-row]:hover { background: #121212; }
+[data-incipit-notes-row]:hover { background: var(--ink-notes-row-hover-bg); }
 [data-incipit-notes-insert] {
   flex: 1 1 auto;
   min-width: 0;
@@ -5754,7 +6201,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: #f8f8f6;
+  color: var(--ink-notes-insert-fg);
   font-family: var(--incipit-body-font);
   font-size: calc(var(--incipit-body-size, 13px) - 1px);
   line-height: 1.4;
@@ -5778,7 +6225,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border: none;
   border-radius: 5px;
   background: transparent;
-  color: rgba(248,248,246,0.50);
+  color: var(--ink-notes-delete-fg);
   font-size: 14px;
   line-height: 1;
   cursor: pointer;
@@ -5788,7 +6235,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-notes-row]:hover [data-incipit-notes-edit],
 [data-incipit-notes-row]:hover [data-incipit-notes-delete] { opacity: 1; }
 [data-incipit-notes-edit]:hover,
-[data-incipit-notes-delete]:hover { background: rgba(255,255,255,0.10); color: #f8f8f6; }
+[data-incipit-notes-delete]:hover { background: var(--ink-notes-delete-hover-bg); color: var(--ink-notes-delete-hover-fg); }
 [data-incipit-notes-footer] {
   flex: 0 0 auto;
   padding: 2px;
@@ -5799,13 +6246,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border: none;
   border-radius: 6px;
   background: transparent;
-  color: rgba(248,248,246,0.58);
+  color: var(--ink-notes-add-fg);
   font-family: var(--incipit-body-font);
   font-size: calc(var(--incipit-body-size, 13px) - 1px);
   text-align: left;
   cursor: pointer;
 }
-[data-incipit-notes-add]:hover { background: #121212; color: #f8f8f6; }
+[data-incipit-notes-add]:hover { background: var(--ink-notes-add-hover-bg); color: var(--ink-notes-add-hover-fg); }
 [data-incipit-notes-editor] {
   display: flex;
   flex-direction: column;
@@ -5820,15 +6267,15 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   padding: 8px 9px;
   border: none;
   border-radius: 6px;
-  background: #1f1f1e;
-  color: #f8f8f6;
-  caret-color: #a8896e;
+  background: var(--ink-notes-textarea-bg);
+  color: var(--ink-notes-textarea-fg);
+  caret-color: var(--ink-notes-textarea-caret);
   font-family: var(--incipit-body-font);
   font-size: calc(var(--incipit-body-size, 13px) - 1px);
   line-height: 1.5;
   outline: none;
 }
-[data-incipit-notes-textarea]::placeholder { color: rgba(248,248,246,0.36); }
+[data-incipit-notes-textarea]::placeholder { color: var(--ink-notes-textarea-placeholder-fg); }
 [data-incipit-notes-editor-actions] {
   display: flex;
   justify-content: flex-end;
@@ -5847,12 +6294,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 [data-incipit-notes-editor-cancel] {
   background: transparent;
-  color: rgba(248,248,246,0.62);
+  color: var(--ink-notes-editor-cancel-fg);
 }
-[data-incipit-notes-editor-cancel]:hover { background: #121212; color: #f8f8f6; }
+[data-incipit-notes-editor-cancel]:hover { background: var(--ink-notes-editor-cancel-hover-bg); color: var(--ink-notes-editor-cancel-hover-fg); }
 [data-incipit-notes-editor-save] {
-  background: #a8896e;
-  color: #1f1f1e;
+  background: var(--ink-notes-editor-save-bg);
+  color: var(--ink-notes-editor-save-fg);
   font-weight: 500;
 }
 [data-incipit-notes-editor-save]:hover { filter: brightness(1.08); }
@@ -5865,19 +6312,19 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   width: min(320px, calc(100vw - 16px));
   max-width: min(320px, calc(100vw - 16px));
   padding: 11px 12px;
-  background: #2c2c2a;
+  background: var(--ink-notes-bubble-bg);
   border: none;
   border-radius: 10px;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.35);
+  box-shadow: var(--ink-notes-bubble-shadow);
   font-family: var(--incipit-body-font);
   font-size: calc(var(--incipit-body-size, 13px) - 1px);
   line-height: 1.5;
-  color: #f8f8f6;
+  color: var(--ink-notes-bubble-fg);
 }
 [data-incipit-notes-bubble].cceNoteBubbleOpen { display: block; }
 [data-incipit-notes-bubble-text] {
   margin-bottom: 9px;
-  color: rgba(248,248,246,0.86);
+  color: var(--ink-notes-bubble-text-fg);
   word-break: break-word;
 }
 [data-incipit-notes-bubble-actions] {
@@ -5898,12 +6345,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 [data-incipit-notes-bubble-dismiss] {
   background: transparent;
-  color: rgba(248,248,246,0.62);
+  color: var(--ink-notes-bubble-dismiss-fg);
 }
-[data-incipit-notes-bubble-dismiss]:hover { background: #121212; color: #f8f8f6; }
+[data-incipit-notes-bubble-dismiss]:hover { background: var(--ink-notes-bubble-dismiss-hover-bg); color: var(--ink-notes-bubble-dismiss-hover-fg); }
 [data-incipit-notes-bubble-insert] {
-  background: #a8896e;
-  color: #1f1f1e;
+  background: var(--ink-notes-bubble-insert-bg);
+  color: var(--ink-notes-bubble-insert-fg);
   font-weight: 500;
 }
 [data-incipit-notes-bubble-insert]:hover { filter: brightness(1.08); }
@@ -5989,7 +6436,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    sliders rendered outside the modes popup (none today, but future-proof)
    pick up the warm camel without re-scoping. */
 [class*="fill_"] {
-  background-color: #a8896e !important;
+  background-color: var(--ink-fill-bg) !important;
 }
 
 /* Thinking + plugin-toggle ON track. The host reuses the same `0c4GDA`
@@ -5999,12 +6446,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    raw blue `--app-accent-color`. `trackOn_*` is unique to the toggle
    component, no fallout. */
 [class*="trackOn"] {
-  background-color: #a8896e !important;
+  background-color: var(--ink-track-on-bg) !important;
 }
 
 /* Usage bar fill (Account & usage panel). */
 [class*="usageFill"] {
-  background-color: #a8896e !important;
+  background-color: var(--ink-usage-fill-bg) !important;
 }
 
 /* ============================================================
@@ -6023,12 +6470,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    ============================================================ */
 [data-incipit-menu-popup] *,
 [data-incipit-dropdown] * {
-  border-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: var(--ink-dropdown-border-2) !important;
 }
 
 [class*="sectionDivider"],
 [class*="menuDivider"] {
-  background: rgba(248, 246, 240, 0.14) !important;
+  background: var(--ink-menu-divider-bg) !important;
   height: 2px !important;
 }
 
@@ -6066,10 +6513,10 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    observer. Do NOT reintroduce any `*::-webkit-scrollbar*` rule.
    ============================================================ */
 :root {
-  --incipit-scrollbar-thumb: #3c3c3c;
-  --incipit-scrollbar-thumb-hover: #5a5a5a;
-  --incipit-scrollbar-thumb-active: #6a6a6a;
-  --incipit-scrollbar-track: transparent;
+  --incipit-scrollbar-thumb: var(--ink-scrollbar-thumb);
+  --incipit-scrollbar-thumb-hover: var(--ink-scrollbar-thumb-hover);
+  --incipit-scrollbar-thumb-active: var(--ink-scrollbar-thumb-active);
+  --incipit-scrollbar-track: var(--ink-scrollbar-track);
 }
 
 *:not([class*="inputContainer_"]):not([class*="inputContainer_"] *):not([contenteditable]):not([contenteditable] *) {
@@ -6106,12 +6553,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    `warm-white-override.css`.
    ============================================================ */
 [class*="dialog_"] {
-  background: #2c2c2a !important;
-  background-color: #2c2c2a !important;
+  background: var(--ink-surface-panel) !important;
+  background-color: var(--ink-surface-panel) !important;
   border: none !important;
   outline: none !important;
-  box-shadow: 0 12px 36px rgba(0,0,0,0.55),
-              0 2px 8px rgba(0,0,0,0.35) !important;
+  box-shadow: var(--ink-dialog-shadow) !important;
   border-radius: 10px !important;
 }
 
@@ -6128,7 +6574,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    which the VS Code base already darkens, but on warm-white the
    default reads as muddy gray. Dark mode keeps the deep veil. */
 [class*="overlay_"] {
-  background-color: rgba(0, 0, 0, 0.55) !important;
+  background-color: var(--ink-overlay-bg) !important;
 }
 
 /* ============================================================
@@ -6152,49 +6598,49 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 
 /* Tab bar bottom rule — soften from full-strength border colour. */
 [class*="tabBar_yumWmQ"] {
-  border-bottom-color: rgba(255, 255, 255, 0.10) !important;
+  border-bottom-color: var(--ink-tab-bar-border-bottom) !important;
 }
 
 /* Active tab underline → terra accent instead of system blue. */
 [class*="tab_yumWmQ"][class*="active_yumWmQ"] {
-  border-bottom-color: #d97757 !important;
+  border-bottom-color: var(--ink-active-border-bottom) !important;
   font-weight: 500 !important;
 }
 
 /* Tab count badge — flat warm chip instead of blue pill. */
 [class*="tabBadge_yumWmQ"] {
-  background-color: rgba(217, 119, 87, 0.18) !important;
-  color: #d97757 !important;
+  background-color: var(--ink-tab-badge-bg) !important;
+  color: var(--ink-accent) !important;
   font-weight: 500 !important;
 }
 
 /* Search input — soften border, blend into dialog surface. */
 [class*="searchInput_yumWmQ"] {
-  background-color: rgba(0, 0, 0, 0.18) !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  color: #f8f8f6 !important;
+  background-color: var(--ink-search-input-bg) !important;
+  border-color: var(--ink-search-input-border) !important;
+  color: var(--ink-text-primary) !important;
   font-family: var(--incipit-body-font) !important;
 }
 [class*="searchInput_yumWmQ"]:focus {
-  border-color: rgba(217, 119, 87, 0.55) !important;
+  border-color: var(--ink-search-input-focus-border) !important;
   outline: none !important;
 }
 
 /* Section headers (INSTALLED / AVAILABLE) — keep typographic spec
    but soften the underline rule. */
 [class*="sectionHeader_yumWmQ"] {
-  border-bottom-color: rgba(255, 255, 255, 0.08) !important;
+  border-bottom-color: var(--ink-section-header-border-bottom) !important;
   letter-spacing: 0.08em !important;
 }
 
 /* Plugin item card — sit one notch deeper than the dialog so the
    list has structure without painting hard borders. */
 [class*="pluginItem_yumWmQ"] {
-  background-color: rgba(0, 0, 0, 0.22) !important;
-  border-color: rgba(255, 255, 255, 0.06) !important;
+  background-color: var(--ink-plugin-item-bg) !important;
+  border-color: var(--ink-plugin-item-border) !important;
 }
 [class*="pluginItem_yumWmQ"]:hover {
-  border-color: rgba(217, 119, 87, 0.40) !important;
+  border-color: var(--ink-plugin-item-hover-border) !important;
 }
 
 /* Plugin name — Reading serif, weight 500 reads as semibold without
@@ -6217,16 +6663,16 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 /* Generic action button — ghost. */
 [class*="actionButton_yumWmQ"] {
   font-family: var(--incipit-body-font) !important;
-  border-color: rgba(255, 255, 255, 0.16) !important;
+  border-color: var(--ink-action-button-border) !important;
 }
 [class*="actionButton_yumWmQ"]:hover {
-  background-color: rgba(255, 255, 255, 0.06) !important;
+  background-color: var(--ink-action-button-hover-bg) !important;
 }
 
 /* Primary action (Install) — terra accent, replaces system blue. */
 [class*="actionButton_yumWmQ"][class*="primary_yumWmQ"] {
-  background-color: #d97757 !important;
-  color: #1f1f1e !important;
+  background-color: var(--ink-accent) !important;
+  color: var(--ink-primary-fg) !important;
   border-color: transparent !important;
   font-weight: 500 !important;
 }
@@ -6236,7 +6682,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 
 /* Status dot — keep semantic green/grey but slightly desaturate. */
 [class*="statusDotEnabled_yumWmQ"] {
-  background-color: #6fb46f !important;
+  background-color: var(--ink-status-dot-enabled-bg) !important;
 }
 
 /* Install count text — soften further to keep focus on plugin name. */
@@ -6248,7 +6694,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    pattern (font colour stays inherited; underline is the affordance). */
 [class*="pluginMeta_yumWmQ"] a {
   color: inherit !important;
-  text-decoration-color: rgba(217, 119, 87, 0.6) !important;
+  text-decoration-color: var(--ink-plugin-meta-text-decoration-color) !important;
 }
 
 /* ============================================================
@@ -6285,9 +6731,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   padding: 1px 6px !important;
   margin: 0 1px !important;
   border-radius: 3px !important;
-  background: rgba(248, 246, 240, 0.07) !important;
-  border: 1px solid rgba(248, 246, 240, 0.24) !important;
-  color: #f8f8f6 !important;
+  background: var(--ink-keys-bg) !important;
+  border: var(--ink-keys-border) !important;
+  color: var(--ink-text-primary) !important;
   box-shadow: none !important;
 }
 

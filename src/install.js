@@ -19,6 +19,7 @@ const {
   buildInstallManifestPreamble,
   patchContract,
 } = require('./patch-contract');
+const { CUSTOM_ICON_NAMES, SVG_ICON_NAMES, PNG_ICON_NAME } = require('./custom-icon');
 
 // ============================================================
 // constants
@@ -28,6 +29,7 @@ const {
   getFeatures,
   getTheme,
   getLanguage,
+  PALETTE_OPTIONS,
   pruneRetiredConfigKeys,
 } = require('./config');
 const {
@@ -58,10 +60,10 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'math_tokens.js'),         'math_tokens.js'],
   [path.join('data', 'math_rewriter.js'),       'math_rewriter.js'],
   [path.join('data', 'theme.css'),              THEME_TARGET_NAME],
-  // Warm-white palette overrides. Always copied so users can flip the
-  // setting without re-running apply just to ship the CSS file. enhance.js
-  // only loads this stylesheet when `theme.palette === 'warm-white'`.
+  // Palette overrides are always copied so users can switch themes without
+  // needing a package update just to make the selected stylesheet available.
   [path.join('data', 'warm-white-override.css'), 'warm-white-override.css'],
+  [path.join('data', 'ink-black-override.css'),  'ink-black-override.css'],
 ];
 
 const CDN_HOST = 'https://cdnjs.cloudflare.com';
@@ -215,6 +217,11 @@ function sanitizeFontFamilyValue(raw) {
   return trimmed;
 }
 
+function normalizedPalette(theme) {
+  const palette = theme && theme.palette;
+  return PALETTE_OPTIONS.includes(palette) ? palette : 'warm-black';
+}
+
 // ============================================================
 // regexes
 // ============================================================
@@ -234,12 +241,12 @@ const MARKDOWN_LEGACY_CHILDREN_RE =
   /([A-Za-z_$][\w$]*)=window\.__CLAUDE_ENHANCE_PREPROCESS_MARKDOWN__\?window\.__CLAUDE_ENHANCE_PREPROCESS_MARKDOWN__\(\$\.children\|\|""\):\(\$\.children\|\|""\)/g;
 const MARKDOWN_ASSIGN_PATCHED_RE =
   /if\(typeof [A-Za-z_$][\w$]*==="string"\)\{if\(window\.__CLAUDE_ENHANCE_PREPROCESS_MARKDOWN__\)[A-Za-z_$][\w$]*=window\.__CLAUDE_ENHANCE_PREPROCESS_MARKDOWN__\([A-Za-z_$][\w$]*\);[A-Za-z_$][\w$]*\.value=[A-Za-z_$][\w$]*;\}else [A-Za-z_$][\w$]*\("Unexpected value `"\+[A-Za-z_$][\w$]*\+"` for `children` prop, expected `string`"\)/;
-const MARKDOWN_CODE_COMPONENT_PATTERN =
-  /code:\(\{children:([A-Za-z_$][\w$]*),className:([A-Za-z_$][\w$]*)\}\)=>\{if\(\2\)return ([A-Za-z_$][\w$]*)\.default\.createElement\("code",\{className:\2\},\1\);let ([A-Za-z_$][\w$]*)=String\(\1\);/g;
-const MARKDOWN_CODE_COMPONENT_PATCHED_RE =
-  /code:\(\{children:[A-Za-z_$][\w$]*,className:[A-Za-z_$][\w$]*\}\)=>\{let [A-Za-z_$][\w$]*=String\([A-Za-z_$][\w$]*\),__incipitHtml;if\([A-Za-z_$][\w$]*\)\{__incipitHtml=window\.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window\.__INCIPIT_HIGHLIGHT_CODE_HTML__\([A-Za-z_$][\w$]*,[A-Za-z_$][\w$]*\);if\(__incipitHtml!==null&&__incipitHtml!==void 0\)return [A-Za-z_$][\w$]*\.default\.createElement\("code",\{className:[A-Za-z_$][\w$]*\+" hljs",dangerouslySetInnerHTML:\{__html:__incipitHtml\}\}\);return [A-Za-z_$][\w$]*\.default\.createElement\("code",\{className:[A-Za-z_$][\w$]*\},[A-Za-z_$][\w$]*\)\}if\([A-Za-z_$][\w$]*\.indexOf\("\\n"\)!==-1\)\{__incipitHtml=window\.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window\.__INCIPIT_HIGHLIGHT_CODE_HTML__\([A-Za-z_$][\w$]*,""\);if\(__incipitHtml!==null&&__incipitHtml!==void 0\)return [A-Za-z_$][\w$]*\.default\.createElement\("code",\{className:"hljs",dangerouslySetInnerHTML:\{__html:__incipitHtml\}\}\)\}/;
+const MARKDOWN_CODE_COMPONENT_SIGNATURE_PATTERN =
+  /code:\(\{children:([A-Za-z_$][\w$]*),className:([A-Za-z_$][\w$]*)\}\)=>\{/g;
 const MARKDOWN_CODE_COMPONENT_V1_PATCHED_PATTERN =
   /code:\(\{children:([A-Za-z_$][\w$]*),className:([A-Za-z_$][\w$]*)\}\)=>\{if\(\2\)\{let ([A-Za-z_$][\w$]*)=String\(\1\),__incipitHtml=window\.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window\.__INCIPIT_HIGHLIGHT_CODE_HTML__\(\3,\2\);if\(__incipitHtml!==null&&__incipitHtml!==void 0\)return ([A-Za-z_$][\w$]*)\.default\.createElement\("code",\{className:\2\+" hljs",dangerouslySetInnerHTML:\{__html:__incipitHtml\}\}\);return \4\.default\.createElement\("code",\{className:\2\},\1\)\}let \3=String\(\1\);/g;
+const MARKDOWN_CODE_HIGHLIGHT_CALL =
+  'window.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window.__INCIPIT_HIGHLIGHT_CODE_HTML__(';
 const AT_MENTION_COMMAND_ANCHOR_PATTERN =
   /function ([A-Za-z_$][\w$]*)\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{([\s\S]{0,900}?)(\2\.push\(([A-Za-z_$][\w$]*)\.commands\.registerCommand\("claude-vscode\.insertAtMention")/g;
 const AT_MENTION_COMMAND_PATCHED_RE =
@@ -309,6 +316,7 @@ const INSTALL_MANIFEST_RE =
   /globalThis\.__incipitInstallManifest = Object\.freeze\([\s\S]*?\);\r?\n/;
 const MONACO_DIFF_LIGHT_THEME = 'incipit-github-light';
 const MONACO_DIFF_DARK_THEME = 'incipit-github-dark';
+const MONACO_DIFF_INK_THEME = 'incipit-ink-black';
 const MONACO_DIFF_THEME_FALLBACK_EXPR =
   '(globalThis.__incipitConfig&&globalThis.__incipitConfig.theme&&globalThis.__incipitConfig.theme.palette==="warm-white"?"vs":"vs-dark")';
 const MONACO_DIFF_THEME_EXPR =
@@ -353,7 +361,8 @@ const MONACO_DIFF_MODAL_SCROLLBAR_AUTO_RE =
   /scrollbar:\{vertical:"auto",horizontal:"auto"\}/g;
 const MONACO_DIFF_MODAL_SCROLLBAR_LEGACY_HIDDEN_RE =
   /scrollbar:\{vertical:"auto",horizontal:"hidden"\}/g;
-const MONACO_DIFF_THEMES = Object.freeze({
+const MONACO_DIFF_THEMES = (() => {
+  const themes = {
   [MONACO_DIFF_LIGHT_THEME]: {
     base: 'vs',
     inherit: true,
@@ -489,7 +498,27 @@ const MONACO_DIFF_THEMES = Object.freeze({
       'scrollbarSlider.activeBackground': '#6a6a6a99',
     },
   },
-});
+  };
+  themes[MONACO_DIFF_INK_THEME] = {
+    base: 'vs-dark',
+    inherit: true,
+    rules: themes[MONACO_DIFF_DARK_THEME].rules,
+    colors: {
+      ...themes[MONACO_DIFF_DARK_THEME].colors,
+      'editor.background': '#0a0b0b',
+      'editor.foreground': '#fbfbfc',
+      'editorGutter.background': '#0a0b0b',
+      'editorLineNumber.foreground': '#838484',
+      'editorLineNumber.activeForeground': '#c7c6c7',
+      'diffEditor.border': '#ffffff1a',
+      'diffEditor.diagonalFill': '#ffffff10',
+      'scrollbarSlider.background': '#2c2c2d80',
+      'scrollbarSlider.hoverBackground': '#44444580',
+      'scrollbarSlider.activeBackground': '#55555699',
+    },
+  };
+  return Object.freeze(themes);
+})();
 
 // Remove the legacy module-load diagnostic probe.
 const LEGACY_MODLOAD_RE =
@@ -709,6 +738,533 @@ function copyWithTransform(srcPath, dstPath, transform) {
   return true;
 }
 
+function assertCustomIconBytes(bytes, label) {
+  if (!Buffer.isBuffer(bytes) || bytes.length === 0) {
+    throw new Error(`Invalid custom icon bytes for ${label}.`);
+  }
+}
+
+function validateCustomIconApplyInputs(preparedCustomIcon, officialIconPayloads) {
+  if (!preparedCustomIcon || typeof preparedCustomIcon !== 'object') {
+    throw new Error('A prepared custom icon plan is required.');
+  }
+  if (preparedCustomIcon.sourceType !== 'svg' && preparedCustomIcon.sourceType !== 'png') {
+    throw new Error('The prepared custom icon has an invalid source type.');
+  }
+  if (typeof preparedCustomIcon.sourcePath !== 'string' || !path.isAbsolute(preparedCustomIcon.sourcePath)) {
+    throw new Error('The prepared custom icon has an invalid source path.');
+  }
+  if (!/^[a-f0-9]{64}$/.test(String(preparedCustomIcon.sourceSha256 || ''))) {
+    throw new Error('The prepared custom icon has an invalid source fingerprint.');
+  }
+  if (!Array.isArray(preparedCustomIcon.slots)) {
+    throw new Error('The prepared custom icon has no slot plan.');
+  }
+
+  const customSlots = new Map();
+  for (const slot of preparedCustomIcon.slots) {
+    if (!slot || !CUSTOM_ICON_NAMES.includes(slot.name)) {
+      throw new Error('The prepared custom icon contains an unknown slot.');
+    }
+    if (customSlots.has(slot.name)) {
+      throw new Error(`The prepared custom icon repeats ${slot.name}.`);
+    }
+    assertCustomIconBytes(slot.bytes, slot.name);
+    customSlots.set(slot.name, slot.bytes);
+  }
+  const expectedCustomNames = preparedCustomIcon.sourceType === 'svg'
+    ? SVG_ICON_NAMES
+    : CUSTOM_ICON_NAMES;
+  if (customSlots.size !== expectedCustomNames.length ||
+      expectedCustomNames.some(name => !customSlots.has(name))) {
+    throw new Error('The prepared custom icon does not cover the required slots.');
+  }
+
+  if (!Array.isArray(officialIconPayloads)) {
+    throw new Error('Verified official icon payloads are required before custom icon apply.');
+  }
+  const officialSlots = new Map();
+  for (const payload of officialIconPayloads) {
+    if (!payload || !CUSTOM_ICON_NAMES.includes(payload.name)) {
+      throw new Error('The official icon restore payload contains an unknown slot.');
+    }
+    if (officialSlots.has(payload.name)) {
+      throw new Error(`The official icon restore payload repeats ${payload.name}.`);
+    }
+    if (payload.existedBefore !== true && payload.existedBefore !== false) {
+      throw new Error(`The official icon restore payload has an invalid state for ${payload.name}.`);
+    }
+    if (payload.existedBefore) assertCustomIconBytes(payload.bytes, `official ${payload.name}`);
+    else if (payload.bytes !== null) {
+      throw new Error(`The official icon restore payload must be empty for absent slot ${payload.name}.`);
+    }
+    officialSlots.set(payload.name, payload);
+  }
+  if (officialSlots.size !== CUSTOM_ICON_NAMES.length ||
+      CUSTOM_ICON_NAMES.some(name => !officialSlots.has(name))) {
+    throw new Error('The official icon restore payload does not cover all four slots.');
+  }
+
+  return Object.freeze({
+    sourcePath: preparedCustomIcon.sourcePath,
+    sourceType: preparedCustomIcon.sourceType,
+    sourceSha256: preparedCustomIcon.sourceSha256,
+    files: Object.freeze(CUSTOM_ICON_NAMES.map(name => {
+      const customBytes = customSlots.get(name);
+      if (customBytes) {
+        return Object.freeze({ name, bytes: customBytes, mode: 'custom' });
+      }
+      if (name !== PNG_ICON_NAME || preparedCustomIcon.sourceType !== 'svg') {
+        throw new Error(`No custom or official operation was produced for ${name}.`);
+      }
+      const official = officialSlots.get(name);
+      return Object.freeze({
+        name,
+        bytes: official.existedBefore ? official.bytes : null,
+        mode: 'official-restored',
+      });
+    })),
+  });
+}
+
+function inspectCustomIconDestination(resourcesDir, name) {
+  const destination = path.join(resourcesDir, name);
+  const stat = lstatCustomIconEntry(destination);
+  if (!stat) {
+    return { name, destination, existedBefore: false, bytes: null, fileIdentity: null };
+  }
+  const entry = inspectRegularCustomIcon(destination, 'Custom icon destination');
+  return {
+    name,
+    destination,
+    existedBefore: true,
+    bytes: entry.bytes,
+    fileIdentity: entry.fileIdentity,
+  };
+}
+
+function inspectCustomIconResources(resourcesDir) {
+  if (!fs.existsSync(resourcesDir)) {
+    throw new Error(`Custom icon resources directory does not exist: ${resourcesDir}`);
+  }
+  const stat = fs.lstatSync(resourcesDir);
+  if (stat.isSymbolicLink() || !stat.isDirectory()) {
+    throw new Error(`Custom icon resources path is not a regular directory: ${resourcesDir}`);
+  }
+  const realpath = (fs.realpathSync.native || fs.realpathSync)(resourcesDir);
+  return {
+    path: resourcesDir,
+    realpath,
+    dev: String(stat.dev),
+    ino: String(stat.ino),
+  };
+}
+
+function customIconResourceIdentitiesMatch(left, right) {
+  return Boolean(left && right && left.path === right.path && left.realpath === right.realpath &&
+    left.dev === right.dev && left.ino === right.ino);
+}
+
+function assertCustomIconResourcesCurrent(identity, phase = 'apply') {
+  let current;
+  try {
+    current = inspectCustomIconResources(identity.path);
+  } catch (exc) {
+    throw new Error(`Custom icon resources directory changed during ${phase}: ${identity.path} (${exc.message})`);
+  }
+  if (!customIconResourceIdentitiesMatch(current, identity)) {
+    throw new Error(`Custom icon resources directory changed during ${phase}: ${identity.path}`);
+  }
+}
+
+function customIconTransactionPath(destination, role) {
+  return path.join(
+    path.dirname(destination),
+    `.${path.basename(destination)}.incipit-${role}-${process.pid}-${Date.now()}-${crypto.randomBytes(6).toString('hex')}`,
+  );
+}
+
+function lstatCustomIconEntry(destination) {
+  try {
+    return fs.lstatSync(destination);
+  } catch (exc) {
+    if (exc && exc.code === 'ENOENT') return null;
+    throw exc;
+  }
+}
+
+function customIconFileIdentity(stat) {
+  return {
+    dev: String(stat.dev),
+    ino: String(stat.ino),
+    mode: String(stat.mode),
+    size: String(stat.size),
+    mtimeMs: String(stat.mtimeMs),
+  };
+}
+
+function customIconPermissions(fileIdentity) {
+  const mode = Number(fileIdentity && fileIdentity.mode);
+  return Number.isInteger(mode) ? (mode & 0o777) : 0o644;
+}
+
+function customIconFileIdentitiesMatch(left, right) {
+  return Boolean(left && right && left.dev === right.dev && left.ino === right.ino &&
+    left.mode === right.mode && left.size === right.size && left.mtimeMs === right.mtimeMs);
+}
+
+function inspectRegularCustomIcon(destination, label) {
+  const stat = fs.lstatSync(destination);
+  if (stat.isSymbolicLink() || !stat.isFile()) {
+    throw new Error(`${label} is not a regular file: ${destination}`);
+  }
+  const fileIdentity = customIconFileIdentity(stat);
+  const bytes = fs.readFileSync(destination);
+  const statAfterRead = fs.lstatSync(destination);
+  if (statAfterRead.isSymbolicLink() || !statAfterRead.isFile() ||
+      !customIconFileIdentitiesMatch(fileIdentity, customIconFileIdentity(statAfterRead))) {
+    throw new Error(`${label} changed while it was being read: ${destination}`);
+  }
+  return { bytes, fileIdentity };
+}
+
+function restoreClaimedCustomIcon(claimPath, destination) {
+  if (lstatCustomIconEntry(destination)) return false;
+  try {
+    fs.linkSync(claimPath, destination);
+  } catch (exc) {
+    if (exc && exc.code === 'EEXIST') return false;
+    throw exc;
+  }
+  fs.unlinkSync(claimPath);
+  return true;
+}
+
+function restoreMovedCustomIconEntry(movedPath, destination) {
+  if (lstatCustomIconEntry(destination)) return false;
+  const stat = fs.lstatSync(movedPath);
+  if (!stat.isSymbolicLink() && stat.isFile()) {
+    return restoreClaimedCustomIcon(movedPath, destination);
+  }
+  try {
+    fs.renameSync(movedPath, destination);
+    return true;
+  } catch (exc) {
+    if (exc && ['EEXIST', 'ENOTEMPTY'].includes(exc.code)) return false;
+    throw exc;
+  }
+}
+
+function rollbackLinkedCustomIcon(destination, expectedSnapshot) {
+  let current;
+  try {
+    current = inspectRegularCustomIcon(destination, 'Custom icon rollback candidate');
+  } catch (_) {
+    throw new Error(`Custom icon destination changed during rollback: ${destination}`);
+  }
+  if (!current.bytes.equals(expectedSnapshot.bytes) ||
+      !customIconFileIdentitiesMatch(current.fileIdentity, expectedSnapshot.fileIdentity)) {
+    throw new Error(`Custom icon destination changed during rollback: ${destination}`);
+  }
+
+  const rollbackPath = customIconTransactionPath(destination, 'abort');
+  fs.renameSync(destination, rollbackPath);
+  try {
+    const claimed = inspectRegularCustomIcon(rollbackPath, 'Custom icon rollback candidate');
+    if (!claimed.bytes.equals(expectedSnapshot.bytes) ||
+        !customIconFileIdentitiesMatch(claimed.fileIdentity, expectedSnapshot.fileIdentity)) {
+      throw new Error(`Custom icon destination changed during rollback: ${destination}`);
+    }
+  } catch (exc) {
+    let restored = false;
+    try { restored = restoreMovedCustomIconEntry(rollbackPath, destination); }
+    catch (restoreExc) {
+      throw new Error(
+        `Custom icon destination changed during rollback and could not be restored: ${destination} (${restoreExc.message})`,
+      );
+    }
+    if (!restored) {
+      throw new Error(`Custom icon destination changed during rollback and could not be restored: ${destination}`);
+    }
+    throw exc;
+  }
+  fs.unlinkSync(rollbackPath);
+}
+
+function atomicReplaceCustomIcon(
+  snapshot,
+  desiredBytes,
+  resourcesIdentity,
+  phase = 'apply',
+  desiredMode = null,
+) {
+  if (desiredBytes !== null && !Buffer.isBuffer(desiredBytes)) {
+    throw new Error(`Custom icon operation has invalid bytes for ${snapshot.name}.`);
+  }
+  assertCustomIconResourcesCurrent(resourcesIdentity, phase);
+  assertCustomIconSnapshotCurrent(snapshot, resourcesIdentity, phase);
+  if (snapshot.existedBefore && desiredBytes !== null && snapshot.bytes.equals(desiredBytes)) {
+    return { written: false, resultingSnapshot: snapshot };
+  }
+  if (!snapshot.existedBefore && desiredBytes === null) {
+    return { written: false, resultingSnapshot: snapshot };
+  }
+
+  let stagePath = null;
+  let claimPath = null;
+  let destinationLinked = false;
+  let stageEntry = null;
+  try {
+    if (desiredBytes !== null) {
+      stagePath = customIconTransactionPath(snapshot.destination, 'stage');
+      const stageMode = desiredMode === null
+        ? (snapshot.existedBefore ? customIconPermissions(snapshot.fileIdentity) : 0o644)
+        : desiredMode;
+      fs.writeFileSync(stagePath, desiredBytes, { flag: 'wx', mode: stageMode });
+      fs.chmodSync(stagePath, stageMode);
+      stageEntry = inspectRegularCustomIcon(stagePath, 'Custom icon staging file');
+      if (!stageEntry.bytes.equals(desiredBytes)) {
+        throw new Error(`Custom icon staging verification failed: ${snapshot.destination}`);
+      }
+    }
+
+    // The second comparison is intentional: staging and test hooks widen the
+    // preflight-to-commit interval. Moving an existing entry into a private
+    // claim then verifying it turns the final replacement into a CAS instead
+    // of overwriting whatever happens to be at the path.
+    assertCustomIconResourcesCurrent(resourcesIdentity, phase);
+    assertCustomIconSnapshotCurrent(snapshot, resourcesIdentity, phase);
+    if (snapshot.existedBefore) {
+      claimPath = customIconTransactionPath(snapshot.destination, 'claim');
+      fs.renameSync(snapshot.destination, claimPath);
+      const claimed = inspectRegularCustomIcon(claimPath, 'Claimed custom icon destination');
+      if (!claimed.bytes.equals(snapshot.bytes) ||
+          !customIconFileIdentitiesMatch(claimed.fileIdentity, snapshot.fileIdentity)) {
+        throw new Error(`Custom icon destination changed during ${phase}: ${snapshot.destination}`);
+      }
+    }
+
+    assertCustomIconResourcesCurrent(resourcesIdentity, phase);
+    if (lstatCustomIconEntry(snapshot.destination)) {
+      throw new Error(`Custom icon destination changed during ${phase}: ${snapshot.destination}`);
+    }
+
+    if (desiredBytes === null) {
+      fs.unlinkSync(claimPath);
+      claimPath = null;
+      return {
+        written: true,
+        resultingSnapshot: {
+          name: snapshot.name,
+          destination: snapshot.destination,
+          existedBefore: false,
+          bytes: null,
+          fileIdentity: null,
+        },
+      };
+    }
+
+    // linkSync is an exclusive create: unlike rename, it cannot overwrite a
+    // file that a concurrent writer placed after the verified claim.
+    fs.linkSync(stagePath, snapshot.destination);
+    destinationLinked = true;
+    fs.unlinkSync(stagePath);
+    stagePath = null;
+    if (claimPath) {
+      fs.unlinkSync(claimPath);
+      claimPath = null;
+    }
+    return {
+      written: true,
+      resultingSnapshot: {
+        name: snapshot.name,
+        destination: snapshot.destination,
+        existedBefore: true,
+        bytes: desiredBytes,
+        fileIdentity: stageEntry.fileIdentity,
+      },
+    };
+  } catch (exc) {
+    const rollbackErrors = [];
+    if (destinationLinked) {
+      try {
+        rollbackLinkedCustomIcon(snapshot.destination, {
+          bytes: desiredBytes,
+          fileIdentity: stageEntry && stageEntry.fileIdentity,
+        });
+      }
+      catch (rollbackExc) { rollbackErrors.push(rollbackExc.message); }
+    }
+    let claimPresent = false;
+    if (claimPath) {
+      try { claimPresent = Boolean(lstatCustomIconEntry(claimPath)); }
+      catch (inspectExc) {
+        rollbackErrors.push(`Could not inspect ${claimPath}: ${inspectExc.message}`);
+      }
+    }
+    if (claimPresent) {
+      try {
+        let claimMatchesSnapshot = false;
+        try {
+          const claim = inspectRegularCustomIcon(claimPath, 'Claimed custom icon destination');
+          claimMatchesSnapshot = snapshot.existedBefore && claim.bytes.equals(snapshot.bytes) &&
+            customIconFileIdentitiesMatch(claim.fileIdentity, snapshot.fileIdentity);
+        } catch (_) {}
+        if (claimMatchesSnapshot && lstatCustomIconEntry(snapshot.destination)) {
+          fs.unlinkSync(claimPath);
+          claimPath = null;
+          throw new Error(`Custom icon destination changed during rollback: ${snapshot.destination}`);
+        }
+        if (!restoreMovedCustomIconEntry(claimPath, snapshot.destination)) {
+          throw new Error(
+            `Custom icon destination changed during rollback; the displaced entry was preserved at ${claimPath}`,
+          );
+        }
+        claimPath = null;
+      } catch (rollbackExc) {
+        rollbackErrors.push(rollbackExc.message);
+      }
+    }
+    let stagePresent = false;
+    if (stagePath) {
+      try { stagePresent = Boolean(lstatCustomIconEntry(stagePath)); }
+      catch (inspectExc) {
+        rollbackErrors.push(`Could not inspect ${stagePath}: ${inspectExc.message}`);
+      }
+    }
+    if (stagePresent) {
+      try { fs.unlinkSync(stagePath); }
+      catch (cleanupExc) { rollbackErrors.push(`Could not remove ${stagePath}: ${cleanupExc.message}`); }
+    }
+    if (rollbackErrors.length) {
+      const rollbackError = new Error(
+        `Custom icon operation failed and rollback was incomplete: ${rollbackErrors.join('; ')}`,
+      );
+      rollbackError.code = 'INCIPIT_CUSTOM_ICON_ROLLBACK_FAILED';
+      rollbackError.cause = exc;
+      throw rollbackError;
+    }
+    throw exc;
+  }
+}
+
+function restoreCustomIconSnapshot(snapshot, expectedSnapshot, resourcesIdentity) {
+  atomicReplaceCustomIcon(
+    expectedSnapshot,
+    snapshot.existedBefore ? snapshot.bytes : null,
+    resourcesIdentity,
+    'rollback',
+    snapshot.existedBefore ? customIconPermissions(snapshot.fileIdentity) : null,
+  );
+}
+
+function customIconSnapshotsMatch(left, right) {
+  if (!left || !right || left.name !== right.name ||
+      left.destination !== right.destination || left.existedBefore !== right.existedBefore) {
+    return false;
+  }
+  if (!left.existedBefore) {
+    return left.bytes === null && right.bytes === null &&
+      left.fileIdentity === null && right.fileIdentity === null;
+  }
+  return Buffer.isBuffer(left.bytes) && Buffer.isBuffer(right.bytes) && left.bytes.equals(right.bytes) &&
+    customIconFileIdentitiesMatch(left.fileIdentity, right.fileIdentity);
+}
+
+function assertCustomIconSnapshotCurrent(snapshot, resourcesIdentity, phase = 'apply') {
+  assertCustomIconResourcesCurrent(resourcesIdentity, phase);
+  const stat = lstatCustomIconEntry(snapshot.destination);
+  if (!snapshot.existedBefore) {
+    if (stat) throw new Error(`Custom icon destination changed during ${phase}: ${snapshot.destination}`);
+    return;
+  }
+  if (!stat) throw new Error(`Custom icon destination disappeared during ${phase}: ${snapshot.destination}`);
+  const current = inspectRegularCustomIcon(snapshot.destination, 'Custom icon destination');
+  if (!current.bytes.equals(snapshot.bytes) ||
+      !customIconFileIdentitiesMatch(current.fileIdentity, snapshot.fileIdentity)) {
+    throw new Error(`Custom icon destination changed during ${phase}: ${snapshot.destination}`);
+  }
+  assertCustomIconResourcesCurrent(resourcesIdentity, phase);
+}
+
+function inspectCustomIconTarget(target) {
+  if (!target || typeof target.extensionDir !== 'string' || !path.isAbsolute(target.extensionDir)) {
+    throw new Error('A valid extension target is required for custom icon apply.');
+  }
+  const resourcesDir = path.join(target.extensionDir, 'resources');
+  const resourcesIdentity = inspectCustomIconResources(resourcesDir);
+  const snapshots = CUSTOM_ICON_NAMES.map(name => inspectCustomIconDestination(resourcesDir, name));
+  assertCustomIconResourcesCurrent(resourcesIdentity);
+  return { resourcesDir, resourcesIdentity, snapshots };
+}
+
+function applyCustomIconPlan(target, validatedPlan, hooks = {}, preflight = null) {
+  const { resourcesIdentity, snapshots } = inspectCustomIconTarget(target);
+  if (preflight) {
+    if (!customIconResourceIdentitiesMatch(resourcesIdentity, preflight.resourcesIdentity) ||
+        !Array.isArray(preflight.snapshots) || preflight.snapshots.length !== snapshots.length ||
+        snapshots.some((snapshot, index) => !customIconSnapshotsMatch(snapshot, preflight.snapshots[index]))) {
+      throw new Error('Custom icon destinations changed after installer preflight.');
+    }
+  }
+  const snapshotByName = new Map(snapshots.map(snapshot => [snapshot.name, snapshot]));
+  const reportFiles = [];
+  const mutations = [];
+  try {
+    for (let index = 0; index < validatedPlan.files.length; index += 1) {
+      const operation = validatedPlan.files[index];
+      const operationSnapshot = snapshotByName.get(operation.name);
+      const destination = operationSnapshot.destination;
+      if (typeof hooks.beforeSlot === 'function') hooks.beforeSlot(operation, index);
+      assertCustomIconSnapshotCurrent(operationSnapshot, resourcesIdentity);
+      if (typeof hooks.afterSlotCheck === 'function') hooks.afterSlotCheck(operation, index);
+      const result = atomicReplaceCustomIcon(
+        operationSnapshot,
+        operation.bytes,
+        resourcesIdentity,
+      );
+      const written = result.written;
+      if (written) {
+        mutations.push({
+          snapshot: snapshotByName.get(operation.name),
+          expectedSnapshot: result.resultingSnapshot,
+        });
+      }
+      reportFiles.push({ name: operation.name, path: destination, written, mode: operation.mode });
+    }
+  } catch (exc) {
+    const rollbackErrors = exc && exc.code === 'INCIPIT_CUSTOM_ICON_ROLLBACK_FAILED'
+      ? [`current slot: ${exc.message}`]
+      : [];
+    for (const mutation of mutations.reverse()) {
+      try { restoreCustomIconSnapshot(mutation.snapshot, mutation.expectedSnapshot, resourcesIdentity); }
+      catch (rollbackExc) { rollbackErrors.push(`${mutation.snapshot.name}: ${rollbackExc.message}`); }
+    }
+    if (rollbackErrors.length) {
+      const rollbackError = new Error(
+        `Custom icon apply failed and rollback was incomplete: ${rollbackErrors.join('; ')}`,
+      );
+      rollbackError.code = 'INCIPIT_CUSTOM_ICON_ROLLBACK_FAILED';
+      rollbackError.cause = exc;
+      throw rollbackError;
+    }
+    const error = new Error(`Custom icon apply failed and was rolled back: ${exc.message}`);
+    error.code = 'INCIPIT_CUSTOM_ICON_APPLY_FAILED';
+    error.cause = exc;
+    throw error;
+  }
+
+  return {
+    status: 'customized',
+    sourcePath: validatedPlan.sourcePath,
+    sourceType: validatedPlan.sourceType,
+    sourceSha256: validatedPlan.sourceSha256,
+    files: reportFiles,
+    written: reportFiles.filter(file => file.written).length,
+    total: reportFiles.length,
+  };
+}
+
 function normalizeConfigLanguage(language) {
   return language === 'zh' ? 'zh' : 'en';
 }
@@ -774,8 +1330,8 @@ function buildWebviewConfigPreamble(features, theme, language, installContracts 
          `globalThis.__incipitMonacoDiffThemes = Object.freeze(${diffThemes});\n` +
          '(function(){try{var raw=globalThis.acquireVsCodeApi;if(typeof raw==="function"&&!globalThis.__incipitGetVsCodeApi){var cached=null;globalThis.__incipitGetVsCodeApi=function(){if(cached)return cached;cached=raw();return cached;};globalThis.acquireVsCodeApi=function(){return globalThis.__incipitGetVsCodeApi();};}}catch(_){}})();\n' +
          buildHostStateBridgePreamble() +
-         'globalThis.__incipitEnsureMonacoDiffTheme = function(monaco){try{if(!monaco||typeof monaco.defineTheme!=="function")return false;if(globalThis.__incipitMonacoDiffThemesReady)return true;var themes=globalThis.__incipitMonacoDiffThemes||{};for(var name in themes)if(Object.prototype.hasOwnProperty.call(themes,name))monaco.defineTheme(name,themes[name]);globalThis.__incipitMonacoDiffThemesReady=true;if(!globalThis.__incipitMonacoDiffFontsReady&&typeof document!=="undefined"&&document.fonts&&document.fonts.ready){globalThis.__incipitMonacoDiffFontsReady=true;document.fonts.ready.then(function(){try{if(monaco&&typeof monaco.remeasureFonts==="function")monaco.remeasureFonts();}catch(_){}});}return true;}catch(e){try{console.warn("[incipit] Monaco diff theme setup failed",e);}catch(_){}return false;}};\n' +
-         `globalThis.__incipitPickMonacoDiffTheme = function(monaco){var light=globalThis.__incipitConfig&&globalThis.__incipitConfig.theme&&globalThis.__incipitConfig.theme.palette==="warm-white";var ok=globalThis.__incipitEnsureMonacoDiffTheme&&globalThis.__incipitEnsureMonacoDiffTheme(monaco);return ok?(light?"${MONACO_DIFF_LIGHT_THEME}":"${MONACO_DIFF_DARK_THEME}"):(light?"vs":"vs-dark");};\n\n`;
+         'globalThis.__incipitEnsureMonacoDiffTheme = function(monaco){try{if(!monaco||typeof monaco.defineTheme!=="function")return false;var ready=globalThis.__incipitMonacoDiffThemeNamespaces;if(!ready||typeof ready.has!=="function"||typeof ready.add!=="function"){ready=new WeakSet();globalThis.__incipitMonacoDiffThemeNamespaces=ready;}if(ready.has(monaco))return true;var themes=globalThis.__incipitMonacoDiffThemes||{};for(var name in themes)if(Object.prototype.hasOwnProperty.call(themes,name))monaco.defineTheme(name,themes[name]);ready.add(monaco);if(typeof document!=="undefined"&&document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){try{if(monaco&&typeof monaco.remeasureFonts==="function")monaco.remeasureFonts();}catch(_){}});}return true;}catch(e){try{console.warn("[incipit] Monaco diff theme setup failed",e);}catch(_){}return false;}};\n' +
+         `globalThis.__incipitPickMonacoDiffTheme = function(monaco){var palette=globalThis.__incipitConfig&&globalThis.__incipitConfig.theme&&globalThis.__incipitConfig.theme.palette;var light=palette==="warm-white";var picked=light?"${MONACO_DIFF_LIGHT_THEME}":palette==="ink-black"?"${MONACO_DIFF_INK_THEME}":"${MONACO_DIFF_DARK_THEME}";var ok=globalThis.__incipitEnsureMonacoDiffTheme&&globalThis.__incipitEnsureMonacoDiffTheme(monaco);return ok?picked:(light?"vs":"vs-dark");};\n\n`;
 }
 
 function buildThemeOverrideBlock(theme) {
@@ -1243,6 +1799,27 @@ function hostRouteLooksAlreadyPatched(extensionText, webviewText) {
   return extensionPatched || webviewPatched;
 }
 
+function previousHostRouteContract(webviewText, version) {
+  const match = String(webviewText || '').match(
+    /globalThis\.__incipitInstallManifest = Object\.freeze\((\{[^\r\n]*\})\);/,
+  );
+  if (!match) return null;
+  let manifest;
+  try { manifest = JSON.parse(match[1]); }
+  catch (_) { return null; }
+  if (!manifest || manifest.schemaVersion !== 1 || !Array.isArray(manifest.entries)) return null;
+  const entry = manifest.entries.find(candidate =>
+    candidate && candidate.name === 'install.hostRoute'
+  );
+  if (!entry || entry.schemaVersion !== 1 || entry.layer !== 'install' ||
+      entry.priority !== 'normal' || entry.contractReason !== 'semantic-contracts-required' ||
+      !['patched', 'degraded', 'preExisting'].includes(entry.status) ||
+      !entry.fingerprint || String(entry.fingerprint.version || '') !== version) {
+    return null;
+  }
+  return patchContract(entry);
+}
+
 function buildHostRouteContract(target, extensionText, webviewText) {
   const version = String(target && target.version || 'unknown');
   const extensionSha256 = sha256Text(extensionText);
@@ -1253,6 +1830,12 @@ function buildHostRouteContract(target, extensionText, webviewText) {
     item.webviewSha256 === webviewSha256
   );
   const alreadyPatched = !route && hostRouteLooksAlreadyPatched(extensionText, webviewText);
+  // A repeated apply sees incipit-patched bytes, not the official bytes that
+  // established provenance. Reuse the validated first-apply route entry so
+  // the generated install manifest remains byte-stable and retains the real
+  // official fingerprint instead of replacing it with process-state text.
+  const previousRoute = alreadyPatched ? previousHostRouteContract(webviewText, version) : null;
+  if (previousRoute) return previousRoute;
   return patchContract({
     name: 'install.hostRoute',
     status: route ? 'patched' : (alreadyPatched ? 'preExisting' : 'degraded'),
@@ -1745,8 +2328,9 @@ function patchExtensionJs(content) {
 // bare anchor before injecting the active palette's set. Idempotent
 // when the active palette already matches.
 function patchExtensionHtmlHead(content, theme) {
-  const palette = (theme && theme.palette) === 'warm-white' ? 'warm-white' : 'warm-black';
+  const palette = normalizedPalette(theme);
   const wantWarmWhite = palette === 'warm-white';
+  const wantInkBlack = palette === 'ink-black';
 
   // Match the host stylesheet anchor by shape, but capture its actual
   // minified href variable instead of assuming a stable name.
@@ -1755,13 +2339,13 @@ function patchExtensionHtmlHead(content, theme) {
   // ids; older in-flight builds are still stripped by the `toString().replace`
   // marker so palette switching remains idempotent.
   const STRIP_RE =
-    /(<link href="\$\{[A-Za-z_$][\w$]*\}" rel="stylesheet">)(?:<link [^>]*(?:claude-enhance-styles-link|incipit-warm-white-link|\.toString\(\)\.replace\(\/index\\\.css)[^>]*>)+/g;
+    /(<link href="\$\{[A-Za-z_$][\w$]*\}" rel="stylesheet">)(?:<link [^>]*(?:claude-enhance-styles-link|incipit-warm-white-link|incipit-ink-black-link|\.toString\(\)\.replace\(\/index\\\.css)[^>]*>)+/g;
   // If the host stylesheet anchor drifts again, `HTML head 提速` should
   // degrade to runtime CSS injection instead of aborting the whole install.
   // Remove any old incipit head links by id/marker first so `enhance.js` can
   // safely append fresh links after the webview boots.
   const ORPHAN_INCIPIT_LINK_RE =
-    /<link [^>]*(?:id="(?:claude-enhance-styles-link|incipit-warm-white-link)"|\.toString\(\)\.replace\(\/index\\\.css[^>]*(?:theme\.css|warm-white-override\.css))[^>]*>/g;
+    /<link [^>]*(?:id="(?:claude-enhance-styles-link|incipit-warm-white-link|incipit-ink-black-link)"|\.toString\(\)\.replace\(\/index\\\.css[^>]*(?:theme\.css|warm-white-override\.css|ink-black-override\.css))[^>]*>/g;
 
   // The replace regexes anchor to end-of-string (with optional `?` /
   // `#`) so we only match the filename segment, never a parent path
@@ -1813,7 +2397,10 @@ function patchExtensionHtmlHead(content, theme) {
   const wwLink = wantWarmWhite
     ? stylesheetLink('incipit-warm-white-link', hrefVar, 'warm-white-override.css')
     : '';
-  const desired = anchor + themeLink + wwLink;
+  const inkLink = wantInkBlack
+    ? stylesheetLink('incipit-ink-black-link', hrefVar, 'ink-black-override.css')
+    : '';
+  const desired = anchor + themeLink + wwLink + inkLink;
 
   const updated = stripped.replace(anchor, desired);
   if (updated === content) {
@@ -1843,54 +2430,169 @@ function patchMarkdownChildren(content) {
   ];
 }
 
-function markdownCodeComponentReplacement(childrenVar, classNameVar, reactVar, codeVar) {
+// The host has shipped this semantic component through two compiler families:
+// React.createElement through 2.1.185 and the automatic JSX runtime from
+// 2.1.195. Locate the component by its public prop contract, then keep every
+// rewrite inside its balanced function body so adjacent minified code never
+// becomes part of the anchor.
+function markdownCodeComponentCandidates(content) {
+  return regexMatches(MARKDOWN_CODE_COMPONENT_SIGNATURE_PATTERN, content).map(match => {
+    const openIndex = match.index + match[0].length - 1;
+    const closeIndex = findMatchingBrace(content, openIndex);
+    return {
+      start: match.index,
+      openIndex,
+      closeIndex,
+      bodyStart: openIndex + 1,
+      signature: match[0],
+      childrenVar: match[1],
+      classNameVar: match[2],
+      body: closeIndex >= 0 ? content.slice(openIndex + 1, closeIndex) : null,
+      text: closeIndex >= 0 ? content.slice(match.index, closeIndex + 1) : null,
+    };
+  });
+}
+
+function rawMarkdownCodeComponentPrefix(component) {
+  if (!component || component.body == null) return null;
+  const classic = component.body.match(
+    /^if\(([A-Za-z_$][\w$]*)\)return ([A-Za-z_$][\w$]*)\.default\.createElement\("code",\{className:([A-Za-z_$][\w$]*)\},([A-Za-z_$][\w$]*)\);let ([A-Za-z_$][\w$]*)=String\(([A-Za-z_$][\w$]*)\);/,
+  );
+  if (
+    classic &&
+    classic[1] === component.classNameVar &&
+    classic[3] === component.classNameVar &&
+    classic[4] === component.childrenVar &&
+    classic[6] === component.childrenVar
+  ) {
+    return {
+      family: 'classic',
+      rendererVar: classic[2],
+      codeVar: classic[5],
+      length: classic[0].length,
+    };
+  }
+
+  const automaticJsx = component.body.match(
+    /^if\(([A-Za-z_$][\w$]*)\)return ([A-Za-z_$][\w$]*)\("code",\{className:([A-Za-z_$][\w$]*),children:([A-Za-z_$][\w$]*)\}\);let ([A-Za-z_$][\w$]*)=String\(([A-Za-z_$][\w$]*)\);/,
+  );
+  if (
+    automaticJsx &&
+    automaticJsx[1] === component.classNameVar &&
+    automaticJsx[3] === component.classNameVar &&
+    automaticJsx[4] === component.childrenVar &&
+    automaticJsx[6] === component.childrenVar
+  ) {
+    return {
+      family: 'automatic-jsx',
+      rendererVar: automaticJsx[2],
+      codeVar: automaticJsx[5],
+      length: automaticJsx[0].length,
+    };
+  }
+  return null;
+}
+
+function markdownCodeComponentBodyIsPatched(component) {
+  if (!component || component.body == null) return false;
+  const declaration = component.body.match(
+    /^let ([A-Za-z_$][\w$]*)=String\(([A-Za-z_$][\w$]*)\),__incipitHtml;/,
+  );
+  if (!declaration || declaration[2] !== component.childrenVar) return false;
+  const codeVar = declaration[1];
   return (
-    `code:({children:${childrenVar},className:${classNameVar}})=>{` +
+    literalCount(component.body, MARKDOWN_CODE_HIGHLIGHT_CALL) === 2 &&
+    component.body.includes(`${MARKDOWN_CODE_HIGHLIGHT_CALL}${codeVar},${component.classNameVar});`) &&
+    component.body.includes(`${MARKDOWN_CODE_HIGHLIGHT_CALL}${codeVar},"");`) &&
+    component.body.includes(`${codeVar}.indexOf("\\n")!==-1`) &&
+    component.body.includes(`className:${component.classNameVar}+" hljs"`) &&
+    component.body.includes('className:"hljs"') &&
+    component.body.includes('dangerouslySetInnerHTML:{__html:__incipitHtml}')
+  );
+}
+
+function renderTimeMarkdownCodeIsPatched(content) {
+  const components = markdownCodeComponentCandidates(content);
+  return components.length === 1 && markdownCodeComponentBodyIsPatched(components[0]);
+}
+
+function markdownCodeComponentReplacement(component, shape) {
+  const {
+    childrenVar,
+    classNameVar,
+    signature,
+  } = component;
+  const {
+    codeVar,
+    family,
+    rendererVar,
+  } = shape;
+  const highlightedWithClass = family === 'classic'
+    ? `${rendererVar}.default.createElement("code",{className:${classNameVar}+" hljs",dangerouslySetInnerHTML:{__html:__incipitHtml}})`
+    : `${rendererVar}("code",{className:${classNameVar}+" hljs",dangerouslySetInnerHTML:{__html:__incipitHtml}})`;
+  const originalWithClass = family === 'classic'
+    ? `${rendererVar}.default.createElement("code",{className:${classNameVar}},${childrenVar})`
+    : `${rendererVar}("code",{className:${classNameVar},children:${childrenVar}})`;
+  const highlightedWithoutClass = family === 'classic'
+    ? `${rendererVar}.default.createElement("code",{className:"hljs",dangerouslySetInnerHTML:{__html:__incipitHtml}})`
+    : `${rendererVar}("code",{className:"hljs",dangerouslySetInnerHTML:{__html:__incipitHtml}})`;
+  return (
+    signature +
     `let ${codeVar}=String(${childrenVar}),__incipitHtml;` +
     `if(${classNameVar}){` +
-    `__incipitHtml=window.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window.__INCIPIT_HIGHLIGHT_CODE_HTML__(${codeVar},${classNameVar});` +
-    `if(__incipitHtml!==null&&__incipitHtml!==void 0)return ${reactVar}.default.createElement("code",{className:${classNameVar}+" hljs",dangerouslySetInnerHTML:{__html:__incipitHtml}});` +
-    `return ${reactVar}.default.createElement("code",{className:${classNameVar}},${childrenVar})` +
+    `__incipitHtml=${MARKDOWN_CODE_HIGHLIGHT_CALL}${codeVar},${classNameVar});` +
+    `if(__incipitHtml!==null&&__incipitHtml!==void 0)return ${highlightedWithClass};` +
+    `return ${originalWithClass}` +
     `}` +
     `if(${codeVar}.indexOf("\\n")!==-1){` +
-    `__incipitHtml=window.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window.__INCIPIT_HIGHLIGHT_CODE_HTML__(${codeVar},"");` +
-    `if(__incipitHtml!==null&&__incipitHtml!==void 0)return ${reactVar}.default.createElement("code",{className:"hljs",dangerouslySetInnerHTML:{__html:__incipitHtml}})` +
+    `__incipitHtml=${MARKDOWN_CODE_HIGHLIGHT_CALL}${codeVar},"");` +
+    `if(__incipitHtml!==null&&__incipitHtml!==void 0)return ${highlightedWithoutClass}` +
     `}`
   );
 }
 
+function markdownCodeComponentDegraded(content) {
+  return [
+    content,
+    `${padLabel('markdown 代码渲染')}: 降级 (未找到唯一渲染锚点; 流式结束后高亮)`,
+  ];
+}
+
 function patchMarkdownCodeComponent(content) {
-  if (MARKDOWN_CODE_COMPONENT_PATCHED_RE.test(content)) {
+  const components = markdownCodeComponentCandidates(content);
+  if (components.length !== 1 || components[0].body == null) {
+    return markdownCodeComponentDegraded(content);
+  }
+  const component = components[0];
+  if (markdownCodeComponentBodyIsPatched(component)) {
     return [content, `${padLabel('markdown 代码渲染')}: 已存在`];
   }
 
-  const legacyMatches = content.match(MARKDOWN_CODE_COMPONENT_V1_PATCHED_PATTERN) || [];
+  const legacyMatches = regexMatches(MARKDOWN_CODE_COMPONENT_V1_PATCHED_PATTERN, component.text);
   if (legacyMatches.length === 1) {
-    return [
-      content.replace(
-        MARKDOWN_CODE_COMPONENT_V1_PATCHED_PATTERN,
-        (_match, childrenVar, classNameVar, codeVar, reactVar) =>
-          markdownCodeComponentReplacement(childrenVar, classNameVar, reactVar, codeVar),
-      ),
-      `${padLabel('markdown 代码渲染')}: 已升级`,
-    ];
+    const upgradedComponent = component.text.replace(
+      MARKDOWN_CODE_COMPONENT_V1_PATCHED_PATTERN,
+      (_match, childrenVar, classNameVar, codeVar, reactVar) =>
+        markdownCodeComponentReplacement(
+          { ...component, childrenVar, classNameVar },
+          { family: 'classic', rendererVar: reactVar, codeVar },
+        ),
+    );
+    const upgraded = content.slice(0, component.start) +
+      upgradedComponent +
+      content.slice(component.closeIndex + 1);
+    if (!renderTimeMarkdownCodeIsPatched(upgraded)) return markdownCodeComponentDegraded(content);
+    return [upgraded, `${padLabel('markdown 代码渲染')}: 已升级`];
   }
 
-  const matches = content.match(MARKDOWN_CODE_COMPONENT_PATTERN) || [];
-  if (matches.length !== 1) {
-    return [
-      content,
-      `${padLabel('markdown 代码渲染')}: 降级 (未找到渲染锚点; 流式结束后高亮)`,
-    ];
-  }
-  return [
-    content.replace(
-      MARKDOWN_CODE_COMPONENT_PATTERN,
-      (_match, childrenVar, classNameVar, reactVar, codeVar) =>
-        markdownCodeComponentReplacement(childrenVar, classNameVar, reactVar, codeVar),
-    ),
-    `${padLabel('markdown 代码渲染')}: 已写入`,
-  ];
+  const shape = rawMarkdownCodeComponentPrefix(component);
+  if (!shape) return markdownCodeComponentDegraded(content);
+  const prefixEnd = component.bodyStart + shape.length;
+  const updated = content.slice(0, component.start) +
+    markdownCodeComponentReplacement(component, shape) +
+    content.slice(prefixEnd);
+  if (!renderTimeMarkdownCodeIsPatched(updated)) return markdownCodeComponentDegraded(content);
+  return [updated, `${padLabel('markdown 代码渲染')}: 已写入`];
 }
 
 function patchAtMentionCommand(content) {
@@ -2062,17 +2764,7 @@ function assessWebviewPatchContracts(content) {
   requirePatchContract(implicitSelectionSendIsDisabled(content), 'implicit IDE selection send disabled');
   requirePatchContract(streamUnhandledCaseIsSafe(content), 'unknown stream cases are guarded or upstream-tolerant');
 
-  const highlighterCalls = literalCount(
-    content,
-    'window.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window.__INCIPIT_HIGHLIGHT_CODE_HTML__(',
-  );
-  const renderTimeOk = (
-    highlighterCalls >= 2 &&
-    content.includes('.indexOf("\\n")!==-1') &&
-    content.includes('className:"hljs"') &&
-    content.includes('+" hljs"') &&
-    content.includes('dangerouslySetInnerHTML:{__html:__incipitHtml}')
-  );
+  const renderTimeOk = renderTimeMarkdownCodeIsPatched(content);
   return {
     renderTimeCode: renderTimeOk
       ? `${padLabel('流式代码高亮')}: ok`
@@ -2488,9 +3180,26 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
   // picker flow); otherwise we fall back to legacy "find the latest
   // ~/.vscode/extensions/anthropic.claude-code-*" detection. Either path
   // produces a target that already carries `settingsPath`.
-  const { home = null, target: presetTarget = null, extensionsDir = null, settingsPath = null } = options;
+  const {
+    home = null,
+    target: presetTarget = null,
+    extensionsDir = null,
+    settingsPath = null,
+    preparedCustomIcon = null,
+    officialIconPayloads = null,
+  } = options;
   const target = presetTarget || findLatestClaudeCodeExtension({ home, extensionsDir, settingsPath });
   const webviewDir = path.dirname(target.webviewIndexJsPath);
+
+  // Validate the complete immutable byte plan before prune/config or extension
+  // writes. The selected source is never read again inside the installer.
+  const validatedCustomIcon = preparedCustomIcon
+    ? validateCustomIconApplyInputs(preparedCustomIcon, officialIconPayloads)
+    : null;
+  // Refuse known destination-shape hazards before any webview, bundle, or
+  // config write. The destinations are inspected again at commit time so a
+  // late replacement cannot bypass the icon transaction's regular-file gate.
+  const customIconPreflight = validatedCustomIcon ? inspectCustomIconTarget(target) : null;
 
   pruneRetiredConfigKeys();
   const features = getFeatures();
@@ -2584,7 +3293,7 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
   [extJsUpdatedText, extJsHeadStatus] = patchExtensionHtmlHead(extJsUpdatedText, theme);
   extStatusLines.push(extJsHeadStatus);
   pushInstallContract(extContracts, 'install.extensionHtmlHead', extJsHeadStatus, {
-    palette: theme && theme.palette === 'warm-white' ? 'warm-white' : 'warm-black',
+    palette: normalizedPalette(theme),
   });
   extContracts.push(overlayInstallContract);
   const extJsUpdated = extJsUpdatedText !== extJsOriginal;
@@ -2651,6 +3360,18 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
     workbenchOverlay.degradeCandidates = overlayDegradeCandidates;
   }
 
+  const customIcon = validatedCustomIcon
+    ? applyCustomIconPlan(target, validatedCustomIcon, {}, customIconPreflight)
+    : {
+        status: 'official-unmanaged',
+        sourcePath: null,
+        sourceType: null,
+        sourceSha256: null,
+        files: [],
+        written: 0,
+        total: 0,
+      };
+
   const statusLines = [
     ...rootResourceStatuses,
     ...assetStatusLines,
@@ -2658,6 +3379,9 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
     ...webviewStatusLines,
     `${padLabel('编辑器浮层')}: ${workbenchOverlay.status}`,
     `${padLabel('serif 系统字体')}: ${serifStatus}`,
+    ...(customIcon.status === 'customized'
+      ? [`${padLabel('自定义图标')}: ${customIcon.written > 0 ? `已写入 ${customIcon.written}/${customIcon.total}` : `已存在 (${customIcon.total} 个)`}`]
+      : []),
   ];
 
   return {
@@ -2686,6 +3410,7 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
         written: serifWritten,
         total: SYSTEM_FONT_FILES.length,
       },
+      customIcon,
       workbenchOverlay,
       legacyAssetTreesPruned,
       installContracts,
@@ -2712,7 +3437,12 @@ module.exports = {
     patchExtensionJs,
     patchExtensionHtmlHead,
     patchWebviewIndex,
+    buildWebviewConfigPreamble,
+    normalizedPalette,
+    MONACO_DIFF_THEMES,
     patchHostStateSemanticBridge,
+    patchMarkdownCodeComponent,
+    renderTimeMarkdownCodeIsPatched,
     buildWorkbenchOverlayInstallContract,
     buildHostRouteContract,
     assertExtensionPatchContracts,
@@ -2727,5 +3457,8 @@ module.exports = {
     patchMonacoDiffInlineLayout,
     patchMonacoDiffModalLayout,
     patchMonacoDiffModalScrollbar,
+    validateCustomIconApplyInputs,
+    inspectCustomIconTarget,
+    applyCustomIconPlan,
   },
 };

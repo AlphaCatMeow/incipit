@@ -2,14 +2,14 @@
 //
 // We deliberately do not implement an in-terminal directory navigator or
 // fall back to text input. The interaction contract is "pop the OS dialog,
-// take a folder, return its path"; on environments where no GUI dialog is
+// take a folder or file, return its path"; on environments where no GUI dialog is
 // reachable (headless Linux server, SSH session without DISPLAY, missing
 // zenity AND kdialog) we report a hard error and let the caller render a
 // helpful message. Future versions will expose CLI flags as the escape
 // hatch for those scenarios.
 //
 // Implementation per platform:
-//   - Windows  : PowerShell + System.Windows.Forms.FolderBrowserDialog
+//   - Windows  : PowerShell + System.Windows.Forms folder/file dialogs
 //                (no external deps). The Vista-style upgrade hinges on
 //                `UseDescriptionForTitle`, which only exists on .NET
 //                Framework 4.8.1+ / .NET Core 3.0+; Windows PowerShell
@@ -17,9 +17,8 @@
 //                still ship 4.8, so that assignment is made conditional —
 //                missing => classic dialog (description as a tree label),
 //                still fully functional.
-//   - macOS    : `osascript -e 'POSIX path of (choose folder ...)'`.
-//   - Linux    : `zenity --file-selection --directory` first, then
-//                `kdialog --getexistingdirectory` as fallback.
+//   - macOS    : `osascript` choose folder/file.
+//   - Linux    : `zenity --file-selection` first, then kdialog as fallback.
 //
 // All three are spawned synchronously, stdout is decoded as UTF-8, and the
 // path is returned as a normalized string. User-cancel returns `null`.
@@ -131,6 +130,42 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
   return picked || null;
 }
 
+function pickFileWindows(title, extensions) {
+  const patterns = extensions.map(ext => `*${ext}`).join(';');
+  const filter = `SVG / PNG (${patterns})|${patterns}`;
+  const ps = `
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Windows.Forms | Out-Null
+$dlg = New-Object System.Windows.Forms.OpenFileDialog
+$dlg.Title = ${psQuote(title)}
+$dlg.Filter = ${psQuote(filter)}
+$dlg.CheckFileExists = $true
+$dlg.CheckPathExists = $true
+$dlg.Multiselect = $false
+$dlg.RestoreDirectory = $true
+$result = $dlg.ShowDialog()
+if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+  [Console]::Out.Write($dlg.FileName)
+} else {
+  exit 2
+}
+`.trim();
+  const encoded = Buffer.from(ps, 'utf16le').toString('base64');
+  let out;
+  try {
+    out = cp.execFileSync(
+      'powershell',
+      ['-NoProfile', '-NonInteractive', '-STA', '-EncodedCommand', encoded],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+  } catch (exc) {
+    if (exc.status === 2) return null;
+    throw new Error(`PowerShell file dialog failed: ${exc.message}`);
+  }
+  const picked = String(out || '').trim();
+  return picked || null;
+}
+
 function psQuote(s) {
   return "'" + String(s).replace(/'/g, "''") + "'";
 }
@@ -157,6 +192,29 @@ function pickFolderMacOS(title) {
   return stripTrailingSeparators(picked);
 }
 
+function pickFileMacOS(title, extensions) {
+  const escaped = appleScriptQuote(title);
+  const types = extensions.map(ext => `"${appleScriptQuote(ext.slice(1))}"`).join(', ');
+  const script = `POSIX path of (choose file with prompt "${escaped}" of type {${types}})`;
+  let out;
+  try {
+    out = cp.execFileSync('osascript', ['-e', script], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (exc) {
+    const stderr = String((exc.stderr && exc.stderr.toString()) || '');
+    if (/cancel/i.test(stderr)) return null;
+    throw new Error(`osascript file dialog failed: ${exc.message}`);
+  }
+  const picked = String(out || '').trim();
+  return picked || null;
+}
+
+function appleScriptQuote(value) {
+  return String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
 function pickFolderLinux(title) {
   if (isCommandAvailable('zenity')) {
     return pickFolderZenity(title);
@@ -166,6 +224,15 @@ function pickFolderLinux(title) {
   }
   throw new DialogUnavailableError(
     'No GUI folder picker available (zenity / kdialog not found)',
+    'no-zenity-no-kdialog',
+  );
+}
+
+function pickFileLinux(title, extensions) {
+  if (isCommandAvailable('zenity')) return pickFileZenity(title, extensions);
+  if (isCommandAvailable('kdialog')) return pickFileKDialog(title, extensions);
+  throw new DialogUnavailableError(
+    'No GUI file picker available (zenity / kdialog not found)',
     'no-zenity-no-kdialog',
   );
 }
@@ -199,6 +266,40 @@ function pickFolderKDialog(title) {
     // kdialog exits 1 on cancel.
     if (exc.status === 1) return null;
     throw new Error(`kdialog folder dialog failed: ${exc.message}`);
+  }
+  const picked = String(out || '').trim();
+  return picked || null;
+}
+
+function pickFileZenity(title, extensions) {
+  const patterns = extensions.map(ext => `*${ext}`).join(' ');
+  let out;
+  try {
+    out = cp.execFileSync(
+      'zenity',
+      ['--file-selection', '--title', title, `--file-filter=SVG / PNG | ${patterns}`],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+  } catch (exc) {
+    if (exc.status === 1) return null;
+    throw new Error(`zenity file dialog failed: ${exc.message}`);
+  }
+  const picked = String(out || '').trim();
+  return picked || null;
+}
+
+function pickFileKDialog(title, extensions) {
+  const patterns = extensions.map(ext => `*${ext}`).join(' ');
+  let out;
+  try {
+    out = cp.execFileSync(
+      'kdialog',
+      ['--title', title, '--getopenfilename', process.env.HOME || '/', `SVG / PNG (${patterns})`],
+      { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+    );
+  } catch (exc) {
+    if (exc.status === 1) return null;
+    throw new Error(`kdialog file dialog failed: ${exc.message}`);
   }
   const picked = String(out || '').trim();
   return picked || null;
@@ -252,10 +353,59 @@ function pickFolder({ title }) {
   return normalizePickedPath(picked);
 }
 
+function normalizeFileExtensions(extensions) {
+  const normalized = [];
+  for (const value of Array.isArray(extensions) ? extensions : []) {
+    const ext = String(value || '').trim().toLowerCase();
+    if (!/^\.[a-z0-9]+$/.test(ext)) continue;
+    if (!normalized.includes(ext)) normalized.push(ext);
+  }
+  if (!normalized.length) throw new Error('At least one file extension is required');
+  return normalized;
+}
+
+// Spawn the native file picker with an extension allowlist. The dialog filter
+// is convenience only; the returned path is checked again because platform
+// pickers and hand-edited automation can bypass visual filters.
+function pickFile({ title, extensions = ['.svg', '.png'] } = {}) {
+  const reason = dialogUnavailableReason();
+  if (reason) {
+    throw new DialogUnavailableError(
+      `No GUI file picker available (reason: ${reason})`,
+      reason,
+    );
+  }
+  const allowed = normalizeFileExtensions(extensions);
+  const promptTitle = title || 'Select a file';
+  let picked;
+  if (process.platform === 'win32') {
+    picked = pickFileWindows(promptTitle, allowed);
+  } else if (process.platform === 'darwin') {
+    picked = pickFileMacOS(promptTitle, allowed);
+  } else {
+    picked = pickFileLinux(promptTitle, allowed);
+  }
+  if (picked == null) return null;
+  const normalized = normalizePickedPath(picked);
+  if (!allowed.includes(path.extname(normalized).toLowerCase())) {
+    throw new Error(`Unsupported file type: ${path.extname(normalized) || '(none)'}`);
+  }
+  return normalized;
+}
+
 module.exports = {
   pickFolder,
+  pickFile,
   isDialogAvailable,
   dialogUnavailableReason,
   DialogUnavailableError,
   DialogCancelledError,
+  __test: {
+    normalizePickedPath,
+    normalizeFileExtensions,
+    pickFileWindows,
+    pickFileMacOS,
+    pickFileZenity,
+    pickFileKDialog,
+  },
 };

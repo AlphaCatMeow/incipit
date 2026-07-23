@@ -43,6 +43,7 @@ function sanitizeCssFontFamilyValue(raw) {
 
 function overlayVisualTheme(theme = {}) {
   const warmWhite = theme && theme.palette === 'warm-white';
+  const inkBlack = theme && theme.palette === 'ink-black';
   const rawBody = theme.bodyFontFamily && theme.bodyFontFamily.css;
   let bodyFont = sanitizeCssFontFamilyValue(rawBody) || DEFAULT_OVERLAY_BODY_FONT;
   if (warmWhite && theme.bodyBold === true) {
@@ -55,6 +56,16 @@ function overlayVisualTheme(theme = {}) {
       hoverBackground: '#f8f8f6',
       hoverForeground: '#0d0d0d',
       shadow: '0 3px 10px rgba(0, 0, 0, 0.16)',
+      fontFamily: bodyFont,
+    };
+  }
+  if (inkBlack) {
+    return {
+      background: '#1a1b1c',
+      foreground: '#fbfbfc',
+      hoverBackground: '#212121',
+      hoverForeground: '#fbfbfc',
+      shadow: '0 2px 8px rgba(0, 0, 0, 0.22)',
       fontFamily: bodyFont,
     };
   }
@@ -1133,4 +1144,7 @@ module.exports = {
   hostKeyForAppRoot,
   sentinelPathForHostKey,
   stripWorkbenchPatch,
+  __test: {
+    overlayVisualTheme,
+  },
 };

@@ -619,19 +619,15 @@ function assertRuntimeSourceContracts() {
       theme.includes('[data-incipit-custom-model-dialog]') &&
       theme.includes('[data-incipit-custom-model-input]') &&
       theme.includes('[data-incipit-custom-model-submit]') &&
-      theme.includes('background: #2c2c2a !important') &&
-      theme.includes('caret-color: #a8896e !important') &&
+      theme.includes('background: var(--ink-surface-panel) !important') &&
+      theme.includes('caret-color: var(--ink-custom-model-input-caret) !important') &&
       theme.includes('[data-incipit-custom-model-input]:focus') &&
       theme.includes('box-shadow: none !important') &&
-      theme.includes('background: #a8896e !important') &&
-      warmWhite.includes('[data-incipit-custom-model-modal]') &&
-      warmWhite.includes('[data-incipit-custom-model-action]::after') &&
-      warmWhite.includes('[data-incipit-custom-model-dialog]') &&
-      warmWhite.includes('background: #ffffff !important') &&
-      warmWhite.includes('caret-color: #a8896e !important') &&
-      warmWhite.includes('box-shadow: none !important') &&
-      warmWhite.includes('background: #a8896e !important'),
-    'custom model modal must use scoped incipit styling, stable input focus, and effort-slider yellow buttons in both palettes',
+      theme.includes('background: var(--ink-custom-model-submit-bg) !important') &&
+      warmWhite.includes('--ink-surface-panel: #ffffff;') &&
+      warmWhite.includes('--ink-custom-model-input-caret: #a8896e;') &&
+      warmWhite.includes('--ink-custom-model-submit-bg: #a8896e;'),
+    'custom model modal must use scoped semantic styling, stable input focus, and palette-owned action tokens',
   );
   assert(
     !legacy.includes("./legacy/session_status.js") &&
@@ -728,6 +724,16 @@ function assertRuntimeSourceContracts() {
       typography.includes('window.hljs.highlightElement(block)') &&
       typography.includes('if (isDiffIsland) applyIncipitDiffCharRangesToCode(block);'),
     'highlight.js must preflight language-* classes and skip unsupported grammars without console-warning floods, while preserving diff char overlays',
+  );
+  const renderTimeBusyProbe = bootstrap.slice(
+    bootstrap.indexOf('function renderTimeHighlightIsBusy()'),
+    bootstrap.indexOf('function noteRenderHealth('),
+  );
+  assert(
+    renderTimeBusyProbe.includes('try { return kernelConversationIsBusy(); }') &&
+      renderTimeBusyProbe.includes('catch (_) { return true; }') &&
+      !renderTimeBusyProbe.includes('catch (_) { return false; }'),
+    'render-time auto-highlighting must treat unknown host state as busy so large streaming code stays on the settled fallback path',
   );
 
   const kernel = fs.readFileSync(path.join(__dirname, '..', 'data', 'runtime_kernel.js'), 'utf8');

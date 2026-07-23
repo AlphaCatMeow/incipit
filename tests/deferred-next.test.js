@@ -264,8 +264,8 @@ function cssRuleBody(selector) {
     theme.includes('fieldset[class*="inputContainer_"][data-permission-mode]:focus-within') &&
     warm.includes('fieldset[class*="inputContainer_"][data-permission-mode]:focus-within') &&
     !/box-sizing|width\s*:|max-width|min-width|min-inline-size|background\s*:|background-color|border\s*:|box-shadow|transition/.test(inputRule) &&
-    inputBgRule.includes('background: #2c2c2a !important;') &&
-    inputBgRule.includes('box-shadow: 0 2px 10px rgba(0,0,0,0.20)') &&
+    inputBgRule.includes('background: var(--ink-composer-input-bg) !important;') &&
+    inputBgRule.includes('box-shadow: var(--ink-input-container-background-shadow) !important;') &&
     railRule.includes('max-width: 100% !important;') &&
     railRule.includes('min-width: 0 !important;') &&
     theme.includes('[data-incipit-deferred-next] {\n  box-sizing: border-box !important;\n  width: 100% !important;\n  margin: 0 !important;'),
@@ -629,24 +629,26 @@ function cssRuleBody(selector) {
     !warm.includes('--app-mention-chip-foreground') &&
     !composerTextSelector.test(warm),
     'warm-white override must not reintroduce composer text-layer styling');
-  assert.ok(theme.includes('--app-primary-foreground: #f8f8f6 !important;') &&
-    theme.includes('--app-input-foreground: #f8f8f6 !important;') &&
-    theme.includes('--app-input-secondary-foreground: #f8f8f6 !important;') &&
-    warm.includes('--app-primary-foreground: #0d0d0d !important;') &&
-    warm.includes('--app-input-foreground: #0d0d0d !important;') &&
-    warm.includes('--app-input-secondary-foreground: #0d0d0d !important;') &&
+  assert.ok(theme.includes('--app-primary-foreground: var(--ink-text-primary) !important;') &&
+    theme.includes('--app-input-foreground: var(--ink-text-primary) !important;') &&
+    theme.includes('--app-input-secondary-foreground: var(--ink-text-primary) !important;') &&
+    theme.includes('--ink-text-primary: #f8f8f6;') &&
+    warm.includes('--ink-text-primary: #0d0d0d;') &&
     shared.includes("'--app-input-foreground': SOFT_FG") &&
     shared.includes("'--app-input-secondary-foreground': SOFT_FG"),
     'host input foreground tokens must match the transcript body foreground in each palette');
   assert.ok(!shared.includes('--app-mention-chip-background') &&
     !shared.includes('--app-mention-chip-foreground'),
     'runtime app-var overrides must not recolor official composer mention chips');
-  assert.ok(theme.includes('--incipit-composer-mention-chip-background: #3d312d;') &&
-    theme.includes('--incipit-composer-mention-chip-foreground: #e0a18b;') &&
-    theme.includes('--incipit-composer-mention-chip-background-hover: #493932;') &&
-    warm.includes('--incipit-composer-mention-chip-background: #ead8cf;') &&
-    warm.includes('--incipit-composer-mention-chip-foreground: #8f452b;') &&
-    warm.includes('--incipit-composer-mention-chip-background-hover: #e2c8bc;'),
+  assert.ok(theme.includes('--incipit-composer-mention-chip-background: var(--ink-chip-bg);') &&
+    theme.includes('--incipit-composer-mention-chip-foreground: var(--ink-chip-fg);') &&
+    theme.includes('--incipit-composer-mention-chip-background-hover: var(--ink-chip-bg-hover);') &&
+    theme.includes('--ink-chip-bg: #3d312d;') &&
+    theme.includes('--ink-chip-fg: #e0a18b;') &&
+    theme.includes('--ink-chip-bg-hover: #493932;') &&
+    warm.includes('--ink-chip-bg: #ead8cf;') &&
+    warm.includes('--ink-chip-fg: #8f452b;') &&
+    warm.includes('--ink-chip-bg-hover: #e2c8bc;'),
     'composer mention chip retone must use incipit-scoped palette variables');
   assert.ok(composerChip.includes('background: var(--incipit-composer-mention-chip-background) !important;') &&
     composerChip.includes('background-color: var(--incipit-composer-mention-chip-background) !important;') &&
@@ -723,22 +725,20 @@ function cssRuleBody(selector) {
     theme.includes('[class*="permissionRequestContainer_"] [class*="permissionOption_"]') &&
     theme.includes('button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar])') &&
     theme.includes('[class*="permissionRequestContainer_"] input:not([type="checkbox"]):not([type="radio"])') &&
-    theme.includes('caret-color: #a8896e !important;'),
+    theme.includes('caret-color: var(--ink-permission-request-container-caret) !important;') &&
+    theme.includes('--ink-permission-request-container-caret: #a8896e;'),
     'generic permission request panels must be themed, including Plan acceptance without questionsContainer');
-  assert.ok(warm.includes('Generic permission request panels') &&
-    warm.includes('[class*="permissionRequestContainer_"] {') &&
-    warm.includes('background: #ffffff !important;') &&
-    warm.includes('[class*="permissionRequestContainer_"] [class*="permissionAction_"]') &&
-    warm.includes('button:not([aria-label]):not(.incipit-ask-collapse-btn):not(.incipit-permission-collapse-btn):not([data-incipit-ask-collapsed-bar]):not([data-incipit-permission-collapsed-bar])') &&
-    warm.includes('[class*="permissionRequestContainer_"] input:not([type="checkbox"]):not([type="radio"])') &&
-    warm.includes('caret-color: #a8896e !important;'),
-    'warm-white must override generic permission request panels, not only AskUserQuestion');
+  assert.ok(warm.includes('--ink-surface-panel: #ffffff;') &&
+    warm.includes('--ink-permission-request-container-bg: #faf9f5;') &&
+    warm.includes('--ink-permission-request-container-caret: #a8896e;') &&
+    warm.includes('--ink-text-strong: #0d0d0d;'),
+    'warm-white must override the semantic permission-panel tokens, not only AskUserQuestion');
   assert.ok(theme.includes('.incipit-permission-collapse-btn') &&
     theme.includes('[data-incipit-permission-floating-collapse] [class*="permissionRequestContent_"]') &&
     theme.includes('[data-incipit-permission-request][data-incipit-permission-collapsed="1"]') &&
     theme.includes('> .incipit-permission-collapsed-bar') &&
-    warm.includes('[data-incipit-permission-request][data-incipit-permission-collapsed="1"] > .incipit-permission-collapsed-bar'),
-    'generic permission request panels must share Ask collapse/expand styling in both themes');
+    warm.includes('--ink-permission-collapsed-bar-hover-bg: rgba(230,228,222,0.50);'),
+    'generic permission request panels must share Ask collapse/expand styling through palette tokens');
   assert.ok(theme.includes('[class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])') &&
     legacy.includes('function isPermissionRequestContainer(el)') &&
     legacy.includes('function closestPermissionRequestContainer(el)') &&
@@ -764,14 +764,12 @@ function cssRuleBody(selector) {
   ]) {
     assert.ok(theme.includes(sel), 'dark theme missing ' + sel);
   }
-  for (const sel of [
-    '[data-incipit-deferred-next]',
-    '[data-incipit-deferred-next-error]',
-    '[data-incipit-deferred-row][data-incipit-deferred-dragging]',
-    '[data-incipit-deferred-next-textarea]',
-  ]) {
-    assert.ok(warm.includes(sel), 'warm-white override missing ' + sel);
-  }
+  for (const token of [
+    '--ink-deferred-next-bg: #efeee9;',
+    '--ink-deferred-next-error-bg: rgba(199,104,73,0.12);',
+    '--ink-deferred-dragging-bg: rgba(13,13,13,0.05);',
+    '--ink-deferred-next-textarea-bg: #f8f8f6;',
+  ]) assert.ok(warm.includes(token), 'warm-white override missing ' + token);
   assert.ok(theme.includes('max-height: 168px') && theme.includes('overflow-y: auto'),
     'the queue list must cap height and scroll, not eat the panel');
   // Flattened summary action row: Edit + Delete are DIRECT icon
@@ -785,7 +783,7 @@ function cssRuleBody(selector) {
   assert.ok(!summary.includes('openActionDropdown') && !summary.includes('MORE_ICON_SVG') &&
     !legacy.includes("deferredText('close')") && !legacy.includes("deferredText('moreTitle')"),
     'the redundant kebab (Edit + duplicate-Delete) must be gone');
-  ok('UI: dark + warm-white queue treatment, scroll cap, flattened action row');
+  ok('UI: shared queue structure + warm-white tokens, scroll cap, flattened action row');
 })();
 
 console.log('\ndeferred-next: ' + passed + ' checks PASSED');
