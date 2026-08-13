@@ -262,12 +262,34 @@ const MARKDOWN_CODE_COMPONENT_V1_PATCHED_PATTERN =
   /code:\(\{children:([A-Za-z_$][\w$]*),className:([A-Za-z_$][\w$]*)\}\)=>\{if\(\2\)\{let ([A-Za-z_$][\w$]*)=String\(\1\),__incipitHtml=window\.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window\.__INCIPIT_HIGHLIGHT_CODE_HTML__\(\3,\2\);if\(__incipitHtml!==null&&__incipitHtml!==void 0\)return ([A-Za-z_$][\w$]*)\.default\.createElement\("code",\{className:\2\+" hljs",dangerouslySetInnerHTML:\{__html:__incipitHtml\}\}\);return \4\.default\.createElement\("code",\{className:\2\},\1\)\}let \3=String\(\1\);/g;
 const MARKDOWN_CODE_HIGHLIGHT_CALL =
   'window.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window.__INCIPIT_HIGHLIGHT_CODE_HTML__(';
+// The at-mention command setup exists in two upstream families, and both are
+// still live in the wild:
+//
+//   emitter family   (<= 2.1.220): `function f(subscriptions, emitter, webviews)`
+//     delivery is `emitter.fire(mention)` and visibility is
+//     `webviews.hasVisibleWebview()`. The host had no retry, so the bridge has
+//     to open the panel itself and fire twice to beat webview cold start.
+//   delivery family  (>= 2.1.231): `function f(subscriptions, manager)`
+//     the host now owns delivery through a local helper that walks
+//     deliver -> revealAndDeliver -> stashForNextChatSurface -> openLast, and
+//     `hasVisibleWebview` is gone in favour of per-surface `isChatSurface` /
+//     `isVisible()`. Reuse that helper instead of re-inventing the timing hack.
+//
+// Anchor on the business signature (the command id plus the delivery method
+// names), never on the surrounding neighbourhood — encoding adjacency is what
+// broke this anchor on 2.1.231 (2026-08-13).
 const AT_MENTION_COMMAND_ANCHOR_PATTERN =
   /function ([A-Za-z_$][\w$]*)\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{([\s\S]{0,900}?)(\2\.push\(([A-Za-z_$][\w$]*)\.commands\.registerCommand\("claude-vscode\.insertAtMention")/g;
+const AT_MENTION_DELIVERY_ANCHOR_PATTERN =
+  /function ([A-Za-z_$][\w$]*)\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{(async function ([A-Za-z_$][\w$]*)\(([A-Za-z_$][\w$]*)\)\{if\(\3\.deliverAtMention\(\6\)\)return;if\(\3\.revealAndDeliverAtMention\(\6\)\)return;\3\.stashAtMentionForNextChatSurface\(\6\)[\s\S]{0,200}?\})(\2\.push\(([A-Za-z_$][\w$]*)\.commands\.registerCommand\("claude-vscode\.insertAtMention")/g;
 const AT_MENTION_COMMAND_PATCHED_RE =
   /commands\.registerCommand\("incipit\.claudeCode\.insertAtMention",async\(__incipitMention\)=>\{if\(typeof __incipitMention==="string"\)\{if\(![A-Za-z_$][\w$]*\.hasVisibleWebview\(\)\)await [A-Za-z_$][\w$]*\.commands\.executeCommand\("claude-vscode\.editor\.openLast"\);let __incipitFire=\(\)=>[A-Za-z_$][\w$]*\.fire\(__incipitMention\);setTimeout\(__incipitFire,80\);setTimeout\(__incipitFire,360\);return!0\}return!1\}\)/;
 const CLAUDE_VISIBLE_COMMAND_PATCHED_RE =
   /commands\.registerCommand\("incipit\.claudeCode\.hasVisibleWebview",\(\)=>[A-Za-z_$][\w$]*\.hasVisibleWebview\(\)\)/;
+const AT_MENTION_DELIVERY_PATCHED_RE =
+  /commands\.registerCommand\("incipit\.claudeCode\.insertAtMention",async\(__incipitMention\)=>\{if\(typeof __incipitMention!=="string"\)return!1;await [A-Za-z_$][\w$]*\(__incipitMention\);return!0\}\)/;
+const CLAUDE_SURFACE_VISIBLE_PATCHED_RE =
+  /commands\.registerCommand\("incipit\.claudeCode\.hasVisibleWebview",\(\)=>\{try\{for\(let __incipitSurface of [A-Za-z_$][\w$]*\.webviews\)if\(__incipitSurface\.isChatSurface&&__incipitSurface\.isVisible\(\)\)return!0;return!1\}catch\(__incipitShapeError\)\{return!0\}\}\)/;
 const IMPLICIT_SELECTION_SEND_BRANCH_PATTERN =
   /if\((?!\!1&&)([^;{}]*\bthis\.lastSentSelection\b[^;{}]*\bthis\.selection\.value\b[^;{}]*)\)([A-Za-z_$][\w$]*)=this\.selection\.value,this\.lastSentSelection=\2;/g;
 const IMPLICIT_SELECTION_SEND_PATCHED_BRANCH_RE =
@@ -2610,7 +2632,7 @@ function patchMarkdownCodeComponent(content) {
   return [updated, `${padLabel('markdown 代码渲染')}: 已写入`];
 }
 
-function patchAtMentionCommand(content) {
+function patchAtMentionEmitterFamily(content) {
   const hasInsert = AT_MENTION_COMMAND_PATCHED_RE.test(content);
   const hasVisible = CLAUDE_VISIBLE_COMMAND_PATCHED_RE.test(content);
   if (hasInsert && hasVisible) {
@@ -2618,9 +2640,7 @@ function patchAtMentionCommand(content) {
   }
 
   const matches = content.match(AT_MENTION_COMMAND_ANCHOR_PATTERN) || [];
-  if (matches.length !== 1) {
-    return [content, `${padLabel('@引用命令桥')}: 降级 (未找到命令 setup 锚点; companion 引用不可用)`];
-  }
+  if (matches.length !== 1) return null;
   return [
     content.replace(AT_MENTION_COMMAND_ANCHOR_PATTERN, (
       _match,
@@ -2648,6 +2668,56 @@ function patchAtMentionCommand(content) {
     ),
     `${padLabel('@引用命令桥')}: 已写入`,
   ];
+}
+
+function patchAtMentionDeliveryFamily(content) {
+  const hasInsert = AT_MENTION_DELIVERY_PATCHED_RE.test(content);
+  const hasVisible = CLAUDE_SURFACE_VISIBLE_PATCHED_RE.test(content);
+  if (hasInsert && hasVisible) {
+    return [content, `${padLabel('@引用命令桥')}: 已存在`];
+  }
+
+  const matches = content.match(AT_MENTION_DELIVERY_ANCHOR_PATTERN) || [];
+  if (matches.length !== 1) return null;
+  return [
+    content.replace(AT_MENTION_DELIVERY_ANCHOR_PATTERN, (
+      _match,
+      functionName,
+      subscriptions,
+      manager,
+      deliveryHelper,
+      deliverMention,
+      _helperParam,
+      commandStart,
+      vscodeApi,
+    ) => {
+      const registrations = [];
+      if (!hasInsert) {
+        registrations.push(
+          `${subscriptions}.push(${vscodeApi}.commands.registerCommand("incipit.claudeCode.insertAtMention",async(__incipitMention)=>{if(typeof __incipitMention!=="string")return!1;await ${deliverMention}(__incipitMention);return!0})),`,
+        );
+      }
+      if (!hasVisible) {
+        // Fail open on an unexpected surface shape: the overlay treats a
+        // rejected or falsy answer as "hide the button forever", silently, and
+        // the CodeLens fallback is already suppressed whenever the overlay is
+        // desired. A spurious button is recoverable; a vanished entry point is
+        // not (R-19).
+        registrations.push(
+          `${subscriptions}.push(${vscodeApi}.commands.registerCommand("incipit.claudeCode.hasVisibleWebview",()=>{try{for(let __incipitSurface of ${manager}.webviews)if(__incipitSurface.isChatSurface&&__incipitSurface.isVisible())return!0;return!1}catch(__incipitShapeError){return!0}})),`,
+        );
+      }
+      return `function ${functionName}(${subscriptions},${manager}){${deliveryHelper}${registrations.join('')}${commandStart}`;
+    }
+    ),
+    `${padLabel('@引用命令桥')}: 已写入`,
+  ];
+}
+
+function patchAtMentionCommand(content) {
+  return patchAtMentionEmitterFamily(content) ||
+    patchAtMentionDeliveryFamily(content) ||
+    [content, `${padLabel('@引用命令桥')}: 降级 (未找到命令 setup 锚点; companion 引用不可用)`];
 }
 
 function patchDisableImplicitSelectionSend(content) {
@@ -3456,6 +3526,7 @@ module.exports = {
     normalizedPalette,
     MONACO_DIFF_THEMES,
     patchHostStateSemanticBridge,
+    patchAtMentionCommand,
     patchMarkdownCodeComponent,
     renderTimeMarkdownCodeIsPatched,
     buildWorkbenchOverlayInstallContract,

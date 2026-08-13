@@ -1183,6 +1183,80 @@ function assertHostStateBridgePatchVariants() {
   console.log('patch-contracts: ok host-state bridge variants');
 }
 
+// ---- @ mention command bridge families (2026-08-13) ----
+// The command setup exists in two upstream families and both stay reachable:
+// the emitter family (<= 2.1.220) fires a shared EventEmitter and asks
+// `webviews.hasVisibleWebview()`, while the delivery family (>= 2.1.231)
+// owns a local deliver -> reveal -> stash helper and dropped
+// `hasVisibleWebview` for per-surface `isChatSurface` / `isVisible()`.
+// Neither anchor may encode the other's neighbourhood.
+const AT_MENTION_EMITTER_FIXTURE =
+  'function HZt(e,t,r){e.push(Pe.commands.registerCommand("claude-vscode.insertAtMention",async()=>{let n=Pe.window.activeTextEditor;if(!n)return;t.fire("@"+n.document.fileName)})),e.push(Pe.commands.registerCommand("claude-vscode.blur",async()=>{Pe.commands.executeCommand("workbench.action.focusFirstEditorGroup")}))}';
+const AT_MENTION_DELIVERY_FIXTURE =
+  'function rmr(e,t){async function r(n){if(t.deliverAtMention(n))return;if(t.revealAndDeliverAtMention(n))return;t.stashAtMentionForNextChatSurface(n),await Fe.commands.executeCommand("claude-vscode.editor.openLast")}e.push(Fe.commands.registerCommand("claude-vscode.insertAtMention",async()=>{let n=Fe.window.activeTextEditor;if(!n)return;await r("@"+n.document.fileName)})),e.push(Fe.commands.registerCommand("claude-vscode.blur",async()=>{}))}';
+
+function assertAtMentionCommandPatchVariants() {
+  const variants = [
+    {
+      label: 'emitter family (<= 2.1.220)',
+      fixture: AT_MENTION_EMITTER_FIXTURE,
+      // Delivery is a bare emitter fire, so the bridge owns panel opening and
+      // has to fire twice to beat webview cold start.
+      expected: [
+        'commands.registerCommand("incipit.claudeCode.insertAtMention"',
+        'if(!r.hasVisibleWebview())await Pe.commands.executeCommand("claude-vscode.editor.openLast")',
+        'let __incipitFire=()=>t.fire(__incipitMention)',
+        'commands.registerCommand("incipit.claudeCode.hasVisibleWebview",()=>r.hasVisibleWebview())',
+      ],
+      forbidden: ['deliverAtMention', '__incipitSurface'],
+    },
+    {
+      label: 'delivery family (>= 2.1.231)',
+      fixture: AT_MENTION_DELIVERY_FIXTURE,
+      // The host helper already walks deliver -> reveal -> stash -> openLast,
+      // so the bridge must reuse it instead of re-timing the delivery itself.
+      expected: [
+        'commands.registerCommand("incipit.claudeCode.insertAtMention"',
+        'await r(__incipitMention);return!0',
+        'for(let __incipitSurface of t.webviews)if(__incipitSurface.isChatSurface&&__incipitSurface.isVisible())return!0',
+        'catch(__incipitShapeError){return!0}',
+      ],
+      forbidden: ['__incipitFire', '.hasVisibleWebview()'],
+    },
+  ];
+
+  for (const { label, fixture, expected, forbidden } of variants) {
+    const [patched, line] = __test.patchAtMentionCommand(fixture);
+    assert(/已写入/.test(line), `${label}: bridge should patch cleanly, got: ${line}`);
+    for (const fragment of expected) {
+      assert(patched.includes(fragment), `${label}: missing injected fragment: ${fragment}`);
+    }
+    for (const fragment of forbidden) {
+      assert(!patched.includes(fragment), `${label}: leaked the other family's shape: ${fragment}`);
+    }
+    assert.doesNotThrow(
+      () => new vm.Script(patched, { filename: `at-mention-${label}.js` }),
+      `${label}: patched fixture must remain valid JavaScript`,
+    );
+    assert.strictEqual(
+      (patched.match(/incipit\.claudeCode\.insertAtMention/g) || []).length, 1,
+      `${label}: bridge command must be registered exactly once`,
+    );
+    const [repatched, repatchedLine] = __test.patchAtMentionCommand(patched);
+    assert.strictEqual(repatched, patched, `${label}: second apply must be idempotent`);
+    assert(/已存在/.test(repatchedLine), `${label}: second apply should report already present`);
+  }
+
+  // A renamed command id must degrade softly: the companion surfaces its own
+  // warning, but apply itself must not abort (R-02 low-risk visual面 fail open).
+  const renamed = AT_MENTION_DELIVERY_FIXTURE.replaceAll('claude-vscode.insertAtMention', 'claude-vscode.insertAtMentionRenamed');
+  const [unchanged, degradedLine] = __test.patchAtMentionCommand(renamed);
+  assert.strictEqual(unchanged, renamed, 'anchor miss must not mutate the extension bundle');
+  assert(/降级/.test(degradedLine), 'anchor miss should degrade instead of aborting apply');
+
+  console.log('patch-contracts: ok @ mention command bridge families');
+}
+
 // ---- Monaco diff span anchors (2026-06-09) ----
 // The Monaco option patches must anchor on the `.createDiffEditor(` business
 // seed plus brace matching, and rewrite only their own option inside each
@@ -1533,6 +1607,7 @@ function assertAtMentionBridgePatchDegrades(root) {
 
 assertRuntimeSourceContracts();
 assertHostStateBridgePatchVariants();
+assertAtMentionCommandPatchVariants();
 assertMonacoDiffSpanPatchVariants();
 
 const fixtures = collectFixtureRoots();
