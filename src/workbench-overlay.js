@@ -5,6 +5,8 @@ const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
 
+const { atomicWrite } = require('./fs-atomic');
+
 const CLAUDE_CODE_EXTENSION_PREFIX = 'anthropic.claude-code-';
 const WORKBENCH_RESTORE_ROOT = path.join(
   os.homedir(),
@@ -124,18 +126,6 @@ function writeSentinel(target) {
 function removeSentinel(target) {
   if (!target || !target.hostKey) return;
   try { fs.unlinkSync(sentinelPathForHostKey(target.hostKey)); } catch (_) {}
-}
-
-function atomicWrite(targetPath, data) {
-  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-  const tmp = path.join(path.dirname(targetPath), `.${path.basename(targetPath)}.tmp-${process.pid}-${Date.now()}`);
-  fs.writeFileSync(tmp, data);
-  try {
-    fs.renameSync(tmp, targetPath);
-  } catch (exc) {
-    try { fs.unlinkSync(tmp); } catch (_) {}
-    throw exc;
-  }
 }
 
 function extensionRootForTarget(target) {

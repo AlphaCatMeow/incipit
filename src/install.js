@@ -13,7 +13,9 @@ const os = require('os');
 const path = require('path');
 const cp = require('child_process');
 const crypto = require('crypto');
+const vm = require('vm');
 
+const { atomicWrite } = require('./fs-atomic');
 const { HOST_BADGE_COMM_ATTACH } = require('./badge-iife');
 const {
   buildInstallManifestPreamble,
@@ -749,7 +751,7 @@ function copyIfChanged(srcPath, dstPath) {
       }
     } catch { /* fall through to write */ }
   }
-  fs.writeFileSync(dstPath, srcBytes);
+  atomicWrite(dstPath, srcBytes);
   if (srcStat) {
     try { fs.utimesSync(dstPath, srcStat.atime, srcStat.mtime); } catch (_) {}
   }
@@ -770,9 +772,32 @@ function copyWithTransform(srcPath, dstPath, transform) {
       if (existing === transformed) return false;
     } catch (_) { /* fall through to write */ }
   }
-  fs.mkdirSync(path.dirname(dstPath), { recursive: true });
-  fs.writeFileSync(dstPath, transformed, 'utf8');
+  atomicWrite(dstPath, transformed);
   return true;
+}
+
+// Prove a patch did not corrupt a host bundle before it reaches disk.
+//
+// Only assert when the pristine bundle itself parses. If upstream ever ships
+// syntax this Node cannot handle (an ESM bundle, newer language features),
+// refusing to apply would be a false alarm about someone else's file. But when
+// the original parsed and ours does not, the corruption is unambiguously
+// incipit's — and a corrupt `webview/index.js` blanks the Claude Code panel
+// with no in-product way back, so this fails closed rather than shipping it.
+function assertPatchedBundleParses(originalText, patchedText, targetPath) {
+  if (patchedText === originalText) return;
+  try {
+    new vm.Script(originalText, { filename: targetPath });
+  } catch (_) {
+    return;
+  }
+  try {
+    new vm.Script(patchedText, { filename: targetPath });
+  } catch (exc) {
+    throw new Error(
+      `incipit 生成的 ${path.basename(targetPath)} 不是合法 JavaScript,已中止写入以保护宿主: ${exc.message}`,
+    );
+  }
 }
 
 function assertCustomIconBytes(bytes, label) {
@@ -3382,9 +3407,6 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
   });
   extContracts.push(overlayInstallContract);
   const extJsUpdated = extJsUpdatedText !== extJsOriginal;
-  if (extJsUpdated) {
-    fs.writeFileSync(target.extensionJsPath, extJsUpdatedText, 'utf8');
-  }
 
   // `webview/index.js`
   const [webviewUpdatedText, webviewStatusLines, installContracts] = patchWebviewIndex(
@@ -3395,8 +3417,18 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
     extContracts,
   );
   const webviewUpdated = webviewUpdatedText !== webviewOriginal;
+
+  // Both bundles are patched and proven parseable before either one reaches
+  // disk. Patching `webview/index.js` can still fail closed after `extension.js`
+  // is already rewritten, and a half-patched target has no rollback path — the
+  // user's only way out is `incipit restore`.
+  assertPatchedBundleParses(extJsOriginal, extJsUpdatedText, target.extensionJsPath);
+  assertPatchedBundleParses(webviewOriginal, webviewUpdatedText, target.webviewIndexJsPath);
+  if (extJsUpdated) {
+    atomicWrite(target.extensionJsPath, extJsUpdatedText);
+  }
   if (webviewUpdated) {
-    fs.writeFileSync(target.webviewIndexJsPath, webviewUpdatedText, 'utf8');
+    atomicWrite(target.webviewIndexJsPath, webviewUpdatedText);
   }
 
   // Install the bundled serif system fonts for hosts that resolve user font
