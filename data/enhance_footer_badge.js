@@ -5,6 +5,153 @@ import {
   subscribe as subscribeRuntime,
 } from './runtime_kernel.js';
 
+// Footer badge / notes / activity-popup copy, keyed the same way as the CLI's
+// src/i18n.js (`t(key, vars)` + `{name}` placeholder substitution) so both
+// halves of the project read as one system. `CFG.language` is read fresh on
+// every call instead of cached, since it never changes within a webview
+// session (see enhance_shared.js).
+var STR = {
+  en: {
+    ctx_window: 'Context window',
+    cache_hit_rate: 'Cache hit rate',
+    cache_hit_history: 'Cache hit history',
+    selected_range: 'Selected range',
+    no_cache_history: 'No cache hit history yet',
+    lowest: 'Lowest',
+    latest: 'Latest',
+    mean: 'Mean',
+    current_cache: 'Current cache',
+    context: 'Context',
+    request_one: '{n} request',
+    request_other: '{n} requests',
+    fresh: 'Fresh',
+    write: 'Write',
+    read: 'Read',
+    cache_read: 'Cache read',
+    cache_write: 'Cache write',
+    output: 'Output',
+    fresh_input: 'Fresh input',
+    lowest_tip: 'Lowest · {pct} · {ctx} · {time}',
+    latest_tip: 'Latest · {pct} · {ctx} · {time}',
+    duration_s: '{n} s',
+    duration_min: '{n} min',
+    duration_h_min: '{h} h {m}',
+    duration_h_exact: '{h} h',
+    model_edit_activity: 'Model edit activity',
+    model_edits_title: 'Model edits: +{added} / −{removed} across {edits} tool edits',
+    cell_tip: '{date} · +{added} / −{removed} · {edits} edits',
+    current_project: 'Current project',
+    global_tool_edits: '{n} global tool edits',
+    conversations: '{n} conversations',
+    recorded_projects: '{n} recorded projects',
+    active_days: '{n} active days',
+    loading_index: 'Loading index',
+    all_conversations_kicker: 'All Claude Code conversations',
+    across_recorded_projects: 'Across recorded projects',
+    indexing: 'Indexing',
+    less: 'Less',
+    more: 'More',
+    no_model_edits: 'No model edits yet',
+    notes: 'Notes',
+    notes_tab_project: 'Project',
+    notes_tab_global: 'Global',
+    no_project_notes: 'No project notes yet.',
+    open_workspace_for_notes: 'Open a workspace to use project notes.',
+    no_notes: 'No notes yet.',
+    new_note: '+ New note',
+    insert_into_composer: 'Insert into composer',
+    edit_note: 'Edit note',
+    edit: 'Edit',
+    delete_note: 'Delete note',
+    delete: 'Delete',
+    note_placeholder: 'Snippet text to insert into the composer…',
+    cancel: 'Cancel',
+    save: 'Save',
+    dismiss: 'Dismiss',
+    insert: 'Insert',
+    file_created_deleted: ' — newly created; now deleted.',
+    file_line_stats: '+{added}/−{removed} lines; ',
+    file_restored: ' — {stats}restored to its previous contents.',
+    reject_intro_one: 'I rejected the following change; it has been reverted:',
+    reject_intro_many: 'I rejected the following changes; they have been reverted:',
+  },
+  zh: {
+    ctx_window: '上下文窗口',
+    cache_hit_rate: '缓存命中率',
+    cache_hit_history: '缓存命中历史',
+    selected_range: '选定区间',
+    no_cache_history: '暂无缓存命中历史',
+    lowest: '最低',
+    latest: '最新',
+    mean: '平均',
+    current_cache: '当前缓存',
+    context: '上下文',
+    request_one: '{n} 个请求',
+    request_other: '{n} 个请求',
+    fresh: '新输入',
+    write: '写入',
+    read: '读取',
+    cache_read: '缓存读取',
+    cache_write: '缓存写入',
+    output: '输出',
+    fresh_input: '新输入',
+    lowest_tip: '最低 · {pct} · {ctx} · {time}',
+    latest_tip: '最新 · {pct} · {ctx} · {time}',
+    duration_s: '{n} 秒',
+    duration_min: '{n} 分钟',
+    duration_h_min: '{h} 小时 {m}',
+    duration_h_exact: '{h} 小时',
+    model_edit_activity: '模型编辑活动',
+    model_edits_title: '模型编辑：+{added} / −{removed}，共 {edits} 次工具编辑',
+    cell_tip: '{date} · +{added} / −{removed} · {edits} 次编辑',
+    current_project: '当前项目',
+    global_tool_edits: '{n} 次全局工具编辑',
+    conversations: '{n} 次对话',
+    recorded_projects: '{n} 个已记录项目',
+    active_days: '{n} 个活跃天',
+    loading_index: '正在加载索引',
+    all_conversations_kicker: '所有 Claude Code 对话',
+    across_recorded_projects: '跨已记录项目',
+    indexing: '索引中',
+    less: '更少',
+    more: '更多',
+    no_model_edits: '暂无模型编辑',
+    notes: '笔记',
+    notes_tab_project: '项目',
+    notes_tab_global: '全局',
+    no_project_notes: '暂无项目笔记。',
+    open_workspace_for_notes: '打开工作区以使用项目笔记。',
+    no_notes: '暂无笔记。',
+    new_note: '+ 新建笔记',
+    insert_into_composer: '插入到输入框',
+    edit_note: '编辑笔记',
+    edit: '编辑',
+    delete_note: '删除笔记',
+    delete: '删除',
+    note_placeholder: '要插入输入框的片段文本…',
+    cancel: '取消',
+    save: '保存',
+    dismiss: '关闭',
+    insert: '插入',
+    file_created_deleted: ' — 新建后已删除。',
+    file_line_stats: '+{added}/−{removed} 行；',
+    file_restored: ' — {stats}已恢复为先前内容。',
+    reject_intro_one: '我拒绝了以下更改，已撤销：',
+    reject_intro_many: '我拒绝了以下更改，均已撤销：',
+  },
+};
+function t(key, vars) {
+  var dict = STR[CFG.language] || STR.en;
+  var raw = Object.prototype.hasOwnProperty.call(dict, key) ? dict[key] : STR.en[key] || key;
+  if (!vars) return raw;
+  return raw.replace(/\{(\w+)\}/g, function (m, name) {
+    return Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : m;
+  });
+}
+function tRequests(n) {
+  return t(n === 1 ? 'request_one' : 'request_other', { n: n });
+}
+
 function classText(node) {
   if (!node || node.nodeType !== 1) return '';
   return typeof node.className === 'string'
@@ -423,11 +570,13 @@ function setupCacheBadge() {
   function fmtDuration(ms) {
     if (!Number.isFinite(ms) || ms <= 0) return '—';
     var s = Math.round(ms / 1000);
-    if (s < 60) return s + ' s';
+    if (s < 60) return t('duration_s', { n: s });
     var m = Math.round(s / 60);
-    if (m < 60) return m + ' min';
+    if (m < 60) return t('duration_min', { n: m });
     var h = Math.floor(m / 60), mm = m % 60;
-    return h + ' h ' + (mm ? mm + ' min' : '');
+    return mm
+      ? t('duration_h_min', { h: h, m: t('duration_min', { n: mm }) })
+      : t('duration_h_exact', { h: h });
   }
   function clamp(n, lo, hi) {
     return Math.max(lo, Math.min(hi, n));
@@ -517,9 +666,9 @@ function setupCacheBadge() {
     }
     if (!textEl.__cceBuilt) {
       textEl.innerHTML =
-        '<span class="cceBadgeVal" data-cce-val="ctx" title="Context window"></span>' +
+        '<span class="cceBadgeVal" data-cce-val="ctx" title="' + escapeAttr(t('ctx_window')) + '"></span>' +
         '    ' +
-        '<span class="cceBadgeLabel" title="Cache hit rate">' + CACHE_GLYPH_SVG + '</span> ' +
+        '<span class="cceBadgeLabel" title="' + escapeAttr(t('cache_hit_rate')) + '">' + CACHE_GLYPH_SVG + '</span> ' +
         '<span class="cceBadgeVal" data-cce-val="hit"></span>';
       textEl.__cceBuilt = true;
     }
@@ -546,12 +695,12 @@ function setupCacheBadge() {
     el.innerHTML =
       '<div class="cceStatOverview" data-overview></div>' +
       '<div class="cceStatSection">' +
-        '<div class="cceStatHeading">Cache hit history</div>' +
+        '<div class="cceStatHeading">' + escapeAttr(t('cache_hit_history')) + '</div>' +
         '<div class="cceHitChart" data-history></div>' +
       '</div>' +
       '<div class="cceStatDivider"></div>' +
       '<div class="cceStatSection">' +
-        '<div class="cceStatHeading">Selected range</div>' +
+        '<div class="cceStatHeading">' + escapeAttr(t('selected_range')) + '</div>' +
         '<div class="cceStatTotals" data-totals></div>' +
       '</div>';
     el.addEventListener('click', function(ev) { ev.stopPropagation(); });
@@ -794,11 +943,11 @@ function setupCacheBadge() {
     var ctxStr = latest ? fmtTokens(latest.ctx) : '—';
     box.innerHTML =
       '<div class="cceStatMetric">' +
-        '<div class="cceStatMetricLabel">Current cache</div>' +
+        '<div class="cceStatMetricLabel">' + escapeAttr(t('current_cache')) + '</div>' +
         '<div class="cceStatMetricValue">' + hitStr + '</div>' +
       '</div>' +
       '<div class="cceStatMetric">' +
-        '<div class="cceStatMetricLabel">Context</div>' +
+        '<div class="cceStatMetricLabel">' + escapeAttr(t('context')) + '</div>' +
         '<div class="cceStatMetricValue">' + ctxStr + '</div>' +
       '</div>';
   }
@@ -806,14 +955,14 @@ function setupCacheBadge() {
     if (!box) return;
     if (!latest || sessionHasNoCache(latest)) {
       selectedHitRows = null;
-      box.innerHTML = '<div class="cceStatEmpty">No cache hit history yet</div>';
+      box.innerHTML = '<div class="cceStatEmpty">' + escapeAttr(t('no_cache_history')) + '</div>';
       return;
     }
 
     var fullRows = cacheHistoryRows();
     if (!fullRows.length) {
       selectedHitRows = null;
-      box.innerHTML = '<div class="cceStatEmpty">No cache hit history yet</div>';
+      box.innerHTML = '<div class="cceStatEmpty">' + escapeAttr(t('no_cache_history')) + '</div>';
       return;
     }
 
@@ -898,7 +1047,7 @@ function setupCacheBadge() {
     var markers = '';
     if (lowPoint) {
       markers += '<circle class="cceHitPoint cceHitPointLow" cx="' + svgNumber(lowPoint.x) + '" cy="' + svgNumber(lowPoint.y) + '" r="3.4">' +
-        '<title>Lowest · ' + fmtPct(lowPoint.hit) + ' · ' + fmtTokens(lowPoint.ctx) + ' · ' + fmtChartTime(lowPoint.ts, oldestTs, newestTs) + '</title>' +
+        '<title>' + escapeAttr(t('lowest_tip', { pct: fmtPct(lowPoint.hit), ctx: fmtTokens(lowPoint.ctx), time: fmtChartTime(lowPoint.ts, oldestTs, newestTs) })) + '</title>' +
       '</circle>';
     }
     var latestIsLow = !!(lowPoint && latestPoint &&
@@ -906,7 +1055,7 @@ function setupCacheBadge() {
       Math.abs(lowPoint.y - latestPoint.y) < 0.01);
     if (latestPoint && !latestIsLow) {
       markers += '<circle class="cceHitPoint cceHitPointLatest" cx="' + svgNumber(latestPoint.x) + '" cy="' + svgNumber(latestPoint.y) + '" r="3">' +
-        '<title>Latest · ' + fmtPct(latestPoint.hit) + ' · ' + fmtTokens(latestPoint.ctx) + ' · ' + fmtChartTime(latestPoint.ts, oldestTs, newestTs) + '</title>' +
+        '<title>' + escapeAttr(t('latest_tip', { pct: fmtPct(latestPoint.hit), ctx: fmtTokens(latestPoint.ctx), time: fmtChartTime(latestPoint.ts, oldestTs, newestTs) })) + '</title>' +
       '</circle>';
     }
     var midIndex = Math.floor((rows.length - 1) / 2);
@@ -1005,9 +1154,9 @@ function setupCacheBadge() {
         '</div>' +
       '</div>' +
       '<div class="cceHitStats">' +
-        '<div class="cceHitStat"><span>Latest</span><strong>' + fmtPct(latestHit) + '</strong></div>' +
-        '<div class="cceHitStat"><span>Mean</span><strong>' + fmtPct(mean) + '</strong></div>' +
-        '<div class="cceHitStat"><span>Lowest</span><strong>' + fmtPct(minHit) + '</strong></div>' +
+        '<div class="cceHitStat"><span>' + escapeAttr(t('latest')) + '</span><strong>' + fmtPct(latestHit) + '</strong></div>' +
+        '<div class="cceHitStat"><span>' + escapeAttr(t('mean')) + '</span><strong>' + fmtPct(mean) + '</strong></div>' +
+        '<div class="cceHitStat"><span>' + escapeAttr(t('lowest')) + '</span><strong>' + fmtPct(minHit) + '</strong></div>' +
       '</div>';
 
     bindHitChartHover(box, points, {
@@ -1192,7 +1341,7 @@ function setupCacheBadge() {
     var freshPct = promptTotal > 0 ? (S.fresh / promptTotal) * 100 : 0;
     var writePct = promptTotal > 0 ? (S.write / promptTotal) * 100 : 0;
     var readPct = promptTotal > 0 ? (S.read / promptTotal) * 100 : 0;
-    var requestLabel = String(S.requests) + (S.requests === 1 ? ' request' : ' requests');
+    var requestLabel = tRequests(S.requests);
     var durationLabel = S.durationMs > 0 ? ' · ' + fmtDuration(S.durationMs) : '';
     function metric(label, value, kind) {
       return '<div class="cceSelectedMetric cceSelectedMetric-' + kind + '">' +
@@ -1204,7 +1353,7 @@ function setupCacheBadge() {
     box.innerHTML =
       '<div class="cceFlowContext cceSelectedRange">' +
         '<div class="cceFlowHeader">' +
-          '<span>Selected range</span>' +
+          '<span>' + escapeAttr(t('selected_range')) + '</span>' +
           '<strong>' + requestLabel + durationLabel + '</strong>' +
         '</div>' +
         '<div class="cceFlowRangeTime">' + rangeTimeLabel(rows) + '</div>' +
@@ -1214,16 +1363,16 @@ function setupCacheBadge() {
           '<span class="cceContextSeg cceContextSeg-read" style="width:' + pctNumber(readPct) + '%"></span>' +
         '</div>' +
         '<div class="cceFlowLegend">' +
-          '<span><i class="cceLegendFresh"></i>Fresh ' + fmtTokens(S.fresh) + '</span>' +
-          '<span><i class="cceLegendWrite"></i>Write ' + fmtTokens(S.write) + '</span>' +
-          '<span><i class="cceLegendRead"></i>Read ' + fmtTokens(S.read) + '</span>' +
+          '<span><i class="cceLegendFresh"></i>' + escapeAttr(t('fresh')) + ' ' + fmtTokens(S.fresh) + '</span>' +
+          '<span><i class="cceLegendWrite"></i>' + escapeAttr(t('write')) + ' ' + fmtTokens(S.write) + '</span>' +
+          '<span><i class="cceLegendRead"></i>' + escapeAttr(t('read')) + ' ' + fmtTokens(S.read) + '</span>' +
         '</div>' +
       '</div>' +
       '<div class="cceSelectedGrid">' +
-        metric('Cache read', fmtTokens(S.read), 'read') +
-        metric('Cache write', fmtTokens(S.write), 'write') +
-        metric('Output', fmtTokens(S.output), 'output') +
-        metric('Fresh input', fmtTokens(S.fresh), 'fresh') +
+        metric(t('cache_read'), fmtTokens(S.read), 'read') +
+        metric(t('cache_write'), fmtTokens(S.write), 'write') +
+        metric(t('output'), fmtTokens(S.output), 'output') +
+        metric(t('fresh_input'), fmtTokens(S.fresh), 'fresh') +
       '</div>';
   }
   function renderPopup() {
@@ -1394,8 +1543,10 @@ function setupEditActivityHeader() {
 
   var CHIP_CLASS = 'cceEditChip';
   var POPUP_CLASS = 'cceEditPopup';
-  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var MONTHS = CFG.language === 'zh'
+    ? ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+    : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   var latest = null;       // Current conversation activity, used by the header chip.
   var projectLatest = null; // Current Claude Code project activity, used by the popup header.
   var globalLatest = null;  // Claude Code global activity, used by the heatmap.
@@ -1511,7 +1662,7 @@ function setupEditActivityHeader() {
       chip = document.createElement('button');
       chip.type = 'button';
       chip.className = CHIP_CLASS;
-      chip.setAttribute('aria-label', 'Model edit activity');
+      chip.setAttribute('aria-label', t('model_edit_activity'));
       chip.innerHTML =
         '<span data-incipit-tool-added data-edit-added></span>' +
         '<span data-incipit-tool-removed data-edit-removed></span>';
@@ -1574,9 +1725,11 @@ function setupEditActivityHeader() {
     var remEl = chip.querySelector('[data-edit-removed]');
     if (addEl && addEl.textContent !== added) addEl.textContent = added;
     if (remEl && remEl.textContent !== removed) remEl.textContent = removed;
-    chip.title = 'Model edits: +' + fmtFullCount(T.added) +
-      ' / \u2212' + fmtFullCount(T.removed) +
-      ' across ' + fmtFullCount(T.edits) + ' tool edits';
+    chip.title = t('model_edits_title', {
+      added: fmtFullCount(T.added),
+      removed: fmtFullCount(T.removed),
+      edits: fmtFullCount(T.edits)
+    });
   }
 
   function activityPayloadSignature(payload) {
@@ -1641,6 +1794,9 @@ function setupEditActivityHeader() {
   function fmtDayTitle(key) {
     var d = parseDayKey(key);
     if (!d || isNaN(d.getTime())) return key || '';
+    if (CFG.language === 'zh') {
+      return d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日';
+    }
     return MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
   }
 
@@ -1690,10 +1846,12 @@ function setupEditActivityHeader() {
 
   function cellTip(cell) {
     var item = cell.item || {};
-    return fmtDayTitle(cell.key) +
-      ' · +' + fmtFullCount(item.added) +
-      ' / \u2212' + fmtFullCount(item.removed) +
-      ' · ' + fmtFullCount(item.edits) + ' edits';
+    return t('cell_tip', {
+      date: fmtDayTitle(cell.key),
+      added: fmtFullCount(item.added),
+      removed: fmtFullCount(item.removed),
+      edits: fmtFullCount(item.edits)
+    });
   }
 
   function escapeAttr(s) {
@@ -1771,17 +1929,17 @@ function setupEditActivityHeader() {
     var indexing = globalLatest && globalLatest.status === 'indexing';
     var projectName = projectLatest && projectLatest.projectName
       ? projectLatest.projectName
-      : 'Current project';
+      : t('current_project');
     var facts = hasGlobal
-      ? '<span>' + fmtFullCount(G.edits) + ' global tool edits</span>' +
-        '<span>' + fmtFullCount(G.sessions || 0) + ' conversations</span>' +
-        '<span>' + fmtFullCount(G.projects || 0) + ' recorded projects</span>' +
-        '<span>' + fmtFullCount(G.activeDays) + ' active days</span>'
-      : '<span>Loading index</span>';
+      ? '<span>' + escapeAttr(t('global_tool_edits', { n: fmtFullCount(G.edits) })) + '</span>' +
+        '<span>' + escapeAttr(t('conversations', { n: fmtFullCount(G.sessions || 0) })) + '</span>' +
+        '<span>' + escapeAttr(t('recorded_projects', { n: fmtFullCount(G.projects || 0) })) + '</span>' +
+        '<span>' + escapeAttr(t('active_days', { n: fmtFullCount(G.activeDays) })) + '</span>'
+      : '<span>' + escapeAttr(t('loading_index')) + '</span>';
     popupEl.innerHTML =
       '<div class="cceEditShell">' +
         '<div class="cceEditProjectSummary">' +
-          '<div class="cceEditProjectLabel">Current project</div>' +
+          '<div class="cceEditProjectLabel">' + escapeAttr(t('current_project')) + '</div>' +
           '<div class="cceEditProjectName" title="' + escapeAttr(projectName) + '">' + escapeAttr(projectName) + '</div>' +
           '<div class="cceEditTotal">' +
             '<span data-incipit-tool-added>+' + fmtFullCount(P.added) + '</span>' +
@@ -1791,21 +1949,21 @@ function setupEditActivityHeader() {
         '<div class="cceEditRule"></div>' +
         '<div class="cceEditHead">' +
           '<div class="cceEditTitleBlock">' +
-            '<div class="cceEditKicker">All Claude Code conversations</div>' +
-            '<div class="cceEditScope">Across recorded projects</div>' +
+            '<div class="cceEditKicker">' + escapeAttr(t('all_conversations_kicker')) + '</div>' +
+            '<div class="cceEditScope">' + escapeAttr(t('across_recorded_projects')) + '</div>' +
           '</div>' +
-          (indexing ? '<div class="cceEditStatus">Indexing</div>' : '') +
+          (indexing ? '<div class="cceEditStatus">' + escapeAttr(t('indexing')) + '</div>' : '') +
         '</div>' +
         '<div class="cceEditFacts">' +
           facts +
         '</div>' +
         renderActivityHeatmap() +
         '<div class="cceEditLegend">' +
-          '<span>' + (hasEdits ? 'Less' : 'No model edits yet') + '</span>' +
+          '<span>' + escapeAttr(hasEdits ? t('less') : t('no_model_edits')) + '</span>' +
           '<span class="cceEditLegendCells" aria-hidden="true">' +
             '<i data-level="0"></i><i data-level="1"></i><i data-level="2"></i><i data-level="3"></i><i data-level="4"></i>' +
           '</span>' +
-          '<span>More</span>' +
+          '<span>' + escapeAttr(t('more')) + '</span>' +
         '</div>' +
       '</div>' +
       '';
@@ -2196,8 +2354,8 @@ function setupNotes() {
         btn = document.createElement('button');
         btn.type = 'button';
         btn.className = NOTE_BTN_CLASS;
-        btn.setAttribute('aria-label', 'Notes');
-        btn.title = 'Notes';
+        btn.setAttribute('aria-label', t('notes'));
+        btn.title = t('notes');
         btn.innerHTML = NOTE_ICON_SVG;
         btn.addEventListener('click', function (ev) {
           ev.stopPropagation();
@@ -2222,7 +2380,7 @@ function setupNotes() {
     var el = document.createElement('div');
     el.setAttribute('data-incipit-notes-panel', '');
     el.setAttribute('role', 'dialog');
-    el.setAttribute('aria-label', 'Notes');
+    el.setAttribute('aria-label', t('notes'));
     el.addEventListener('click', function (ev) { ev.stopPropagation(); });
     bindPanelDelegation(el);
     return el;
@@ -2325,7 +2483,7 @@ function setupNotes() {
 
     var tabs = document.createElement('div');
     tabs.setAttribute('data-incipit-notes-tabs', '');
-    [['project', 'Project'], ['global', 'Global']].forEach(function (pair) {
+    [['project', t('notes_tab_project')], ['global', t('notes_tab_global')]].forEach(function (pair) {
       var tab = document.createElement('button');
       tab.type = 'button';
       tab.setAttribute('data-incipit-notes-tab', pair[0]);
@@ -2346,8 +2504,8 @@ function setupNotes() {
         var empty = document.createElement('div');
         empty.setAttribute('data-incipit-notes-empty', '');
         empty.textContent = activeScope === 'project'
-          ? (currentCwd() ? 'No project notes yet.' : 'Open a workspace to use project notes.')
-          : 'No notes yet.';
+          ? (currentCwd() ? t('no_project_notes') : t('open_workspace_for_notes'))
+          : t('no_notes');
         body.appendChild(empty);
       } else {
         notes.forEach(function (note) {
@@ -2364,7 +2522,7 @@ function setupNotes() {
       var add = document.createElement('button');
       add.type = 'button';
       add.setAttribute('data-incipit-notes-add', '');
-      add.textContent = '+ New note';
+      add.textContent = t('new_note');
       footer.appendChild(add);
       panelEl.appendChild(footer);
     }
@@ -2378,23 +2536,23 @@ function setupNotes() {
     var insert = document.createElement('button');
     insert.type = 'button';
     insert.setAttribute('data-incipit-notes-insert', '');
-    insert.title = 'Insert into composer';
+    insert.title = t('insert_into_composer');
     insert.textContent = notePreview(note.text);
     row.appendChild(insert);
 
     var edit = document.createElement('button');
     edit.type = 'button';
     edit.setAttribute('data-incipit-notes-edit', '');
-    edit.setAttribute('aria-label', 'Edit note');
-    edit.title = 'Edit';
+    edit.setAttribute('aria-label', t('edit_note'));
+    edit.title = t('edit');
     edit.textContent = '✎';
     row.appendChild(edit);
 
     var del = document.createElement('button');
     del.type = 'button';
     del.setAttribute('data-incipit-notes-delete', '');
-    del.setAttribute('aria-label', 'Delete note');
-    del.title = 'Delete';
+    del.setAttribute('aria-label', t('delete_note'));
+    del.title = t('delete');
     del.textContent = '×';
     row.appendChild(del);
 
@@ -2409,7 +2567,7 @@ function setupNotes() {
     ta.setAttribute('data-incipit-notes-textarea', '');
     ta.rows = 5;
     ta.spellcheck = false;
-    ta.placeholder = 'Snippet text to insert into the composer…';
+    ta.placeholder = t('note_placeholder');
     if (editingId !== '__new__') {
       var hit = (notesByScope[activeScope] || []).find(function (n) { return n && n.id === editingId; });
       ta.value = hit ? hit.text : '';
@@ -2430,11 +2588,11 @@ function setupNotes() {
     var cancel = document.createElement('button');
     cancel.type = 'button';
     cancel.setAttribute('data-incipit-notes-editor-cancel', '');
-    cancel.textContent = 'Cancel';
+    cancel.textContent = t('cancel');
     var save = document.createElement('button');
     save.type = 'button';
     save.setAttribute('data-incipit-notes-editor-save', '');
-    save.textContent = 'Save';
+    save.textContent = t('save');
     actions.appendChild(cancel);
     actions.appendChild(save);
     wrap.appendChild(actions);
@@ -2539,11 +2697,11 @@ function setupNotes() {
   // had and that the file is back to its previous contents.
   function rejectReminderLine(f) {
     var label = (f.tool ? f.tool + ' ' : '') + '`' + f.path + '`';
-    if (f.isCreated) return label + ' — newly created; now deleted.';
+    if (f.isCreated) return label + t('file_created_deleted');
     var stats = f.hasLineStats
-      ? '+' + (f.added || 0) + '/−' + (f.removed || 0) + ' lines; '
+      ? t('file_line_stats', { added: f.added || 0, removed: f.removed || 0 })
       : '';
-    return label + ' — ' + stats + 'restored to its previous contents.';
+    return label + t('file_restored', { stats: stats });
   }
 
   function buildRejectReminder(files) {
@@ -2551,8 +2709,8 @@ function setupNotes() {
     if (!list.length) return '';
     var lines = list.map(rejectReminderLine);
     var intro = list.length === 1
-      ? 'I rejected the following change; it has been reverted:'
-      : 'I rejected the following changes; they have been reverted:';
+      ? t('reject_intro_one')
+      : t('reject_intro_many');
     return intro + '\n' + lines.join('\n');
   }
 
@@ -2595,12 +2753,12 @@ function setupNotes() {
     var dismiss = document.createElement('button');
     dismiss.type = 'button';
     dismiss.setAttribute('data-incipit-notes-bubble-dismiss', '');
-    dismiss.textContent = 'Dismiss';
+    dismiss.textContent = t('dismiss');
     dismiss.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); hideBubble(); });
     var insert = document.createElement('button');
     insert.type = 'button';
     insert.setAttribute('data-incipit-notes-bubble-insert', '');
-    insert.textContent = 'Insert';
+    insert.textContent = t('insert');
     insert.addEventListener('click', function (ev) {
       ev.preventDefault();
       ev.stopPropagation();

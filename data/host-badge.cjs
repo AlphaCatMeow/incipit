@@ -4647,6 +4647,11 @@ function projectIndexPath(projectKey) {
   return path.join(EDIT_ACTIVITY_INDEX_DIR, projectKey + '.json');
 }
 
+function currentLanguage() {
+  const cfg = (typeof globalThis !== 'undefined' && globalThis.__incipitConfig) || {};
+  return cfg.language === 'zh' ? 'zh' : 'en';
+}
+
 function projectDisplayName(projectDir, cwd) {
   if (typeof cwd === 'string' && cwd) {
     const normalized = cwd.replace(/[\\/]+$/, '');
@@ -4655,7 +4660,7 @@ function projectDisplayName(projectDir, cwd) {
     if (base) return base;
   }
   const dirName = path.basename(projectDir || '');
-  return dirName || 'Current project';
+  return dirName || (currentLanguage() === 'zh' ? '当前项目' : 'Current project');
 }
 
 function createProjectEditActivityIndex(projectDir) {

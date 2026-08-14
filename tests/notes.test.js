@@ -13,8 +13,9 @@
 //   · notes persist per scope: Global in one file, Project keyed by SHA256(cwd),
 //     written atomically (tmp + rename); the two scopes never bleed
 //   · the reject bubble accumulates rejected files (deduped by path, last wins),
-//     only fires on a SUCCESSFUL reject, and renders a plain-fact English
-//     reminder with one tool-aware line per file (no edit line ranges)
+//     only fires on a SUCCESSFUL reject, and renders a plain-fact, localized
+//     (EN/ZH via t()) reminder with one tool-aware line per file (no edit line
+//     ranges)
 //   · panel interactions are delegated to the stable panel element, never bound
 //     per-row (memo 2026-06-13: per-node handlers die on rebuild)
 //   · the note icon mounts on the identity heartbeat, not a new body observer
@@ -155,7 +156,7 @@ function tmpNotesDir() {
 })();
 
 // ---------------------------------------------------------------------------
-// 3. Reject reminder bubble: success-only, deduped, plain-fact English
+// 3. Reject reminder bubble: success-only, deduped, plain-fact, localized
 // ---------------------------------------------------------------------------
 (function rejectBubbleContract() {
   assert.ok(
@@ -174,12 +175,25 @@ function tmpNotesDir() {
   // +N/-M totals but NEVER edit line ranges (post-revert line numbers mislead).
   assert.ok(notes.includes("(f.tool ? f.tool + ' ' : '')"),
     'each reminder line is prefixed by the editing tool name when known');
-  assert.ok(notes.includes('newly created; now deleted.'),
-    'created files report deletion, not restore');
-  assert.ok(notes.includes('restored to its previous contents.'),
-    'existing files report restore to previous contents');
-  assert.ok(notes.includes("'+' + (f.added || 0) + '/−' + (f.removed || 0) + ' lines; '"),
-    'existing files may show +N/-M line totals');
+  // Reminder copy is localized via t(key, vars) (EN/ZH, see CFG.language); the
+  // call sites live inside setupNotes, the dictionary values live in the
+  // module-level STR table above it, so both must be checked.
+  assert.ok(notes.includes("t('file_created_deleted')"),
+    'created files use the localized file_created_deleted string');
+  assert.ok(footer.includes("file_created_deleted: ' — newly created; now deleted.'"),
+    'EN dict: created files report deletion, not restore');
+  assert.ok(footer.includes("file_created_deleted: ' — 新建后已删除。'"),
+    'ZH dict: created files report deletion, not restore');
+  assert.ok(notes.includes("t('file_restored', { stats: stats })"),
+    'existing files use the localized file_restored string');
+  assert.ok(footer.includes("file_restored: ' — {stats}restored to its previous contents.'"),
+    'EN dict: existing files report restore to previous contents');
+  assert.ok(footer.includes("file_restored: ' — {stats}已恢复为先前内容。'"),
+    'ZH dict: existing files report restore to previous contents');
+  assert.ok(notes.includes("t('file_line_stats', { added: f.added || 0, removed: f.removed || 0 })"),
+    'existing files may show +N/-M line totals via the localized file_line_stats string');
+  assert.ok(footer.includes("file_line_stats: '+{added}/−{removed} lines; '"),
+    'EN dict: line totals keep the +N/-M template');
   // No edit line ranges anywhere in the reminder path (user decision 2026-06-13).
   assert.ok(!/lineRange|startLine|endLine|':' \+ .*line/i.test(notes),
     'reminder must not emit edit line ranges, only +N/-M totals');
