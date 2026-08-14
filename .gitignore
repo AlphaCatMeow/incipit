@@ -19,6 +19,8 @@ AGENTS.md
 dev-notes/
 design-docs/
 ARCHITECTURE.md
+architecture/
+specs/
 
 # Build/temp artifacts (in case someone tries PyInstaller again)
 build/
