@@ -16,8 +16,13 @@ const OVERLAY_SENTINEL_ROOT = path.join(os.homedir(), '.incipit', 'editor-select
 const HOST_IDENTITY_ROOT = path.join(os.homedir(), '.incipit', 'editor-hosts-v1');
 const INCIPIT_CONFIG_PATH = path.join(os.homedir(), '.incipit', 'config.json');
 
-const LABEL_SELECTION = '◆ Selection';
-const LABEL_WHOLE_FILE = '▣ File';
+function labelSelection() {
+  return `◆ ${vscode.l10n.t('Selection')}`;
+}
+
+function labelWholeFile() {
+  return `▣ ${vscode.l10n.t('File')}`;
+}
 
 const SKIPPED_SCHEMES = new Set([
   'comment',
@@ -64,12 +69,12 @@ function activate(context) {
       return [
         createCodeLens({
           range,
-          title: LABEL_SELECTION,
+          title: labelSelection(),
           command: COMMAND_REFERENCE_ACTIVE_SELECTION
         }),
         createCodeLens({
           range,
-          title: LABEL_WHOLE_FILE,
+          title: labelWholeFile(),
           command: COMMAND_REFERENCE_ACTIVE_FILE
         })
       ];
@@ -188,12 +193,12 @@ function selectedLineRange(selection) {
 async function referenceMention(payload) {
   const mention = payload && typeof payload.mention === 'string' ? payload.mention : null;
   if (!mention) {
-    vscode.window.showWarningMessage('No Claude Code reference was available for this selection.');
+    vscode.window.showWarningMessage(vscode.l10n.t('No Claude Code reference was available for this selection.'));
     return;
   }
 
   if (!vscode.extensions.getExtension(CLAUDE_EXTENSION_ID)) {
-    vscode.window.showWarningMessage('Claude Code for VS Code is not installed.');
+    vscode.window.showWarningMessage(vscode.l10n.t('Claude Code for VS Code is not installed.'));
     return;
   }
 
@@ -201,7 +206,7 @@ async function referenceMention(payload) {
     await vscode.commands.executeCommand(CLAUDE_INSERT_COMMAND, mention);
   } catch (error) {
     vscode.window.showWarningMessage(
-      'Could not insert the reference in Claude Code. Run incipit apply, reload VS Code, and try again.'
+      vscode.l10n.t('Could not insert the reference in Claude Code. Run incipit apply, reload VS Code, and try again.')
     );
     throw error;
   }
@@ -210,12 +215,12 @@ async function referenceMention(payload) {
 async function referenceActiveEditor(options = {}) {
   const editor = vscode.window.activeTextEditor;
   if (!editor || !canReferenceDocument(editor.document)) {
-    vscode.window.showWarningMessage('No editor file was available for Claude Code reference.');
+    vscode.window.showWarningMessage(vscode.l10n.t('No editor file was available for Claude Code reference.'));
     return;
   }
   const selection = options.wholeFile ? null : getPrimarySelection(editor);
   if (!options.wholeFile && (!selection || selection.isEmpty)) {
-    vscode.window.showWarningMessage('No editor selection was available for Claude Code reference.');
+    vscode.window.showWarningMessage(vscode.l10n.t('No editor selection was available for Claude Code reference.'));
     return;
   }
   const mention = buildMention(editor.document.uri, selection);

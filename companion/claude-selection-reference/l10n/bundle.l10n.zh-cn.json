@@ -1,0 +1,9 @@
+{
+  "Selection": "选区",
+  "File": "文件",
+  "No Claude Code reference was available for this selection.": "该选区没有可用的 Claude Code 引用。",
+  "Claude Code for VS Code is not installed.": "尚未安装 VS Code 版 Claude Code。",
+  "Could not insert the reference in Claude Code. Run incipit apply, reload VS Code, and try again.": "无法在 Claude Code 中插入引用。请运行 incipit apply，重新加载 VS Code 后再试一次。",
+  "No editor file was available for Claude Code reference.": "没有可用于 Claude Code 引用的编辑器文件。",
+  "No editor selection was available for Claude Code reference.": "没有可用于 Claude Code 引用的编辑器选区。"
+}

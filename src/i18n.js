@@ -142,6 +142,7 @@ const STRINGS = {
     'apply.report.desc.workbench_overlay_restored': 'Workbench overlay restored to official bytes',
     'apply.report.desc.workbench_overlay_already_official': 'Workbench already official',
     'apply.report.desc.workbench_overlay_degraded': 'requested, but editor not safely confirmed; overlay skipped this apply',
+    'apply.report.desc.companion_extension': 'Claude selection reference CodeLens, {files}',
     'apply.report.overlay_degraded_heading': '⚠ Editor overlay was NOT applied this run (everything else applied; your setting is unchanged)',
     'apply.report.overlay_degraded_reason_only_official_vscode': 'This Claude Code target is not official VS Code Stable/Insiders, so the editor program file cannot be safely confirmed.',
     'apply.report.overlay_degraded_reason_workbench_not_found': 'No VS Code Stable/Insiders Workbench program file was found for this target.',
@@ -168,6 +169,8 @@ const STRINGS = {
     'restore.workbench_restored':'Workbench editor overlay restored.',
     'restore.workbench_already_official':'Workbench editor overlay already looks official.',
     'restore.workbench_unsupported':'Workbench editor overlay was not checked for this host.',
+    'restore.companion_removed':'Companion extension removed ({count}).',
+    'restore.companion_none':   'No companion extension install found.',
     'restore.reload_hint':      'Run Developer: Reload Window in VS Code to reload.',
 
     // --- cleanup flow ---
@@ -532,6 +535,7 @@ const STRINGS = {
     'apply.report.desc.workbench_overlay_restored': 'Workbench 浮层已恢复为官方字节',
     'apply.report.desc.workbench_overlay_already_official': 'Workbench 已是官方状态',
     'apply.report.desc.workbench_overlay_degraded': '已启用，但编辑器未能安全确认；本次跳过浮层',
+    'apply.report.desc.companion_extension': 'Claude 选区引用 CodeLens，{files}',
     'apply.report.overlay_degraded_heading': '⚠ 编辑器浮层本次未应用（其余设置已全部正常应用，你的配置未被改动）',
     'apply.report.overlay_degraded_reason_only_official_vscode': '当前 Claude Code 目标不是官方 VS Code Stable/Insiders，无法安全确认编辑器程序文件。',
     'apply.report.overlay_degraded_reason_workbench_not_found': '没有为该目标找到 VS Code Stable/Insiders 的 Workbench 程序文件。',
@@ -557,6 +561,8 @@ const STRINGS = {
     'restore.workbench_restored':'Workbench 编辑器浮层已恢复。',
     'restore.workbench_already_official':'Workbench 编辑器浮层已经是官方状态。',
     'restore.workbench_unsupported':'当前宿主未检查 Workbench 编辑器浮层。',
+    'restore.companion_removed':'已移除 companion 扩展（{count} 个）。',
+    'restore.companion_none':   '未找到已安装的 companion 扩展。',
     'restore.reload_hint':      '请在 VS Code 里执行 Developer: Reload Window 以生效。',
 
     // --- cleanup flow ---

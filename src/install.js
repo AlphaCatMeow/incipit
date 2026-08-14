@@ -41,6 +41,13 @@ const CLAUDE_CODE_EXTENSION_PREFIX = 'anthropic.claude-code-';
 const ENHANCE_TARGET_NAME = 'enhance.js';
 const THEME_TARGET_NAME = 'theme.css';
 
+// The companion extension (a real, separate VS Code extension providing
+// CodeLens actions to reference a selection/file in Claude Code) ships
+// source under `companion/claude-selection-reference/`. It is installed
+// into the same extensions directory as the Claude Code target itself.
+const COMPANION_EXTENSION_SOURCE_DIR = path.join('companion', 'claude-selection-reference');
+const COMPANION_EXTENSION_PREFIX = 'incipit.claude-selection-reference-';
+
 // Root-level webview files as `[sourceRelativePath, targetFileName]`.
 // `theme.css` stays separate from the JS template string so CSS comments and
 // backticks cannot terminate the template by accident.
@@ -1512,6 +1519,64 @@ function installSerifSystemFonts(resourceRoot) {
   // macOS does not require an explicit refresh.
 
   return written;
+}
+
+// ============================================================
+// companion extension installation
+// ============================================================
+
+// VS Code only discovers an extension from a version-suffixed folder name
+// under the extensions directory (`publisher.name-x.y.z`), so each apply
+// re-reads the companion's own `package.json` for its current version and
+// (re)syncs that exact folder, then removes any other-version copies so a
+// stale build never shadows or duplicates the current one.
+function companionExtensionsDir(target) {
+  return path.dirname(target.extensionDir);
+}
+
+function companionExtensionVersion(resourceRoot) {
+  const pkgPath = path.join(resourceRoot, COMPANION_EXTENSION_SOURCE_DIR, 'package.json');
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+  if (!pkg.version) {
+    throw new Error(`未找到 companion 扩展版本号:${pkgPath}`);
+  }
+  return pkg.version;
+}
+
+function installCompanionExtension(resourceRoot, target) {
+  const sourceDir = path.join(resourceRoot, COMPANION_EXTENSION_SOURCE_DIR);
+  const version = companionExtensionVersion(resourceRoot);
+  const dirName = `${COMPANION_EXTENSION_PREFIX}${version}`;
+  const extensionsDir = companionExtensionsDir(target);
+  const targetDir = path.join(extensionsDir, dirName);
+  const [written, total] = syncAssetTree(sourceDir, targetDir);
+
+  let staleRemoved = 0;
+  if (fs.existsSync(extensionsDir)) {
+    for (const entry of fs.readdirSync(extensionsDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      if (entry.name === dirName) continue;
+      if (!entry.name.startsWith(COMPANION_EXTENSION_PREFIX)) continue;
+      fs.rmSync(path.join(extensionsDir, entry.name), { recursive: true, force: true });
+      staleRemoved++;
+    }
+  }
+
+  return { name: dirName, path: targetDir, version, written, total, staleRemoved };
+}
+
+function removeCompanionExtensions(target) {
+  const extensionsDir = companionExtensionsDir(target);
+  let removed = 0;
+  if (fs.existsSync(extensionsDir)) {
+    for (const entry of fs.readdirSync(extensionsDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      if (!entry.name.startsWith(COMPANION_EXTENSION_PREFIX)) continue;
+      fs.rmSync(path.join(extensionsDir, entry.name), { recursive: true, force: true });
+      removed++;
+    }
+  }
+  return { removed };
 }
 
 // ============================================================
@@ -3328,6 +3393,11 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
     ? `已写入 ${serifWritten}/${SYSTEM_FONT_FILES.length}`
     : `已存在 (${SYSTEM_FONT_FILES.length} 个)`;
 
+  // The companion extension is the default reference entry (CodeLens) and is
+  // always installed alongside the patch — it is not gated by the
+  // experimental editor-overlay feature flag.
+  const companionExtension = installCompanionExtension(resourceRoot, target);
+
   // The editor overlay is opt-in + experimental. Per the 2026-05-16 design
   // override, NO overlay failure mode may abort the user's whole apply:
   //   - preflight unconfirmable target  -> degrade (effective=false)
@@ -3417,6 +3487,7 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
       },
       customIcon,
       workbenchOverlay,
+      companionExtension,
       legacyAssetTreesPruned,
       installContracts,
     },
@@ -3437,8 +3508,12 @@ module.exports = {
   userFontDir,
   findLatestClaudeCodeExtension,
   installClaudeCodeVSCodeEnhance,
+  removeCompanionExtensions,
   padLabel,
   __test: {
+    COMPANION_EXTENSION_PREFIX,
+    installCompanionExtension,
+    companionExtensionVersion,
     patchExtensionJs,
     patchExtensionHtmlHead,
     patchWebviewIndex,

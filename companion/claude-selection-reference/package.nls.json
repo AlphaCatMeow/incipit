@@ -1,0 +1,9 @@
+{
+  "incipit.displayName": "Incipit: Claude Selection Reference",
+  "incipit.description": "Show editor CodeLens actions for referencing a selection or whole file in Claude Code.",
+  "incipit.command.referenceSelection.title": "Incipit: Reference Selection in Claude Code",
+  "incipit.command.referenceActiveSelection.title": "Incipit: Reference Active Selection in Claude Code",
+  "incipit.command.referenceActiveFile.title": "Incipit: Reference Active File in Claude Code",
+  "incipit.configuration.title": "Incipit Claude Selection Reference",
+  "incipit.configuration.enabled.description": "Show CodeLens actions when the active editor has a non-empty selection."
+}

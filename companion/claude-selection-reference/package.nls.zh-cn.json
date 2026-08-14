@@ -1,0 +1,9 @@
+{
+  "incipit.displayName": "Incipit：Claude 选区引用",
+  "incipit.description": "在编辑器中显示 CodeLens 操作，用于在 Claude Code 中引用选区或整个文件。",
+  "incipit.command.referenceSelection.title": "Incipit：在 Claude Code 中引用选区",
+  "incipit.command.referenceActiveSelection.title": "Incipit：在 Claude Code 中引用当前选区",
+  "incipit.command.referenceActiveFile.title": "Incipit：在 Claude Code 中引用当前文件",
+  "incipit.configuration.title": "Incipit Claude 选区引用",
+  "incipit.configuration.enabled.description": "当前编辑器有非空选区时显示 CodeLens 操作。"
+}

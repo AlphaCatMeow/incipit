@@ -1,7 +1,7 @@
 {
   "name": "claude-selection-reference",
-  "displayName": "Incipit: Claude Selection Reference",
-  "description": "Show editor CodeLens actions for referencing a selection or whole file in Claude Code.",
+  "displayName": "%incipit.displayName%",
+  "description": "%incipit.description%",
   "version": "0.0.1",
   "publisher": "incipit",
   "license": "AGPL-3.0-or-later",
@@ -18,31 +18,32 @@
     "onCommand:incipitClaudeReference.referenceActiveFile"
   ],
   "main": "./extension.js",
+  "l10n": "./l10n",
   "contributes": {
     "commands": [
       {
         "command": "incipitClaudeReference.referenceSelection",
-        "title": "Incipit: Reference Selection in Claude Code",
+        "title": "%incipit.command.referenceSelection.title%",
         "icon": "$(references)"
       },
       {
         "command": "incipitClaudeReference.referenceActiveSelection",
-        "title": "Incipit: Reference Active Selection in Claude Code",
+        "title": "%incipit.command.referenceActiveSelection.title%",
         "icon": "$(references)"
       },
       {
         "command": "incipitClaudeReference.referenceActiveFile",
-        "title": "Incipit: Reference Active File in Claude Code",
+        "title": "%incipit.command.referenceActiveFile.title%",
         "icon": "$(file-code)"
       }
     ],
     "configuration": {
-      "title": "Incipit Claude Selection Reference",
+      "title": "%incipit.configuration.title%",
       "properties": {
         "incipitClaudeReference.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Show CodeLens actions when the active editor has a non-empty selection."
+          "description": "%incipit.configuration.enabled.description%"
         }
       }
     }

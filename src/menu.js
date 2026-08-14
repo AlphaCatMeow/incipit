@@ -9,6 +9,7 @@ const { spawn } = require('child_process');
 const {
   findLatestClaudeCodeExtension,
   installClaudeCodeVSCodeEnhance,
+  removeCompanionExtensions,
 } = require('./install');
 const {
   BACKUP_ROOT,
@@ -527,6 +528,7 @@ function buildPatchTree(result) {
   const workbench = report.workbenchOverlay || { status: 'off' };
   const customIcon = report.customIcon || { status: 'official-unmanaged', files: [] };
   const customIconFiles = Array.isArray(customIcon.files) ? customIcon.files : [];
+  const companionExtension = report.companionExtension || { total: 0 };
   return [
     { name: 'extension.js', desc: t('apply.report.desc.extension_js') },
     { name: 'webview/', desc: t('apply.report.desc.webview_dir'), children: webviewChildren },
@@ -544,6 +546,7 @@ function buildPatchTree(result) {
       })),
     }] : []),
     { name: 'editor overlay', desc: t(`apply.report.desc.workbench_overlay_${workbench.status.replace(/-/g, '_')}`) },
+    { name: 'companion extension', desc: t('apply.report.desc.companion_extension', { files: fileCount(companionExtension.total || 0) }) },
     { name: 'system fonts', desc: t('apply.report.desc.system_fonts', { files: fileCount(fontTotal) }) },
   ];
 }
@@ -638,6 +641,10 @@ function countApplyReportEntries(report) {
   if (report.customIcon && Array.isArray(report.customIcon.files)) {
     total += report.customIcon.files.length;
     changed += report.customIcon.files.filter(file => file.written).length;
+  }
+  if (report.companionExtension) {
+    total++;
+    if (report.companionExtension.written > 0) changed++;
   }
   if (!Number.isFinite(total) || total < 0) total = changed;
   return { changed, total };
@@ -757,6 +764,14 @@ async function handleRestore({
     if (exc.stack) console.log(exc.stack);
     return 1;
   }
+  let companionResult;
+  try {
+    companionResult = removeCompanionExtensions(target);
+  } catch (exc) {
+    console.log(color(t('menu.operation_failed', { msg: exc.message }), Ansi.RED));
+    if (exc.stack) console.log(exc.stack);
+    return 1;
+  }
   if (result.alreadyOfficial) {
     console.log(color(t('restore.already_official'), Ansi.YELLOW));
     if (workbenchResult && workbenchResult.status) {
@@ -765,9 +780,15 @@ async function handleRestore({
       if (workbenchResult.restorePointDir) {
         console.log(t('restore.workbench_restore_point_dir', { dir: workbenchResult.restorePointDir }));
       }
-      if (workbenchResult.status === 'restored') {
-        console.log(color(t('restore.reload_hint'), Ansi.YELLOW));
-      }
+    }
+    if (companionResult) {
+      console.log(color(
+        t(companionResult.removed > 0 ? 'restore.companion_removed' : 'restore.companion_none', { count: companionResult.removed }),
+        companionResult.removed > 0 ? Ansi.GREEN : Ansi.YELLOW,
+      ));
+    }
+    if ((workbenchResult && workbenchResult.status === 'restored') || (companionResult && companionResult.removed > 0)) {
+      console.log(color(t('restore.reload_hint'), Ansi.YELLOW));
     }
     return 0;
   }
@@ -779,6 +800,12 @@ async function handleRestore({
   console.log(color(t('restore.done', { restored: result.restored, skipped: result.skipped }), Ansi.GREEN));
   if (workbenchResult && workbenchResult.status) {
     console.log(color(t(`restore.workbench_${workbenchResult.status.replace(/-/g, '_')}`), Ansi.GREEN));
+  }
+  if (companionResult) {
+    console.log(color(
+      t(companionResult.removed > 0 ? 'restore.companion_removed' : 'restore.companion_none', { count: companionResult.removed }),
+      Ansi.GREEN,
+    ));
   }
   console.log(color(t('restore.reload_hint'), Ansi.YELLOW));
   return 0;
