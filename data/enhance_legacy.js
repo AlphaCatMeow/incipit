@@ -37,6 +37,218 @@ import {
 (() => {
   'use strict';
 
+  // Bilingual (EN/ZH, driven by CFG.language) copy for the scattered
+  // interaction-surface strings owned directly by this module — dialogs,
+  // tooltips, dropdown items, toasts. Mirrors enhance_footer_badge.js's
+  // t()/STR pattern (named LEGACY_STR/legacyText here to avoid colliding
+  // with the many local `t`/`T` variables already used as short-lived
+  // transcript-text locals throughout this file). DEFERRED_NEXT_TEXT and
+  // CHANGE_REVIEW_TEXT below are separate, longer-lived dictionaries with
+  // their own accessors and stay that way.
+  const LEGACY_STR = {
+    en: {
+      custom_model: 'Custom model',
+      custom_model_id_description: 'Custom model ID',
+      custom_model_enter_id: 'Enter a model ID.',
+      custom_model_session_not_ready: 'The active Claude session is not ready yet.',
+      custom_model_set_failed: 'Could not set model: {msg}',
+      close: 'Close',
+      model_id_label: 'Model ID',
+      cancel: 'Cancel',
+      use_model: 'Use model',
+      use_custom_model_id_action: 'Use custom model ID...',
+      set_model_by_full_id: 'Set a model by full ID',
+      action_failed: 'Action failed',
+      diff_fallback_title: 'diff',
+      preview_image: 'Preview image',
+      click_to_preview: 'Click to preview',
+      image_fallback_label: 'image',
+      remove_attachment: 'Remove attachment',
+      ide_auto_attached_file: 'IDE auto-attached: opened file',
+      ide_auto_attached_selection: 'IDE auto-attached: line selection',
+      attached_reference: 'Attached reference (preserved across edit)',
+      close_preview: 'Close preview',
+      attach_image_hint: 'Attach image (paste or drop also works)',
+      attach_image: 'Attach image',
+      cancel_edit_esc: 'Cancel edit (Esc)',
+      save_ctrl_enter: 'Save (Ctrl+Enter)',
+      save_rerun_ctrl_enter: 'Save and rerun (Ctrl+Enter)',
+      copy_as_text: 'Copy as text',
+      copy_as_markdown: 'Copy as markdown',
+      rerun_with_code_rewind: 'Rerun with code rewind',
+      fork_with_code_rewind: 'Fork with code rewind',
+      rewind_code_only: 'Rewind code only',
+      disabled_while_streaming: 'Disabled while streaming',
+      cannot_fork_first_message: 'Cannot fork from the first message',
+      edit_user_message: 'Edit user message (local history only)',
+      edit_assistant_message: 'Edit AI output (local history only)',
+      rerun_this_turn: 'Rerun this turn',
+      fork_conversation_from_here: 'Fork conversation from here',
+      more_actions: 'More actions',
+      show_more: 'Show more',
+      show_less: 'Show less',
+      permission_request_fallback: 'Permission request',
+      expand_permission_panel: 'Expand permission panel',
+      collapse_permission_panel: 'Collapse permission panel',
+      expand: 'Expand',
+      collapse: 'Collapse',
+      close_diff: 'Close diff',
+      click_to_expand: 'Click to expand',
+      open: 'Open',
+      could_not_copy_absolute_path: 'Could not copy absolute path',
+      could_not_copy_relative_path: 'Could not copy relative path',
+      open_in_file_explorer: 'Open in File Explorer',
+      could_not_open_in_file_explorer: 'Could not open in file explorer',
+      copy_relative_path: 'Copy Relative Path',
+      copy_absolute_path: 'Copy Absolute Path',
+      wait_for_reply_before_saving: 'Wait for the current reply to finish before saving',
+      stream_not_idle_blocked: 'incipit cannot confirm the reply stream is idle; action blocked to protect the conversation.',
+      local_history_updated_refresh: 'Local history updated. Refresh the window so the model sees the new content.',
+      rerun_in_progress: 'A rerun is already in progress; let it finish first',
+      no_content_to_rerun: 'No content to rerun',
+      rerun_internal_no_session: 'Internal: cannot resolve active session id; rerun aborted to avoid writing the wrong transcript.',
+      rerun_internal_no_send: 'Internal: cannot reach session.send; rerun aborted (local history is unchanged).',
+      rerun_internal_no_selection: 'Internal: cannot reach session.selection; rerun aborted to avoid dropping the IDE reference.',
+      rerun_previous_not_stopped: 'The previous reply has not finished stopping yet — nothing was changed. Wait for it to settle, then rerun again.',
+      rerun_failed_fallback: 'Rerun failed',
+      rerun_held_back_advanced: 'a background task or the interrupted reply appended after the cut',
+      rerun_held_back_not_stopped: 'the previous turn did not finish stopping in time',
+      rerun_held_back_wrap: 'Rerun was held back because {why}. Local history was restored — wait for the current reply to finish, then rerun again.',
+      rerun_send_failed_restored: 'Rerun send failed; local history was restored: {msg}',
+      rerun_send_failed_after_append: 'Rerun send failed after a new transcript append started: {msg}',
+      rerun_send_failed_rollback_failed: 'Rerun send failed, and rollback failed: {msg}',
+      rerun_send_failed: 'Rerun send failed: {msg}',
+      rewind_no_checkpoint: 'Cannot rewind: no checkpoint anchor on this message',
+      rewind_internal_no_rewindcode: 'Internal: cannot reach session.rewindCode; rewind aborted (no files were touched).',
+      rewind_failed_msg: 'Rewind code failed: {msg}',
+      rewind_failed: 'Rewind code failed',
+      fork_internal_no_forkconversation: 'Internal: cannot reach context.forkConversation; fork aborted.',
+      fork_internal_no_session: 'Internal: cannot resolve current session id; fork aborted.',
+      fork_no_text_content: 'No text content to fork with',
+      fork_failed: 'Fork failed: {msg}',
+      attach_bad_type_detail: 'Only PNG, JPEG, GIF, and WebP images can be attached (got {type})',
+      attach_too_large_detail: 'Image too large: {size} MB (max 5 MB)',
+      image_encode_failed: 'Failed to encode image (unexpected reader output)',
+      image_read_failed: 'Failed to read image file',
+      nothing_to_rerun_hint: 'Nothing to rerun — type something or keep at least one image attachment.',
+      nothing_to_save_hint: 'Nothing to save — type something or keep at least one attachment.',
+      local_history_syncing: 'Local history is still syncing this assistant message; try again in a moment.',
+      grep_in_label: 'IN',
+      grep_out_label: 'OUT',
+      transcript_mutation_failed_fallback: 'Transcript mutation failed',
+      wait_for_reply_before_history_edit: 'Wait for the current reply to finish before editing local history.',
+      cannot_confirm_idle_history_blocked: 'incipit cannot confirm the conversation is idle (host probes unavailable); local-history edit blocked.',
+      webview_channel_unreachable: 'Could not reach the VS Code webview channel.',
+      local_history_write_timed_out: 'Local history write request timed out.',
+    },
+    zh: {
+      custom_model: '自定义模型',
+      custom_model_id_description: '自定义模型 ID',
+      custom_model_enter_id: '请输入模型 ID。',
+      custom_model_session_not_ready: '当前 Claude 会话尚未就绪。',
+      custom_model_set_failed: '无法设置模型：{msg}',
+      close: '关闭',
+      model_id_label: '模型 ID',
+      cancel: '取消',
+      use_model: '使用该模型',
+      use_custom_model_id_action: '使用自定义模型 ID…',
+      set_model_by_full_id: '通过完整 ID 设置模型',
+      action_failed: '操作失败',
+      diff_fallback_title: '差异',
+      preview_image: '预览图片',
+      click_to_preview: '点击预览',
+      image_fallback_label: '图片',
+      remove_attachment: '移除附件',
+      ide_auto_attached_file: 'IDE 自动附加：已打开的文件',
+      ide_auto_attached_selection: 'IDE 自动附加：选中的行',
+      attached_reference: '已附加引用（编辑后仍保留）',
+      close_preview: '关闭预览',
+      attach_image_hint: '添加图片（也可粘贴或拖放）',
+      attach_image: '添加图片',
+      cancel_edit_esc: '取消编辑（Esc）',
+      save_ctrl_enter: '保存（Ctrl+Enter）',
+      save_rerun_ctrl_enter: '保存并重新运行（Ctrl+Enter）',
+      copy_as_text: '复制为文本',
+      copy_as_markdown: '复制为 Markdown',
+      rerun_with_code_rewind: '带代码回退重新运行',
+      fork_with_code_rewind: '带代码回退分叉',
+      rewind_code_only: '仅回退代码',
+      disabled_while_streaming: '流式输出期间不可用',
+      cannot_fork_first_message: '无法从第一条消息分叉',
+      edit_user_message: '编辑用户消息（仅本地历史）',
+      edit_assistant_message: '编辑 AI 输出（仅本地历史）',
+      rerun_this_turn: '重新运行本轮',
+      fork_conversation_from_here: '从此处分叉对话',
+      more_actions: '更多操作',
+      show_more: '展开',
+      show_less: '收起',
+      permission_request_fallback: '权限请求',
+      expand_permission_panel: '展开权限面板',
+      collapse_permission_panel: '收起权限面板',
+      expand: '展开',
+      collapse: '收起',
+      close_diff: '关闭差异',
+      click_to_expand: '点击展开',
+      open: '打开',
+      could_not_copy_absolute_path: '无法复制绝对路径',
+      could_not_copy_relative_path: '无法复制相对路径',
+      open_in_file_explorer: '在文件资源管理器中打开',
+      could_not_open_in_file_explorer: '无法在文件资源管理器中打开',
+      copy_relative_path: '复制相对路径',
+      copy_absolute_path: '复制绝对路径',
+      wait_for_reply_before_saving: '请等待当前回复结束后再保存',
+      stream_not_idle_blocked: 'incipit 无法确认回复流已空闲；为保护对话，该操作已被阻止。',
+      local_history_updated_refresh: '本地历史已更新。请刷新窗口，以便模型看到新内容。',
+      rerun_in_progress: '已有一个重新运行正在进行，请先等待其完成',
+      no_content_to_rerun: '没有可重新运行的内容',
+      rerun_internal_no_session: '内部错误：无法确定当前会话 ID；为避免写入错误的记录，重新运行已中止。',
+      rerun_internal_no_send: '内部错误：无法访问 session.send；重新运行已中止（本地历史未改变）。',
+      rerun_internal_no_selection: '内部错误：无法访问 session.selection；为避免丢失 IDE 引用，重新运行已中止。',
+      rerun_previous_not_stopped: '上一条回复尚未完全停止 — 未做任何更改。请等待其稳定后再重新运行。',
+      rerun_failed_fallback: '重新运行失败',
+      rerun_held_back_advanced: '有后台任务或被中断的回复在截断点之后追加了内容',
+      rerun_held_back_not_stopped: '上一轮尚未在预期时间内停止',
+      rerun_held_back_wrap: '重新运行已被暂缓，因为{why}。本地历史已恢复 — 请等待当前回复结束后再重新运行。',
+      rerun_send_failed_restored: '重新运行发送失败；本地历史已恢复：{msg}',
+      rerun_send_failed_after_append: '重新运行发送失败，此时已有新的记录开始追加：{msg}',
+      rerun_send_failed_rollback_failed: '重新运行发送失败，且回滚也失败：{msg}',
+      rerun_send_failed: '重新运行发送失败：{msg}',
+      rewind_no_checkpoint: '无法回退：此消息没有检查点锚点',
+      rewind_internal_no_rewindcode: '内部错误：无法访问 session.rewindCode；回退已中止（未修改任何文件）。',
+      rewind_failed_msg: '代码回退失败：{msg}',
+      rewind_failed: '代码回退失败',
+      fork_internal_no_forkconversation: '内部错误：无法访问 context.forkConversation；分叉已中止。',
+      fork_internal_no_session: '内部错误：无法确定当前会话 ID；分叉已中止。',
+      fork_no_text_content: '没有可用于分叉的文本内容',
+      fork_failed: '分叉失败：{msg}',
+      attach_bad_type_detail: '仅支持添加 PNG、JPEG、GIF 和 WebP 格式的图片（实际为 {type}）',
+      attach_too_large_detail: '图片过大：{size} MB（最大 5 MB）',
+      image_encode_failed: '图片编码失败（读取结果异常）',
+      image_read_failed: '读取图片文件失败',
+      nothing_to_rerun_hint: '没有可重新运行的内容 — 请输入文字，或保留至少一张图片附件。',
+      nothing_to_save_hint: '没有可保存的内容 — 请输入文字，或保留至少一个附件。',
+      local_history_syncing: '本地历史仍在同步此助手消息；请稍后重试。',
+      grep_in_label: '输入',
+      grep_out_label: '输出',
+      transcript_mutation_failed_fallback: '记录修改失败',
+      wait_for_reply_before_history_edit: '请等待当前回复结束后再编辑本地历史。',
+      cannot_confirm_idle_history_blocked: 'incipit 无法确认对话已空闲（主机探测不可用）；本地历史编辑已被阻止。',
+      webview_channel_unreachable: '无法连接到 VS Code webview 通道。',
+      local_history_write_timed_out: '本地历史写入请求超时。',
+    },
+  };
+
+  function legacyText(key, vars) {
+    const dict = LEGACY_STR[CFG.language] || LEGACY_STR.en;
+    let raw = (dict && dict[key]) || LEGACY_STR.en[key] || key;
+    if (vars && typeof vars === 'object') {
+      for (const name of Object.keys(vars)) {
+        raw = raw.replace(new RegExp('\\{' + name + '\\}', 'g'), String(vars[name]));
+      }
+    }
+    return raw;
+  }
+
   // Bootstrap/shared owns config, logging, host probing, styles, app vars,
   // body-bold, DOM freeze, and DOM-ready scheduling. The legacy module now
   // only owns the interaction-heavy surfaces that have not been split yet.
@@ -1265,7 +1477,7 @@ import {
   // rewrites, and no private recent-model storage in the command menu.
   // ============================================================
   const CUSTOM_MODEL_ACTION_ID = 'incipit-custom-model-id';
-  const CUSTOM_MODEL_ACTION_LABEL = 'Use custom model ID...';
+  const CUSTOM_MODEL_ACTION_LABEL = legacyText('use_custom_model_id_action');
   const CUSTOM_MODEL_REGISTER_TIMEOUT_MS = 10000;
   const customModelRegisteredRegistries = new WeakSet();
   let customModelRegisterStarted = false;
@@ -1288,7 +1500,7 @@ import {
 
   function modelDisplayNameFromId(raw) {
     const value = String(raw || '').trim();
-    return value || 'Custom model';
+    return value || legacyText('custom_model');
   }
 
   function makeCustomModelOption(raw) {
@@ -1296,7 +1508,7 @@ import {
     return {
       value,
       displayName: modelDisplayNameFromId(value),
-      description: 'Custom model ID',
+      description: legacyText('custom_model_id_description'),
     };
   }
 
@@ -1328,13 +1540,13 @@ import {
     if (!dialog || !dialog.input) return;
     const raw = String(dialog.input.value || '').trim();
     if (!raw) {
-      setCustomModelDialogError(dialog, 'Enter a model ID.');
+      setCustomModelDialogError(dialog, legacyText('custom_model_enter_id'));
       try { dialog.input.focus(); } catch (_) {}
       return;
     }
     const session = locateActiveSessionState();
     if (!session || typeof session.setModel !== 'function') {
-      setCustomModelDialogError(dialog, 'The active Claude session is not ready yet.');
+      setCustomModelDialogError(dialog, legacyText('custom_model_session_not_ready'));
       return;
     }
     setCustomModelDialogBusy(dialog, true);
@@ -1345,7 +1557,7 @@ import {
       closeCustomModelDialog();
     } catch (error) {
       const msg = error && error.message ? error.message : String(error || 'Unknown error');
-      setCustomModelDialogError(dialog, 'Could not set model: ' + msg);
+      setCustomModelDialogError(dialog, legacyText('custom_model_set_failed', { msg }));
       setCustomModelDialogBusy(dialog, false);
       try { dialog.input.focus(); } catch (_) {}
     }
@@ -1372,12 +1584,12 @@ import {
     const title = document.createElement('div');
     title.id = 'incipit-custom-model-title';
     title.setAttribute('data-incipit-custom-model-title', '');
-    title.textContent = 'Custom model';
+    title.textContent = legacyText('custom_model');
 
     const close = document.createElement('button');
     close.type = 'button';
     close.setAttribute('data-incipit-custom-model-close', '');
-    close.setAttribute('aria-label', 'Close');
+    close.setAttribute('aria-label', legacyText('close'));
     close.textContent = '\u00d7';
     close.addEventListener('click', evt => {
       evt.preventDefault();
@@ -1398,7 +1610,7 @@ import {
     const label = document.createElement('label');
     label.setAttribute('data-incipit-custom-model-label', '');
     label.setAttribute('for', 'incipit-custom-model-input');
-    label.textContent = 'Model ID';
+    label.textContent = legacyText('model_id_label');
 
     const input = document.createElement('input');
     input.id = 'incipit-custom-model-input';
@@ -1418,7 +1630,7 @@ import {
     const cancel = document.createElement('button');
     cancel.type = 'button';
     cancel.setAttribute('data-incipit-custom-model-cancel', '');
-    cancel.textContent = 'Cancel';
+    cancel.textContent = legacyText('cancel');
     cancel.addEventListener('click', evt => {
       evt.preventDefault();
       closeCustomModelDialog();
@@ -1427,7 +1639,7 @@ import {
     const submit = document.createElement('button');
     submit.type = 'submit';
     submit.setAttribute('data-incipit-custom-model-submit', '');
-    submit.textContent = 'Use model';
+    submit.textContent = legacyText('use_model');
 
     actions.appendChild(cancel);
     actions.appendChild(submit);
@@ -1588,8 +1800,8 @@ import {
     try {
       registry.registerAction({
         id: CUSTOM_MODEL_ACTION_ID,
-        label: 'Use custom model ID...',
-        description: 'Set a model by full ID',
+        label: CUSTOM_MODEL_ACTION_LABEL,
+        description: legacyText('set_model_by_full_id'),
       }, 'Model', () => openCustomModelDialog());
       customModelRegisteredRegistries.add(registry);
       setupCustomModelActionDecoration();
@@ -1859,12 +2071,12 @@ import {
         if (result && typeof result.then === 'function') {
           result.catch(error => {
             warn('transcript action failed:', kind, error);
-            showTranscriptToast('Action failed', 'error');
+            showTranscriptToast(legacyText('action_failed'), 'error');
           });
         }
       } catch (error) {
         warn('transcript action failed:', kind, error);
-        showTranscriptToast('Action failed', 'error');
+        showTranscriptToast(legacyText('action_failed'), 'error');
       }
     });
     return btn;
@@ -2317,34 +2529,32 @@ import {
   // item NOW through the ORIGINAL host send, so the official behavior stays
   // available without a parallel protocol.
   //
-  // English-only: this is APPLIED-GUI copy. By project convention the
-  // Chinese locale lives only in the CLI (the apply tool's terminal
-  // output); the in-editor surface matches the host UI's language and
-  // every other incipit GUI string, which are plain English literals. The
-  // assisting-AI scaffold's zh/en table + locale switch was redundant
-  // here and is removed — one flat map, kept only because several strings
-  // take `{var}` interpolation (counts / sizes / error detail).
+  // Bilingual (EN/ZH, driven by CFG.language — same pattern as
+  // enhance_footer_badge.js's t()/STR). Each entry is a `{en, zh}` pair
+  // instead of a flat string; deferredText() below picks the active
+  // language and still handles `{var}` interpolation (counts / sizes /
+  // error detail).
   const DEFERRED_NEXT_TEXT = Object.freeze({
-    guide: 'Guide',
-    guideTitle: 'Send now as guidance for the current reply',
-    removeTitle: 'Remove queued message',
-    reorder: 'Hold and drag to reorder',
-    edit: 'Edit message',
-    save: 'Save',
-    cancel: 'Cancel',
-    attach: 'Attach image',
-    previewImage: 'Click to preview',
-    removeAttachment: 'Remove attachment',
-    empty: 'Nothing to send',
-    sending: 'Sending follow-up message…',
-    imageFallback: 'Image',
-    imageCount: '{n} images',
-    attachmentCount: '{n} attachments',
-    pasteDrop: 'Paste or drop images',
-    tooLarge: 'Image too large: {size} MB (max 5 MB)',
-    badType: 'Only PNG, JPEG, GIF, and WebP images can be attached',
-    readFail: 'Failed to read image',
-    sendFail: 'Follow-up send failed: {msg}',
+    guide: { en: 'Guide', zh: '引导' },
+    guideTitle: { en: 'Send now as guidance for the current reply', zh: '立即发送，作为当前回复的引导' },
+    removeTitle: { en: 'Remove queued message', zh: '移除排队消息' },
+    reorder: { en: 'Hold and drag to reorder', zh: '按住并拖动以重新排序' },
+    edit: { en: 'Edit message', zh: '编辑消息' },
+    save: { en: 'Save', zh: '保存' },
+    cancel: { en: 'Cancel', zh: '取消' },
+    attach: { en: 'Attach image', zh: '添加图片' },
+    previewImage: { en: 'Click to preview', zh: '点击预览' },
+    removeAttachment: { en: 'Remove attachment', zh: '移除附件' },
+    empty: { en: 'Nothing to send', zh: '没有可发送的内容' },
+    sending: { en: 'Sending follow-up message…', zh: '正在发送后续消息…' },
+    imageFallback: { en: 'Image', zh: '图片' },
+    imageCount: { en: '{n} images', zh: '{n} 张图片' },
+    attachmentCount: { en: '{n} attachments', zh: '{n} 个附件' },
+    pasteDrop: { en: 'Paste or drop images', zh: '粘贴或拖放图片' },
+    tooLarge: { en: 'Image too large: {size} MB (max 5 MB)', zh: '图片过大：{size} MB（最大 5 MB）' },
+    badType: { en: 'Only PNG, JPEG, GIF, and WebP images can be attached', zh: '仅支持添加 PNG、JPEG、GIF 和 WebP 格式的图片' },
+    readFail: { en: 'Failed to read image', zh: '读取图片失败' },
+    sendFail: { en: 'Follow-up send failed: {msg}', zh: '后续消息发送失败：{msg}' },
   });
   // Image MIME allow-list and size cap are SHARED with the user-bubble
   // inline editor (`ALLOWED_INLINE_IMAGE_MIMES` / `MAX_INLINE_IMAGE_BYTES`,
@@ -2374,24 +2584,25 @@ import {
   let deferredDragId = null;         // id of the row being pointer-dragged
   let composerRailEl = null;
 
+  // Bilingual (EN/ZH, driven by CFG.language) — see DEFERRED_NEXT_TEXT above.
   const CHANGE_REVIEW_TEXT = Object.freeze({
-    rejectTurn: 'Reject turn',
-    rejectFile: 'Reject',
-    subagentLabel: 'Sub-agent',
-    filesChanged: '{n} files changed',
-    oneFileChanged: '1 file changed',
-    showMoreFiles: 'Show {n} more files',
-    showMoreFile: 'Show 1 more file',
-    showFewerFiles: 'Show fewer files',
-    noFiles: 'No file changes',
-    stale: 'Stale',
-    rejected: 'Rejected',
-    unavailable: 'Unavailable',
-    close: 'Close',
-    openDiff: 'Open diff',
-    loading: 'Loading diff...',
-    rejectFail: 'Reject failed: {msg}',
-    diffFail: 'Could not open review diff: {msg}',
+    rejectTurn: { en: 'Reject turn', zh: '拒绝本轮' },
+    rejectFile: { en: 'Reject', zh: '拒绝' },
+    subagentLabel: { en: 'Sub-agent', zh: '子代理' },
+    filesChanged: { en: '{n} files changed', zh: '{n} 个文件已更改' },
+    oneFileChanged: { en: '1 file changed', zh: '1 个文件已更改' },
+    showMoreFiles: { en: 'Show {n} more files', zh: '显示另外 {n} 个文件' },
+    showMoreFile: { en: 'Show 1 more file', zh: '显示另外 1 个文件' },
+    showFewerFiles: { en: 'Show fewer files', zh: '收起文件列表' },
+    noFiles: { en: 'No file changes', zh: '没有文件更改' },
+    stale: { en: 'Stale', zh: '已过期' },
+    rejected: { en: 'Rejected', zh: '已拒绝' },
+    unavailable: { en: 'Unavailable', zh: '不可用' },
+    close: { en: 'Close', zh: '关闭' },
+    openDiff: { en: 'Open diff', zh: '打开差异' },
+    loading: { en: 'Loading diff...', zh: '正在加载差异…' },
+    rejectFail: { en: 'Reject failed: {msg}', zh: '拒绝失败：{msg}' },
+    diffFail: { en: 'Could not open review diff: {msg}', zh: '无法打开审阅差异：{msg}' },
   });
   let changeReviewPayload = null;
   let changeReviewTurnBlockRenderScheduled = false;
@@ -2485,8 +2696,8 @@ import {
   }
 
   function deferredText(key, vars = null) {
-    // English-only (applied-GUI copy); no locale switch — see DEFERRED_NEXT_TEXT.
-    let text = DEFERRED_NEXT_TEXT[key] || key;
+    const entry = DEFERRED_NEXT_TEXT[key];
+    let text = (entry && (entry[CFG.language] || entry.en)) || key;
     if (vars && typeof vars === 'object') {
       for (const [name, value] of Object.entries(vars)) {
         text = text.replace(new RegExp('\\{' + name + '\\}', 'g'), String(value));
@@ -3016,7 +3227,8 @@ import {
   }
 
   function changeReviewText(key, vars = null) {
-    let text = CHANGE_REVIEW_TEXT[key] || key;
+    const entry = CHANGE_REVIEW_TEXT[key];
+    let text = (entry && (entry[CFG.language] || entry.en)) || key;
     if (vars && typeof vars === 'object') {
       for (const [name, value] of Object.entries(vars)) {
         text = text.replace(new RegExp('\\{' + name + '\\}', 'g'), String(value));
@@ -3780,7 +3992,7 @@ import {
     header.setAttribute('data-incipit-write-diff-modal-header', '');
     const title = document.createElement('span');
     title.setAttribute('data-incipit-write-diff-modal-title', '');
-    title.textContent = titleText || 'diff';
+    title.textContent = titleText || legacyText('diff_fallback_title');
     const close = document.createElement('button');
     close.type = 'button';
     close.setAttribute('data-incipit-write-diff-modal-close', '');
@@ -4299,7 +4511,7 @@ import {
       if (!pending) return;
       transcriptMutationPending.delete(msg.requestId);
       const payload = msg.payload || {};
-      if (payload.ok === false) pending.reject(new Error(payload.error || 'Transcript mutation failed'));
+      if (payload.ok === false) pending.reject(new Error(payload.error || legacyText('transcript_mutation_failed_fallback')));
       else pending.resolve(payload);
     });
   }
@@ -4311,16 +4523,16 @@ import {
       // write (edit/delete/truncate). Unknown busy must reject, not pass.
       const busy = conversationBusyTriState();
       if (busy === true) {
-        return Promise.reject(new Error('Wait for the current reply to finish before editing local history.'));
+        return Promise.reject(new Error(legacyText('wait_for_reply_before_history_edit')));
       }
       if (busy !== false) {
-        return Promise.reject(new Error('incipit cannot confirm the conversation is idle (host probes unavailable); local-history edit blocked.'));
+        return Promise.reject(new Error(legacyText('cannot_confirm_idle_history_blocked')));
       }
     }
     setupTranscriptMutationChannel();
     const api = getIncipitVsCodeApi();
     if (!api || typeof api.postMessage !== 'function') {
-      return Promise.reject(new Error('Could not reach the VS Code webview channel.'));
+      return Promise.reject(new Error(legacyText('webview_channel_unreachable')));
     }
     const requestId = 'mut-' + (++transcriptMutationSeq).toString(36);
     const message = {
@@ -4342,7 +4554,7 @@ import {
         const pending = transcriptMutationPending.get(requestId);
         if (!pending) return;
         transcriptMutationPending.delete(requestId);
-        pending.reject(new Error('Local history write request timed out.'));
+        pending.reject(new Error(legacyText('local_history_write_timed_out')));
       }, 12000);
     });
   }
@@ -4574,10 +4786,7 @@ import {
     const busy = conversationBusyTriState();
     if (busy === false) return false;
     if (busy === null) {
-      showTranscriptToast(
-        'incipit cannot confirm the reply stream is idle; action blocked to protect the conversation.',
-        'warn',
-      );
+      showTranscriptToast(legacyText('stream_not_idle_blocked'), 'warn');
     }
     return true;
   }
@@ -4785,7 +4994,7 @@ import {
     // user can see the change directly in the bubble list, so a
     // confirmation toast is just noise that overlaps the input.
     if (!session) {
-      showTranscriptToast('Local history updated. Refresh the window so the model sees the new content.', 'warn');
+      showTranscriptToast(legacyText('local_history_updated_refresh'), 'warn');
     }
   }
 
@@ -4819,7 +5028,7 @@ import {
       try { session.loadingPromise = undefined; } catch (_) {}
     }
     if (!session) {
-      showTranscriptToast('Local history updated. Refresh the window so the model sees the new content.', 'warn');
+      showTranscriptToast(legacyText('local_history_updated_refresh'), 'warn');
     }
   }
 
@@ -4867,7 +5076,7 @@ import {
     // refusing here is also not what the user wants. The old turn is
     // actively quiesced after the truncate instead.
     if (historyHandoffInFlight) {
-      showTranscriptToast('A rerun is already in progress; let it finish first', 'warn');
+      showTranscriptToast(legacyText('rerun_in_progress'), 'warn');
       return;
     }
 
@@ -4878,7 +5087,7 @@ import {
     // single optional `<ide_*>` ref synthesized from the saved selection.
     const { prose, attachments, savedIdeRef } = overridePayload || buildRerunPayloadFromRecord(record);
     if (!prose && !attachments.length) {
-      showTranscriptToast('No content to rerun', 'error');
+      showTranscriptToast(legacyText('no_content_to_rerun'), 'error');
       return;
     }
 
@@ -4895,19 +5104,13 @@ import {
     // mismatch the current active session in multi-window setups.
     const liveIdentity = transcriptRecordIdentity(record);
     if (!liveIdentity) {
-      showTranscriptToast(
-        'Internal: cannot resolve active session id; rerun aborted to avoid writing the wrong transcript.',
-        'error',
-      );
+      showTranscriptToast(legacyText('rerun_internal_no_session'), 'error');
       return;
     }
     const session = locateActiveSessionState();
     const conn = locateConnection();
     if (!session || typeof session.send !== 'function') {
-      showTranscriptToast(
-        'Internal: cannot reach session.send; rerun aborted (local history is unchanged).',
-        'error',
-      );
+      showTranscriptToast(legacyText('rerun_internal_no_send'), 'error');
       return;
     }
     const includeSelection = !!savedIdeRef;
@@ -4917,10 +5120,7 @@ import {
       'value' in session.selection
     );
     if (includeSelection && !selectionWritable) {
-      showTranscriptToast(
-        'Internal: cannot reach session.selection; rerun aborted to avoid dropping the IDE reference.',
-        'error',
-      );
+      showTranscriptToast(legacyText('rerun_internal_no_selection'), 'error');
       return;
     }
 
@@ -4947,11 +5147,7 @@ import {
     if (!q1.ok) {
       setHandoffLatch(false);
       if (button) button.removeAttribute('data-incipit-inflight');
-      showTranscriptToast(
-        'The previous reply has not finished stopping yet — nothing was changed. ' +
-        'Wait for it to settle, then rerun again.',
-        'error',
-      );
+      showTranscriptToast(legacyText('rerun_previous_not_stopped'), 'error');
       return;
     }
 
@@ -4970,7 +5166,7 @@ import {
     if (!payload || payload.ok === false) {
       setHandoffLatch(false);
       if (button) button.removeAttribute('data-incipit-inflight');
-      showTranscriptToast((payload && payload.error) || 'Rerun failed', 'error');
+      showTranscriptToast((payload && payload.error) || legacyText('rerun_failed_fallback'), 'error');
       return;
     }
 
@@ -5036,13 +5232,9 @@ import {
       setHandoffLatch(false);
       if (button) button.removeAttribute('data-incipit-inflight');
       const why = confirmed.reason === 'advanced'
-        ? 'a background task or the interrupted reply appended after the cut'
-        : 'the previous turn did not finish stopping in time';
-      showTranscriptToast(
-        'Rerun was held back because ' + why +
-        '. Local history was restored — wait for the current reply to finish, then rerun again.',
-        'error',
-      );
+        ? legacyText('rerun_held_back_advanced')
+        : legacyText('rerun_held_back_not_stopped');
+      showTranscriptToast(legacyText('rerun_held_back_wrap', { why }), 'error');
       return;
     }
 
@@ -5087,14 +5279,14 @@ import {
         if (preRerunMessages && session.messages && Array.isArray(session.messages.value)) {
           try { session.messages.value = preRerunMessages; } catch (_) {}
         }
-        showTranscriptToast('Rerun send failed; local history was restored: ' + message, 'error');
+        showTranscriptToast(legacyText('rerun_send_failed_restored', { msg: message }), 'error');
       } else if (rollback && rollback.reason === 'transcript_advanced') {
-        showTranscriptToast('Rerun send failed after a new transcript append started: ' + message, 'error');
+        showTranscriptToast(legacyText('rerun_send_failed_after_append', { msg: message }), 'error');
       } else if (rollbackError) {
         const rollbackMessage = rollbackError && rollbackError.message ? rollbackError.message : String(rollbackError);
-        showTranscriptToast('Rerun send failed, and rollback failed: ' + rollbackMessage, 'error');
+        showTranscriptToast(legacyText('rerun_send_failed_rollback_failed', { msg: rollbackMessage }), 'error');
       } else {
-        showTranscriptToast('Rerun send failed: ' + message, 'error');
+        showTranscriptToast(legacyText('rerun_send_failed', { msg: message }), 'error');
       }
     } finally {
       if (didPoke) {
@@ -5159,15 +5351,12 @@ import {
   // rewind, nothing else changes.
   async function performRewindCode(record) {
     if (!record || typeof record.uuid !== 'string' || !record.uuid) {
-      showTranscriptToast('Cannot rewind: no checkpoint anchor on this message', 'error');
+      showTranscriptToast(legacyText('rewind_no_checkpoint'), 'error');
       return false;
     }
     const session = locateActiveSessionState();
     if (!session || typeof session.rewindCode !== 'function') {
-      showTranscriptToast(
-        'Internal: cannot reach session.rewindCode; rewind aborted (no files were touched).',
-        'error',
-      );
+      showTranscriptToast(legacyText('rewind_internal_no_rewindcode'), 'error');
       return false;
     }
     let result;
@@ -5175,11 +5364,11 @@ import {
       result = await session.rewindCode(record.uuid);
     } catch (error) {
       const msg = error && error.message ? error.message : String(error);
-      showTranscriptToast('Rewind code failed: ' + msg, 'error');
+      showTranscriptToast(legacyText('rewind_failed_msg', { msg }), 'error');
       return false;
     }
     if (!result || result.canRewind === false) {
-      showTranscriptToast('Rewind code failed', 'error');
+      showTranscriptToast(legacyText('rewind_failed'), 'error');
       return false;
     }
     return true;
@@ -5198,28 +5387,22 @@ import {
     const session = locateActiveSessionState();
     const ctx = locateActiveAppContext();
     if (!ctx || typeof ctx.forkConversation !== 'function') {
-      showTranscriptToast(
-        'Internal: cannot reach context.forkConversation; fork aborted.',
-        'error',
-      );
+      showTranscriptToast(legacyText('fork_internal_no_forkconversation'), 'error');
       return;
     }
     const sessionId = session && session.sessionId && session.sessionId.value;
     if (!sessionId || typeof sessionId !== 'string') {
-      showTranscriptToast(
-        'Internal: cannot resolve current session id; fork aborted.',
-        'error',
-      );
+      showTranscriptToast(legacyText('fork_internal_no_session'), 'error');
       return;
     }
     const prevUuid = findPrevUuidForFork(record);
     if (!prevUuid) {
-      showTranscriptToast('Cannot fork from the first message', 'error');
+      showTranscriptToast(legacyText('cannot_fork_first_message'), 'error');
       return;
     }
     const { prose } = buildRerunPayloadFromRecord(record);
     if (!prose) {
-      showTranscriptToast('No text content to fork with', 'error');
+      showTranscriptToast(legacyText('fork_no_text_content'), 'error');
       return;
     }
 
@@ -5228,7 +5411,7 @@ import {
       await ctx.forkConversation(sessionId, prose, prevUuid);
     } catch (error) {
       showTranscriptToast(
-        'Fork failed: ' + (error && error.message ? error.message : String(error)),
+        legacyText('fork_failed', { msg: error && error.message ? error.message : String(error) }),
         'error',
       );
     } finally {
@@ -5390,8 +5573,8 @@ import {
         el.style.cursor = 'zoom-in';
         el.setAttribute('role', 'button');
         el.setAttribute('tabindex', '0');
-        el.setAttribute('aria-label', 'Preview image');
-        el.title = 'Click to preview';
+        el.setAttribute('aria-label', legacyText('preview_image'));
+        el.title = legacyText('click_to_preview');
         el.addEventListener('click', (ev) => {
           if (ev.target && ev.target.closest && ev.target.closest('.incipit-edit-chip-x')) return;
           ev.preventDefault();
@@ -5412,7 +5595,7 @@ import {
         // remove it.
         const label = document.createElement('span');
         label.className = 'incipit-edit-chip-label';
-        label.textContent = chip.mediaType || 'image';
+        label.textContent = chip.mediaType || legacyText('image_fallback_label');
         el.appendChild(label);
       }
     } else {
@@ -5437,7 +5620,7 @@ import {
     const x = document.createElement('button');
     x.className = 'incipit-edit-chip-x';
     x.type = 'button';
-    x.setAttribute('aria-label', 'Remove attachment');
+    x.setAttribute('aria-label', legacyText('remove_attachment'));
     x.innerHTML = CHIP_X_ICON_SVG;
     x.addEventListener('click', (ev) => {
       ev.preventDefault();
@@ -5449,9 +5632,9 @@ import {
   }
 
   function describeChipForTooltip(chip) {
-    if (chip.blockKind === 'ide_opened_file') return 'IDE auto-attached: opened file';
-    if (chip.blockKind === 'ide_selection') return 'IDE auto-attached: line selection';
-    return 'Attached reference (preserved across edit)';
+    if (chip.blockKind === 'ide_opened_file') return legacyText('ide_auto_attached_file');
+    if (chip.blockKind === 'ide_selection') return legacyText('ide_auto_attached_selection');
+    return legacyText('attached_reference');
   }
 
   // Fullscreen image preview overlay. Body-portal modal — sits above
@@ -5477,7 +5660,7 @@ import {
     const closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.setAttribute('data-incipit-image-preview-close', '');
-    closeBtn.setAttribute('aria-label', 'Close preview');
+    closeBtn.setAttribute('aria-label', legacyText('close_preview'));
     closeBtn.innerHTML = CHIP_X_ICON_SVG;
 
     overlay.appendChild(img);
@@ -5537,14 +5720,14 @@ import {
     if (!state || !file) return;
     if (!ALLOWED_INLINE_IMAGE_MIMES.has(file.type)) {
       showTranscriptToast(
-        `Only PNG, JPEG, GIF, and WebP images can be attached (got ${file.type || 'unknown'})`,
+        legacyText('attach_bad_type_detail', { type: file.type || 'unknown' }),
         'error',
       );
       return;
     }
     if (file.size > MAX_INLINE_IMAGE_BYTES) {
       showTranscriptToast(
-        `Image too large: ${(file.size / 1024 / 1024).toFixed(1)} MB (max 5 MB)`,
+        legacyText('attach_too_large_detail', { size: (file.size / 1024 / 1024).toFixed(1) }),
         'error',
       );
       return;
@@ -5555,7 +5738,7 @@ import {
       // dataUrl format: "data:image/png;base64,<b64>"
       const m = /^data:([^;]+);base64,(.*)$/.exec(dataUrl);
       if (!m) {
-        showTranscriptToast('Failed to encode image (unexpected reader output)', 'error');
+        showTranscriptToast(legacyText('image_encode_failed'), 'error');
         return;
       }
       const mediaType = m[1];
@@ -5572,7 +5755,7 @@ import {
       renderInlineEditChipStrip(state);
     };
     reader.onerror = () => {
-      showTranscriptToast('Failed to read image file', 'error');
+      showTranscriptToast(legacyText('image_read_failed'), 'error');
     };
     reader.readAsDataURL(file);
   }
@@ -5590,7 +5773,7 @@ import {
     if (want) {
       saveBtn.dataset.incipitDisabled = '1';
       saveBtn.setAttribute('aria-disabled', 'true');
-      saveBtn.setAttribute('title', 'Wait for the current reply to finish before saving');
+      saveBtn.setAttribute('title', legacyText('wait_for_reply_before_saving'));
     } else {
       delete saveBtn.dataset.incipitDisabled;
       saveBtn.removeAttribute('aria-disabled');
@@ -5629,10 +5812,7 @@ import {
     const blocksSpec = buildUserEditBlocksSpec(state, text);
     const rerunPayload = buildRerunPayloadFromEditorDraft(state.record, text, state.chips);
     if (blocksSpec.length === 0 || (!rerunPayload.prose && !rerunPayload.attachments.length)) {
-      showTranscriptToast(
-        'Nothing to rerun — type something or keep at least one image attachment.',
-        'error',
-      );
+      showTranscriptToast(legacyText('nothing_to_rerun_hint'), 'error');
       return;
     }
 
@@ -5669,10 +5849,7 @@ import {
     if (state.kind === 'user') {
       blocksSpec = buildUserEditBlocksSpec(state, text);
       if (blocksSpec.length === 0) {
-        showTranscriptToast(
-          'Nothing to save — type something or keep at least one attachment.',
-          'error',
-        );
+        showTranscriptToast(legacyText('nothing_to_save_hint'), 'error');
         return;
       }
     }
@@ -5788,8 +5965,8 @@ import {
       chipsAddBtn = document.createElement('button');
       chipsAddBtn.className = 'incipit-edit-chip-add';
       chipsAddBtn.type = 'button';
-      chipsAddBtn.title = 'Attach image (paste or drop also works)';
-      chipsAddBtn.setAttribute('aria-label', 'Attach image');
+      chipsAddBtn.title = legacyText('attach_image_hint');
+      chipsAddBtn.setAttribute('aria-label', legacyText('attach_image'));
       chipsAddBtn.innerHTML = CHIP_PLUS_ICON_SVG;
       chipsAddBtn.addEventListener('click', (ev) => {
         ev.preventDefault();
@@ -5872,20 +6049,20 @@ import {
     // for reuse by busy-state flips.
     const cancelBtn = makeTranscriptActionButton(
       'cancel',
-      'Cancel edit (Esc)',
+      legacyText('cancel_edit_esc'),
       CANCEL_ICON_SVG,
       () => cancelInlineEditor(record.uuid),
     );
     const saveBtn = makeTranscriptActionButton(
       'save',
-      'Save (Ctrl+Enter)',
+      legacyText('save_ctrl_enter'),
       SAVE_ICON_SVG,
       () => saveInlineEditor(record.uuid),
     );
     const saveRerunBtn = kind === 'user'
       ? makeTranscriptActionButton(
         'rerun',
-        'Save and rerun (Ctrl+Enter)',
+        legacyText('save_rerun_ctrl_enter'),
         RERUN_ICON_SVG,
         () => saveAndRerunInlineEditor(record.uuid, saveRerunBtn),
       )
@@ -6098,7 +6275,7 @@ import {
   function buildCopyDropdownItems(getMarkdown) {
     return [
       {
-        label: 'Copy as text',
+        label: legacyText('copy_as_text'),
         icon: COPY_AS_TEXT_ICON_SVG,
         onClick: () => {
           const md = (getMarkdown() || '').toString();
@@ -6106,7 +6283,7 @@ import {
         },
       },
       {
-        label: 'Copy as markdown',
+        label: legacyText('copy_as_markdown'),
         icon: COPY_AS_MARKDOWN_ICON_SVG,
         onClick: () => {
           copyText((getMarkdown() || '').toString());
@@ -6133,26 +6310,26 @@ import {
     const forkBlocked = busyAtOpen || !hasPrevUuid;
     return [
       {
-        label: 'Rerun with code rewind',
+        label: legacyText('rerun_with_code_rewind'),
         icon: RERUN_ICON_SVG,
         disabled: rewindBlocked,
-        title: rewindBlocked ? 'Disabled while streaming' : '',
+        title: rewindBlocked ? legacyText('disabled_while_streaming') : '',
         onClick: () => { rerunWithRewindFromUser(liveRecord(), null); },
       },
       {
-        label: 'Fork with code rewind',
+        label: legacyText('fork_with_code_rewind'),
         icon: FORK_ICON_SVG,
         disabled: forkBlocked,
         title: forkBlocked
-          ? (busyAtOpen ? 'Disabled while streaming' : 'Cannot fork from the first message')
+          ? (busyAtOpen ? legacyText('disabled_while_streaming') : legacyText('cannot_fork_first_message'))
           : '',
         onClick: () => { forkWithRewindFromUser(liveRecord(), null); },
       },
       {
-        label: 'Rewind code only',
+        label: legacyText('rewind_code_only'),
         icon: REWIND_ONLY_ICON_SVG,
         disabled: rewindBlocked,
-        title: rewindBlocked ? 'Disabled while streaming' : '',
+        title: rewindBlocked ? legacyText('disabled_while_streaming') : '',
         onClick: () => { rewindOnlyFromUser(liveRecord(), null); },
       },
       { type: 'separator' },
@@ -6196,7 +6373,7 @@ import {
       // Pencil — open inline editor for this user record.
       row.appendChild(makeTranscriptActionButton(
         'edit',
-        'Edit user message (local history only)',
+        legacyText('edit_user_message'),
         EDIT_ICON_SVG,
         () => {
           const cur = liveRecord();
@@ -6222,7 +6399,7 @@ import {
       // multi-window setups.
       const rerunBtn = makeTranscriptActionButton(
         'rerun',
-        'Rerun this turn',
+        legacyText('rerun_this_turn'),
         RERUN_ICON_SVG,
         () => { rerunFromUser(liveRecord(), rerunBtn); }
       );
@@ -6239,7 +6416,7 @@ import {
       if (hasPrev) {
         const forkBtn = makeTranscriptActionButton(
           'fork',
-          'Fork conversation from here',
+          legacyText('fork_conversation_from_here'),
           FORK_ICON_SVG,
           () => { forkFromUser(liveRecord(), forkBtn); }
         );
@@ -6253,7 +6430,7 @@ import {
     // here at popup-open time.
     const moreBtn = makeTranscriptActionButton(
       'more',
-      'More actions',
+      legacyText('more_actions'),
       MORE_ICON_SVG,
       () => {
         if (isRealUser) {
@@ -6326,7 +6503,7 @@ import {
     const btn = document.createElement('button');
     btn.className = 'claude-show-more-btn';
     btn.type = 'button';
-    btn.textContent = 'Show more';
+    btn.textContent = legacyText('show_more');
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       e.preventDefault();
@@ -6334,11 +6511,11 @@ import {
       if (expanded) {
         const beforeTop = btn.getBoundingClientRect().top;
         bubble.removeAttribute('data-claude-expanded');
-        btn.textContent = 'Show more';
+        btn.textContent = legacyText('show_more');
         preserveScrollAnchor(btn, beforeTop);
       } else {
         bubble.setAttribute('data-claude-expanded', '1');
-        btn.textContent = 'Show less';
+        btn.textContent = legacyText('show_less');
       }
     });
     row.appendChild(btn);
@@ -6645,14 +6822,11 @@ import {
     const liveRecord = () => liveTranscriptRecord(capturedUuid, record);
     const getMarkdown = () => transcriptText(liveRecord()) || markdownRoot.textContent || '';
 
-    const editBtn = makeTranscriptActionButton('edit', 'Edit AI output (local history only)', EDIT_ICON_SVG, async () => {
+    const editBtn = makeTranscriptActionButton('edit', legacyText('edit_assistant_message'), EDIT_ICON_SVG, async () => {
       let cur = liveRecord();
       cur = await ensureAssistantRecordUuid(cur);
       if (!cur || !recordUuid(cur)) {
-        showTranscriptToast(
-          'Local history is still syncing this assistant message; try again in a moment.',
-          'warn',
-        );
+        showTranscriptToast(legacyText('local_history_syncing'), 'warn');
         noteTranscriptActionMutation();
         return;
       }
@@ -6680,7 +6854,7 @@ import {
       markdownRoot.removeAttribute('data-incipit-edit-hover-preview');
     });
 
-    const moreBtn = makeTranscriptActionButton('more', 'More actions', MORE_ICON_SVG, () => {
+    const moreBtn = makeTranscriptActionButton('more', legacyText('more_actions'), MORE_ICON_SVG, () => {
       openActionDropdown(moreBtn, buildCopyDropdownItems(getMarkdown));
     });
     row.appendChild(moreBtn);
@@ -6857,7 +7031,7 @@ import {
       .split(/\n+/)
       .map(line => line.trim())
       .find(line => line && !/^(esc|escape)\b/i.test(line));
-    return firstLine || 'Permission request';
+    return firstLine || legacyText('permission_request_fallback');
   }
 
   function permissionRequestPosition(container) {
@@ -6944,7 +7118,7 @@ import {
       bar.className = 'incipit-ask-collapsed-bar incipit-permission-collapsed-bar';
       bar.setAttribute('data-incipit-permission-collapsed-bar', '');
       bar.setAttribute('data-incipit-ask-collapsed-bar', '');
-      bar.setAttribute('aria-label', 'Expand permission panel');
+      bar.setAttribute('aria-label', legacyText('expand_permission_panel'));
       const title = document.createElement('span');
       title.className = 'incipit-ask-collapsed-title incipit-permission-collapsed-title';
       const meta = document.createElement('span');
@@ -6974,7 +7148,7 @@ import {
       btn.className = 'incipit-ask-collapse-btn incipit-permission-collapse-btn';
       btn.setAttribute('data-incipit-permission-collapse-btn', '');
       btn.setAttribute('data-incipit-ask-collapse-btn', '');
-      btn.setAttribute('aria-label', 'Collapse permission panel');
+      btn.setAttribute('aria-label', legacyText('collapse_permission_panel'));
       btn.addEventListener('click', evt => {
         evt.preventDefault();
         evt.stopPropagation();
@@ -6999,8 +7173,8 @@ import {
       container.getAttribute('data-incipit-permission-collapsed') === '1' ? 'false' : 'true',
     );
     btn.title = container.getAttribute('data-incipit-permission-collapsed') === '1'
-      ? 'Expand'
-      : 'Collapse';
+      ? legacyText('expand')
+      : legacyText('collapse');
     return btn;
   }
 
@@ -8393,10 +8567,10 @@ import {
       }
       const keptLineCount = kept.split('\n').length;
       const hidden = lines.length - keptLineCount;
-      const moreText = hidden > 0
-        ? '+ ' + hidden + ' more line' + (hidden === 1 ? '' : 's')
-        : '+ more text';
-      const lessText = '− show less';
+      const moreText = CFG.language === 'zh'
+        ? (hidden > 0 ? ('+ 还有 ' + hidden + ' 行') : '+ 更多文本')
+        : (hidden > 0 ? ('+ ' + hidden + ' more line' + (hidden === 1 ? '' : 's')) : '+ more text');
+      const lessText = CFG.language === 'zh' ? '− 收起' : '− show less';
 
       // Toggle state: button sits at the visual tail of the OUT content
       // (after `kept` when collapsed, after `fullText` when expanded), so
@@ -9496,7 +9670,7 @@ import {
       const close = document.createElement('button');
       close.type = 'button';
       close.setAttribute('data-incipit-write-diff-modal-close', '');
-      close.setAttribute('aria-label', 'Close diff');
+      close.setAttribute('aria-label', legacyText('close_diff'));
       close.textContent = '\u00d7';
       close.addEventListener('click', evt => {
         evt.preventDefault();
@@ -9572,7 +9746,7 @@ import {
         });
         diff.appendChild(button);
       }
-      const buttonText = clipped ? 'Click to expand' : 'Open';
+      const buttonText = clipped ? legacyText('click_to_expand') : legacyText('open');
       if (button.textContent !== buttonText) button.textContent = buttonText;
       button.__incipitOpenWriteDiff = () => openWriteDiffModal(payload, block, stats, languageClass, lineInfo);
     }
@@ -9923,7 +10097,7 @@ import {
           inRow.setAttribute('data-incipit-tool-grep-row', 'in');
           inLabel = document.createElement('div');
           inLabel.setAttribute('data-incipit-tool-grep-label', '');
-          inLabel.textContent = 'IN';
+          inLabel.textContent = legacyText('grep_in_label');
           inContent = document.createElement('div');
           inContent.setAttribute('data-incipit-tool-grep-content', '');
           inRow.appendChild(inLabel);
@@ -9941,7 +10115,7 @@ import {
             outRow.setAttribute('data-incipit-tool-grep-row', 'out');
             outLabel = document.createElement('div');
             outLabel.setAttribute('data-incipit-tool-grep-label', '');
-            outLabel.textContent = 'OUT';
+            outLabel.textContent = legacyText('grep_out_label');
             outContent = document.createElement('div');
             outContent.setAttribute('data-incipit-tool-grep-content', '');
             outRow.appendChild(outLabel);
@@ -10371,7 +10545,7 @@ import {
         return copyText(text);
       }).catch(error => {
         try { console.warn('[incipit] failed to copy path:', error); } catch (_) {}
-        showTranscriptToast(kind === 'absolute' ? 'Could not copy absolute path' : 'Could not copy relative path', 'error');
+        showTranscriptToast(kind === 'absolute' ? legacyText('could_not_copy_absolute_path') : legacyText('could_not_copy_relative_path'), 'error');
       });
     }
 
@@ -10429,16 +10603,16 @@ import {
         evt.preventDefault();
         evt.stopPropagation();
       });
-      tipContextMenuEl.appendChild(makeTipContextMenuItem('Open in File Explorer', FOLDER_ICON_SVG, info => {
+      tipContextMenuEl.appendChild(makeTipContextMenuItem(legacyText('open_in_file_explorer'), FOLDER_ICON_SVG, info => {
         requestOpenContainingFolder(info).catch(error => {
           try { console.warn('[incipit] failed to open in file explorer:', error); } catch (_) {}
-          showTranscriptToast('Could not open in file explorer', 'error');
+          showTranscriptToast(legacyText('could_not_open_in_file_explorer'), 'error');
         });
       }));
-      tipContextMenuEl.appendChild(makeTipContextMenuItem('Copy Relative Path', COPY_ICON_SVG, info => {
+      tipContextMenuEl.appendChild(makeTipContextMenuItem(legacyText('copy_relative_path'), COPY_ICON_SVG, info => {
         copyResolvedPathForFileInfo('relative', info);
       }));
-      tipContextMenuEl.appendChild(makeTipContextMenuItem('Copy Absolute Path', COPY_ICON_SVG, info => {
+      tipContextMenuEl.appendChild(makeTipContextMenuItem(legacyText('copy_absolute_path'), COPY_ICON_SVG, info => {
         copyResolvedPathForFileInfo('absolute', info);
       }));
       if (document.body) document.body.appendChild(tipContextMenuEl);

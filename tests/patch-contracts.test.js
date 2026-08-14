@@ -240,22 +240,22 @@ function assertBodyObserverPolicy(sources) {
 }
 
 function assertRuntimeSourceContracts() {
-  const hostProbe = fs.readFileSync(path.join(__dirname, '..', 'data', 'host_probe.js'), 'utf8');
-  const bootstrap = fs.readFileSync(path.join(__dirname, '..', 'data', 'claude_code_enhance.js'), 'utf8');
-  const markdownPreprocess = fs.readFileSync(path.join(__dirname, '..', 'data', 'markdown_preprocess.js'), 'utf8');
-  const shared = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_shared.js'), 'utf8');
-  const legacy = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_legacy.js'), 'utf8');
-  const thinking = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_thinking.js'), 'utf8');
-  const footerBadge = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_footer_badge.js'), 'utf8');
-  const hostBadge = fs.readFileSync(path.join(__dirname, '..', 'data', 'host-badge.cjs'), 'utf8');
-  const typography = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_typography.js'), 'utf8');
-  const workbenchOverlay = fs.readFileSync(path.join(__dirname, '..', 'src', 'workbench-overlay.js'), 'utf8');
-  const theme = fs.readFileSync(path.join(__dirname, '..', 'data', 'theme.css'), 'utf8');
-  const capability = fs.readFileSync(path.join(__dirname, '..', 'data', 'capability.js'), 'utf8');
-  const fiberFingerprint = fs.readFileSync(path.join(__dirname, '..', 'data', 'capability', 'fingerprints', 'fiber.js'), 'utf8');
-  const companionSelectionReference = fs.readFileSync(path.join(__dirname, '..', 'companion', 'claude-selection-reference', 'extension.js'), 'utf8');
-  const install = fs.readFileSync(path.join(__dirname, '..', 'src', 'install.js'), 'utf8');
-  const patchContractSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'patch-contract.js'), 'utf8');
+  const hostProbe = fs.readFileSync(path.join(__dirname, '..', 'data', 'host_probe.js'), 'utf8').replace(/\r\n/g, '\n');
+  const bootstrap = fs.readFileSync(path.join(__dirname, '..', 'data', 'claude_code_enhance.js'), 'utf8').replace(/\r\n/g, '\n');
+  const markdownPreprocess = fs.readFileSync(path.join(__dirname, '..', 'data', 'markdown_preprocess.js'), 'utf8').replace(/\r\n/g, '\n');
+  const shared = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_shared.js'), 'utf8').replace(/\r\n/g, '\n');
+  const legacy = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_legacy.js'), 'utf8').replace(/\r\n/g, '\n');
+  const thinking = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_thinking.js'), 'utf8').replace(/\r\n/g, '\n');
+  const footerBadge = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_footer_badge.js'), 'utf8').replace(/\r\n/g, '\n');
+  const hostBadge = fs.readFileSync(path.join(__dirname, '..', 'data', 'host-badge.cjs'), 'utf8').replace(/\r\n/g, '\n');
+  const typography = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_typography.js'), 'utf8').replace(/\r\n/g, '\n');
+  const workbenchOverlay = fs.readFileSync(path.join(__dirname, '..', 'src', 'workbench-overlay.js'), 'utf8').replace(/\r\n/g, '\n');
+  const theme = fs.readFileSync(path.join(__dirname, '..', 'data', 'theme.css'), 'utf8').replace(/\r\n/g, '\n');
+  const capability = fs.readFileSync(path.join(__dirname, '..', 'data', 'capability.js'), 'utf8').replace(/\r\n/g, '\n');
+  const fiberFingerprint = fs.readFileSync(path.join(__dirname, '..', 'data', 'capability', 'fingerprints', 'fiber.js'), 'utf8').replace(/\r\n/g, '\n');
+  const companionSelectionReference = fs.readFileSync(path.join(__dirname, '..', 'companion', 'claude-selection-reference', 'extension.js'), 'utf8').replace(/\r\n/g, '\n');
+  const install = fs.readFileSync(path.join(__dirname, '..', 'src', 'install.js'), 'utf8').replace(/\r\n/g, '\n');
+  const patchContractSource = fs.readFileSync(path.join(__dirname, '..', 'src', 'patch-contract.js'), 'utf8').replace(/\r\n/g, '\n');
   const cssWithoutComments = theme.replace(/\/\*[\s\S]*?\*\//g, '');
   const injectionSurfaceAudit = [
     [
@@ -292,6 +292,13 @@ function assertRuntimeSourceContracts() {
         install.includes('incipit.claudeCode.insertAtMention') &&
         install.includes('incipit.claudeCode.hasVisibleWebview'),
     ],
+    [
+      'companion extension install/remove',
+      install.includes('function installCompanionExtension(') &&
+        install.includes('function removeCompanionExtensions(') &&
+        install.includes("COMPANION_EXTENSION_PREFIX = 'incipit.claude-selection-reference-'") &&
+        install.includes('const companionExtension = installCompanionExtension(resourceRoot, target)'),
+    ],
   ];
 
   assert(
@@ -307,8 +314,9 @@ function assertRuntimeSourceContracts() {
       'VS Code Workbench overlay patch',
       'webview runtime DOM/state bridge',
       'companion command bridge',
+      'companion extension install/remove',
     ],
-    'injection surface audit must enumerate the five planned entry classes',
+    'injection surface audit must enumerate the six planned entry classes',
   );
   for (const [name, ok] of injectionSurfaceAudit) {
     assert(ok, `injection surface audit missing coverage for ${name}`);
@@ -575,7 +583,7 @@ function assertRuntimeSourceContracts() {
       `dormant session status prototype must stay UI-only and avoid dangerous path: ${forbidden}`,
     );
   }
-  const warmWhite = fs.readFileSync(path.join(__dirname, '..', 'data', 'warm-white-override.css'), 'utf8');
+  const warmWhite = fs.readFileSync(path.join(__dirname, '..', 'data', 'warm-white-override.css'), 'utf8').replace(/\r\n/g, '\n');
   const customModelStart = legacy.indexOf('Custom model picker.');
   const customModelEnd = legacy.indexOf('// Look up the *current* record', customModelStart);
   assert(customModelStart >= 0 && customModelEnd > customModelStart,
@@ -585,9 +593,9 @@ function assertRuntimeSourceContracts() {
   assert(legacyInit, 'legacy root init() body must be findable for dormant feature audits');
   assert(
     customModel.includes("const CUSTOM_MODEL_ACTION_ID = 'incipit-custom-model-id';") &&
-      customModel.includes("const CUSTOM_MODEL_ACTION_LABEL = 'Use custom model ID...';") &&
-      customModel.includes("label: 'Use custom model ID...'") &&
-      customModel.includes("description: 'Set a model by full ID'") &&
+      customModel.includes("const CUSTOM_MODEL_ACTION_LABEL = legacyText('use_custom_model_id_action');") &&
+      customModel.includes('label: CUSTOM_MODEL_ACTION_LABEL,') &&
+      customModel.includes("description: legacyText('set_model_by_full_id'),") &&
       customModel.includes("}, 'Model', () => openCustomModelDialog())") &&
       customModel.includes('setupCustomModelActionDecoration();') &&
       legacyInit[1].includes('setupCustomModelPicker,') &&
@@ -598,7 +606,7 @@ function assertRuntimeSourceContracts() {
     customModel.includes('locateActiveSessionState()') &&
       customModel.includes('typeof session.setModel') &&
       customModel.includes('await session.setModel(makeCustomModelOption(raw))') &&
-      customModel.includes("value,\n      displayName: modelDisplayNameFromId(value),\n      description: 'Custom model ID'"),
+      customModel.includes("value,\n      displayName: modelDisplayNameFromId(value),\n      description: legacyText('custom_model_id_description'),"),
     'custom model picker must call official SessionState.setModel(modelObject) with the entered model ID',
   );
   assert(
@@ -736,7 +744,7 @@ function assertRuntimeSourceContracts() {
     'render-time auto-highlighting must treat unknown host state as busy so large streaming code stays on the settled fallback path',
   );
 
-  const kernel = fs.readFileSync(path.join(__dirname, '..', 'data', 'runtime_kernel.js'), 'utf8');
+  const kernel = fs.readFileSync(path.join(__dirname, '..', 'data', 'runtime_kernel.js'), 'utf8').replace(/\r\n/g, '\n');
   assert(
     bootstrap.includes('initRuntimeKernel();') &&
       !/^\s*initRuntimeKernel\(\);\s*$/m.test(kernel),
@@ -970,9 +978,9 @@ function assertRuntimeSourceContracts() {
     'host-badge must not overwrite createWriteStream `stream.write` — that mutates host object identity; only `finish`/`close`/`end` events are subscribed',
   );
   assert(
-    legacy.includes("makeTipContextMenuItem('Open in File Explorer'") &&
-      legacy.includes("makeTipContextMenuItem('Copy Relative Path'") &&
-      legacy.includes("makeTipContextMenuItem('Copy Absolute Path'") &&
+    legacy.includes("makeTipContextMenuItem(legacyText('open_in_file_explorer')") &&
+      legacy.includes("makeTipContextMenuItem(legacyText('copy_relative_path')") &&
+      legacy.includes("makeTipContextMenuItem(legacyText('copy_absolute_path')") &&
       !legacy.includes("label.textContent = 'Open in VS Code'") &&
       !legacy.includes("data-incipit-path-tooltip-copy") &&
       !legacy.includes("data-incipit-path-tooltip-more") &&

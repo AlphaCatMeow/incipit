@@ -25,14 +25,14 @@ const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
 
-const legacy = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_legacy.js'), 'utf8');
-const theme = fs.readFileSync(path.join(__dirname, '..', 'data', 'theme.css'), 'utf8');
-const warm = fs.readFileSync(path.join(__dirname, '..', 'data', 'warm-white-override.css'), 'utf8');
-const shared = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_shared.js'), 'utf8');
-const hostProbe = fs.readFileSync(path.join(__dirname, '..', 'data', 'host_probe.js'), 'utf8');
-const runtime = fs.readFileSync(path.join(__dirname, '..', 'data', 'runtime_kernel.js'), 'utf8');
-const typography = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_typography.js'), 'utf8');
-const moduleSrc = fs.readFileSync(path.join(__dirname, '..', 'data', 'legacy', 'deferred_next.js'), 'utf8');
+const legacy = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_legacy.js'), 'utf8').replace(/\r\n/g, '\n');
+const theme = fs.readFileSync(path.join(__dirname, '..', 'data', 'theme.css'), 'utf8').replace(/\r\n/g, '\n');
+const warm = fs.readFileSync(path.join(__dirname, '..', 'data', 'warm-white-override.css'), 'utf8').replace(/\r\n/g, '\n');
+const shared = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_shared.js'), 'utf8').replace(/\r\n/g, '\n');
+const hostProbe = fs.readFileSync(path.join(__dirname, '..', 'data', 'host_probe.js'), 'utf8').replace(/\r\n/g, '\n');
+const runtime = fs.readFileSync(path.join(__dirname, '..', 'data', 'runtime_kernel.js'), 'utf8').replace(/\r\n/g, '\n');
+const typography = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_typography.js'), 'utf8').replace(/\r\n/g, '\n');
+const moduleSrc = fs.readFileSync(path.join(__dirname, '..', 'data', 'legacy', 'deferred_next.js'), 'utf8').replace(/\r\n/g, '\n');
 
 let passed = 0;
 function ok(name) { console.log('  ok  ' + name); passed++; }
@@ -700,19 +700,20 @@ function cssRuleBody(selector) {
   ok('attachment chips: reuse bubble chip skin + preview + a11y, no parallel copy');
 })();
 
-(function appliedGuiCopyIsEnglishOnly() {
-  // Project convention: the Chinese locale lives only in the CLI; the
-  // applied in-editor GUI matches the host language and every other
-  // incipit GUI string (plain English). The scaffold's zh/en table +
-  // locale switch was redundant and is removed.
+(function appliedGuiCopyIsBilingual() {
+  // Project convention (revised): incipit-wide i18n means every panel,
+  // including the applied in-editor GUI, follows CFG.language (EN/ZH) —
+  // not just the CLI. The old English-only scaffold rule is overridden;
+  // DEFERRED_NEXT_TEXT is a bilingual {en, zh} map like every other
+  // localized dictionary in this file (see LEGACY_STR, CHANGE_REVIEW_TEXT).
   const dict = functionBody('deferredText', 700);
   assert.ok(legacy.includes('const DEFERRED_NEXT_TEXT = Object.freeze({') &&
-    !/DEFERRED_NEXT_TEXT = Object\.freeze\(\{\s*zh:/.test(legacy) &&
-    !legacy.includes("guide: '引导'"),
-    'the bilingual zh/en table must collapse to one flat English map');
-  assert.ok(!dict.includes('CFG.language') && !dict.includes('DEFERRED_NEXT_TEXT.en'),
-    'deferredText must not branch on locale anymore');
-  ok('applied-GUI copy: English-only, no locale branching');
+    legacy.includes("guide: { en: 'Guide', zh: '引导' }") &&
+    legacy.includes("cancel: { en: 'Cancel', zh: '取消' }"),
+    'DEFERRED_NEXT_TEXT must be a bilingual {en, zh} map');
+  assert.ok(dict.includes('CFG.language') && dict.includes('entry.en'),
+    'deferredText must branch on CFG.language, falling back to English');
+  ok('applied-GUI copy: bilingual EN/ZH, driven by CFG.language');
 })();
 
 (function genericPermissionRequestsUseThemeSkin() {
