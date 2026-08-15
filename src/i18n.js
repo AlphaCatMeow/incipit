@@ -185,12 +185,12 @@ const STRINGS = {
 
     // --- update check ---
     'update.available':         'A new version is available: {current} → {latest}',
-    'update.command':           'Run: npm install -g incipit@latest --prefer-online',
+    'update.command':           'Run: npm install -g @alphacatmeow/incipit@latest --prefer-online',
     'update.prompt':            'Update now? [Y/n]: ',
     'update.skipped':           'Continuing with the current version.',
     'update.upgrading':         'Upgrading incipit…',
     'update.upgrade_succeeded': 'Upgrade complete. Please re-run incipit.',
-    'update.upgrade_failed':    'Upgrade failed. You can retry manually with: npm install -g incipit@latest --prefer-online',
+    'update.upgrade_failed':    'Upgrade failed. You can retry manually with: npm install -g @alphacatmeow/incipit@latest --prefer-online',
 
     // --- first-run language picker ---
     'picker.heading':           'Please choose your language  /  请选择语言',
@@ -581,12 +581,12 @@ const STRINGS = {
 
     // --- update check ---
     'update.available':         '发现新版本：{current} → {latest}',
-    'update.command':           '运行：npm install -g incipit@latest --prefer-online',
+    'update.command':           '运行：npm install -g @alphacatmeow/incipit@latest --prefer-online',
     'update.prompt':            '现在升级？[Y/n]：',
     'update.skipped':           '继续使用当前版本。',
     'update.upgrading':         '正在升级 incipit…',
     'update.upgrade_succeeded': '升级完成。请重新运行 incipit。',
-    'update.upgrade_failed':    '升级失败。可手动执行：npm install -g incipit@latest --prefer-online',
+    'update.upgrade_failed':    '升级失败。可手动执行：npm install -g @alphacatmeow/incipit@latest --prefer-online',
 
     'picker.heading':           'Please choose your language  /  请选择语言',
     'picker.option_zh':         '中文',

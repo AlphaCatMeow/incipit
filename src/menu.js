@@ -3061,12 +3061,12 @@ async function finishWithUpdateNotice(code, updatePromise) {
 // system shell without platform-specific forks.
 //
 // Pin to the EXACT version the update check discovered, not `@latest`.
-// `checkForUpdate()` reads `https://registry.npmjs.org/incipit/latest`
-// over HTTP (always fresh), but `npm install -g incipit@latest` resolves
+// `checkForUpdate()` reads `https://registry.npmjs.org/@alphacatmeow/incipit/latest`
+// over HTTP (always fresh), but `npm install -g @alphacatmeow/incipit@latest` resolves
 // the `latest` dist-tag through npm's local metadata cache, which lags
 // right after a publish. The two disagreeing produced an infinite
 // "upgrade available → upgrade installs the old version → still
-// available" loop. Installing `incipit@<exact-version>` forces npm to
+// available" loop. Installing `@alphacatmeow/incipit@<exact-version>` forces npm to
 // fetch that specific version (failing loudly if it truly can't) instead
 // of silently reinstalling the cached old one, and `--prefer-online`
 // revalidates stale cached metadata. Fall back to `@latest` only if the

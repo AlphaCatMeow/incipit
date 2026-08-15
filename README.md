@@ -25,10 +25,10 @@ Remove it and the extension is back to its stock state.
 Requires Node.js 16 or later.
 
 ```bash
-npm install -g incipit@latest
+npm install -g @alphacatmeow/incipit@latest
 ```
 
-`incipit` is a terminal CLI; it must be installed globally. `npm install incipit` (without `-g`) is npm's syntax for installing a local dependency, which drops the package into the current directory's `node_modules/` — neither registered on your PATH nor runnable.
+`incipit` is a terminal CLI; it must be installed globally. `npm install @alphacatmeow/incipit` (without `-g`) is npm's syntax for installing a local dependency, which drops the package into the current directory's `node_modules/` — neither registered on your PATH nor runnable.
 
 Then:
 
@@ -62,7 +62,7 @@ After every Claude Code update, the local patch is overwritten by the official f
 To uninstall only the incipit CLI:
 
 ```bash
-npm uninstall -g incipit
+npm uninstall -g @alphacatmeow/incipit
 ```
 
 This removes the `incipit` command itself. It does not restore a patched Claude Code extension or delete `~/.incipit/`; run `incipit restore` first if you want to roll back the patch.

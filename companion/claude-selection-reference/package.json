@@ -3,7 +3,7 @@
   "displayName": "%incipit.displayName%",
   "description": "%incipit.description%",
   "version": "0.0.1",
-  "publisher": "incipit",
+  "publisher": "alphacatmeow",
   "license": "AGPL-3.0-or-later",
   "engines": {
     "vscode": "^1.94.0"
