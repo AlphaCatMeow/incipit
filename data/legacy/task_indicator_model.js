@@ -1,3 +1,13 @@
+// Task indicator model: extracts task lists from conversation records.
+// Supports two sources (priority order):
+//   1. TodoWrite tool (legacy, kept for backward compatibility)
+//   2. Markdown task lists in assistant text:
+//      - [ ] text  → pending
+//      - [x] text  → completed
+//      - [X] text  → completed
+//      - [~] text  → in_progress
+//      - [>] text  → in_progress
+
 const VALID_STATUSES = new Set(['pending', 'in_progress', 'completed']);
 const STATUS_ALIASES = Object.freeze({
   todo: 'pending',
@@ -86,6 +96,49 @@ function defaultIsNewUserInstruction(record) {
   });
 }
 
+// Extract markdown task list from text content.
+// Supports:
+//   - [ ] text  → pending
+//   - [x] text  → completed
+//   - [X] text  → completed
+//   - [~] text  → in_progress
+//   - [>] text  → in_progress
+function extractMarkdownTasks(text) {
+  if (typeof text !== 'string') return null;
+  const lines = text.split('\n');
+  const tasks = [];
+  const taskPattern = /^[\s-]*\[([xX ~>]| )\]\s*(.+)$/;
+  for (const line of lines) {
+    const match = line.match(taskPattern);
+    if (match) {
+      const marker = match[1].trim();
+      const content = match[2].trim();
+      if (!content) continue;
+      let status = 'pending';
+      if (marker === 'x' || marker === 'X') status = 'completed';
+      else if (marker === '~' || marker === '>') status = 'in_progress';
+      tasks.push({ content, status });
+    }
+  }
+  return tasks.length > 0 ? tasks : null;
+}
+
+// Extract text content from assistant record for markdown task detection
+function extractAssistantText(record) {
+  if (!record || record.type !== 'assistant') return null;
+  const content = recordContent(record);
+  if (typeof content === 'string') return content;
+  if (!Array.isArray(content)) return null;
+  const textBlocks = [];
+  for (const block of content) {
+    const unwrapped = unwrapContentBlock(block);
+    if (unwrapped && unwrapped.type === 'text' && typeof unwrapped.text === 'string') {
+      textBlocks.push(unwrapped.text);
+    }
+  }
+  return textBlocks.length > 0 ? textBlocks.join('\n') : null;
+}
+
 export function findLatestTaskSnapshot(records, options = {}) {
   const source = Array.isArray(records) ? records : [];
   const getToolUseBlocks = typeof options.getToolUseBlocks === 'function'
@@ -96,6 +149,8 @@ export function findLatestTaskSnapshot(records, options = {}) {
     : defaultIsNewUserInstruction;
   for (let index = source.length - 1; index >= 0; index--) {
     const record = source[index];
+
+    // Priority 1: TodoWrite tool (legacy, kept for backward compatibility)
     const blocks = getToolUseBlocks(record, index);
     if (Array.isArray(blocks)) {
       for (let b = blocks.length - 1; b >= 0; b--) {
@@ -105,9 +160,21 @@ export function findLatestTaskSnapshot(records, options = {}) {
         }
       }
     }
-    // A fresh user instruction after the last TodoWrite call means that
+
+    // Priority 2: Markdown task list in assistant text
+    if (record && record.type === 'assistant') {
+      const text = extractAssistantText(record);
+      if (text) {
+        const tasks = extractMarkdownTasks(text);
+        if (tasks) {
+          return normalizeTaskSnapshot(tasks);
+        }
+      }
+    }
+
+    // A fresh user instruction after the last task source means that
     // list belongs to a finished turn — hide it rather than show stale
-    // progress until the new turn produces its own TodoWrite call.
+    // progress until the new turn produces its own task list.
     if (isNewUserInstruction(record)) return null;
   }
   return null;

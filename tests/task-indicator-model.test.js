@@ -196,6 +196,92 @@ const assert = require('assert');
   assert.strictEqual(findLatestTaskSnapshot([{ type: 'user', content: 'no tools here' }]), null);
   assert.strictEqual(findLatestTaskSnapshot(null), null);
 
+  // Markdown task list detection
+  const markdownPending = [
+    { type: 'user', content: 'do these tasks' },
+    {
+      type: 'assistant',
+      message: {
+        content: [
+          { type: 'text', text: 'Sure, here is the plan:\n\n- [ ] First task\n- [ ] Second task\n- [ ] Third task' },
+        ],
+      },
+    },
+  ];
+  const mdPendingSnapshot = findLatestTaskSnapshot(markdownPending);
+  assert.ok(mdPendingSnapshot, 'must detect markdown task list in assistant text');
+  assert.strictEqual(mdPendingSnapshot.total, 3);
+  assert.strictEqual(mdPendingSnapshot.completed, 0);
+  assert.strictEqual(mdPendingSnapshot.state, 'pending');
+  assert.strictEqual(mdPendingSnapshot.items[0].text, 'First task');
+
+  const markdownMixed = [
+    { type: 'user', content: 'update me' },
+    {
+      type: 'assistant',
+      message: {
+        content: [
+          { type: 'text', text: 'Progress:\n- [x] Step one\n- [~] Step two (in progress)\n- [ ] Step three' },
+        ],
+      },
+    },
+  ];
+  const mdMixedSnapshot = findLatestTaskSnapshot(markdownMixed);
+  assert.strictEqual(mdMixedSnapshot.total, 3);
+  assert.strictEqual(mdMixedSnapshot.completed, 1);
+  assert.strictEqual(mdMixedSnapshot.state, 'running');
+  assert.strictEqual(mdMixedSnapshot.items[0].status, 'completed');
+  assert.strictEqual(mdMixedSnapshot.items[1].status, 'in_progress');
+  assert.strictEqual(mdMixedSnapshot.items[2].status, 'pending');
+
+  const markdownCompleted = [
+    { type: 'assistant', message: { content: [
+      { type: 'text', text: '- [x] All\n- [X] Done' },
+    ] } },
+  ];
+  const mdCompletedSnapshot = findLatestTaskSnapshot(markdownCompleted);
+  assert.strictEqual(mdCompletedSnapshot.state, 'completed');
+  assert.strictEqual(mdCompletedSnapshot.completed, 2);
+
+  const markdownWithProgress = [
+    { type: 'assistant', message: { content: [
+      { type: 'text', text: '- [x] Done\n- [>] Active now' },
+    ] } },
+  ];
+  const mdProgressSnapshot = findLatestTaskSnapshot(markdownWithProgress);
+  assert.strictEqual(mdProgressSnapshot.items[1].status, 'in_progress');
+  assert.strictEqual(mdProgressSnapshot.state, 'running');
+
+  // Markdown with no valid tasks should return null
+  const noValidTasks = [
+    { type: 'assistant', message: { content: [
+      { type: 'text', text: 'Some text without tasks' },
+    ] } },
+  ];
+  assert.strictEqual(findLatestTaskSnapshot(noValidTasks), null);
+
+  // Fresh user instruction should hide markdown task list
+  const mdThenNewInstruction = markdownMixed.concat([
+    { type: 'user', content: 'new request' },
+  ]);
+  assert.strictEqual(
+    findLatestTaskSnapshot(mdThenNewInstruction),
+    null,
+    'fresh user instruction must hide markdown task list from previous turn',
+  );
+
+  // TodoWrite should have priority over markdown
+  const bothSources = [
+    { type: 'assistant', message: { content: [
+      { type: 'text', text: '- [ ] Markdown task' },
+      { type: 'tool_use', name: 'TodoWrite', input: { todos: [
+        { content: 'TodoWrite task', status: 'pending' },
+      ] } },
+    ] } },
+  ];
+  const prioritySnapshot = findLatestTaskSnapshot(bothSources);
+  assert.strictEqual(prioritySnapshot.items[0].text, 'TodoWrite task', 'TodoWrite must take priority over markdown');
+
   console.log('task-indicator-model: checks PASSED');
 })().catch(error => {
   console.error(error);
