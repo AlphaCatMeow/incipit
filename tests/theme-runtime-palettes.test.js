@@ -99,6 +99,7 @@ function evaluateInjectStyles(cfg, document) {
 
 const rootFiles = new Set(install.ROOT_WEBVIEW_FILES.map(([, target]) => target));
 assert.ok(rootFiles.has('theme.css'), 'base theme is shipped');
+assert.ok(rootFiles.has('conversation_outline.css'), 'conversation outline styles are shipped');
 assert.ok(rootFiles.has('warm-white-override.css'), 'warm-white override is shipped');
 assert.ok(rootFiles.has('ink-black-override.css'), 'ink-black override is shipped');
 assert.ok(backupSource.includes("'incipit-ink-black-link'"), 'backup marker scan recognizes the ink-black head link');
@@ -240,6 +241,7 @@ for (const [palette, [background, foreground, secondary, bodyBold]] of Object.en
 
   const { document, nodes } = createDocumentMock([
     { id: 'claude-enhance-styles-link', rel: 'alternate', href: 'asset://stale-base.css' },
+    { id: 'incipit-conversation-outline-link', rel: 'alternate', href: 'asset://stale-outline.css' },
     { id: 'incipit-warm-white-link', rel: 'alternate', href: 'asset://stale-warm.css' },
     { id: 'incipit-ink-black-link', rel: 'alternate', href: 'asset://stale-ink.css' },
   ]);
@@ -248,6 +250,9 @@ for (const [palette, [background, foreground, secondary, bodyBold]] of Object.en
   assert.strictEqual(nodes.get('claude-enhance-styles-link').href, 'asset://theme.css',
     `${palette} repairs a stale base stylesheet URL`);
   assert.strictEqual(nodes.get('claude-enhance-styles-link').rel, 'stylesheet');
+  assert.strictEqual(nodes.get('incipit-conversation-outline-link').href,
+    'asset://conversation_outline.css');
+  assert.strictEqual(nodes.get('incipit-conversation-outline-link').rel, 'stylesheet');
   assert.strictEqual(nodes.has('incipit-warm-white-link'), palette === 'warm-white');
   assert.strictEqual(nodes.has('incipit-ink-black-link'), palette === 'ink-black');
   if (palette === 'warm-white') {

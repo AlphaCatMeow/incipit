@@ -67,6 +67,7 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'math_tokens.js'),         'math_tokens.js'],
   [path.join('data', 'math_rewriter.js'),       'math_rewriter.js'],
   [path.join('data', 'theme.css'),              THEME_TARGET_NAME],
+  [path.join('data', 'conversation_outline.css'), 'conversation_outline.css'],
   // Palette overrides are always copied so users can switch themes without
   // needing a package update just to make the selected stylesheet available.
   [path.join('data', 'warm-white-override.css'), 'warm-white-override.css'],

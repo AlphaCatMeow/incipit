@@ -146,6 +146,7 @@ const WEBVIEW_FILE_DESC_KEYS = Object.freeze({
   'math_tokens.js':          'apply.report.desc.math_tokens_js',
   'math_rewriter.js':        'apply.report.desc.math_rewriter_js',
   'theme.css':               'apply.report.desc.theme_css',
+  'conversation_outline.css': 'apply.report.desc.conversation_outline_css',
   'warm-white-override.css': 'apply.report.desc.warm_white_css',
   'ink-black-override.css':  'apply.report.desc.ink_black_css',
 });

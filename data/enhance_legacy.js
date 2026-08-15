@@ -8,6 +8,8 @@ import { initLegacyToolFold } from './legacy/tool_fold.js';
 import { initLegacyDiffIsland } from './legacy/diff_island.js';
 import { initLegacyForkRewind } from './legacy/fork_rewind.js';
 import { initLegacyUserBubble } from './legacy/user_bubble.js';
+import { initLegacyConversationOutline } from './legacy/conversation_outline.js';
+import { parseOutlineCommandProtocol } from './legacy/conversation_outline_model.js';
 import { initLegacyDeferredNext } from './legacy/deferred_next.js';
 import { initLegacyAskRefinement } from './legacy/ask_refinement.js';
 import {
@@ -1036,13 +1038,42 @@ import {
   // (see 2026-06-07 memo: dialog-entered slash commands are unavailable).
   // incipit has no slash-command send path, so the only honest treatment
   // is to drop edit/rerun and keep copy, exactly like compact summaries.
-  const COMMAND_RECORD_PREFIX_RE = /^\s*<\/?(?:local-)?command-[a-z]+\b/i;
-
   function isSlashCommandRecord(record) {
     if (!record || record.type !== 'user') return false;
     const firstText = firstTextOfRecord(record);
     if (typeof firstText !== 'string') return false;
-    return COMMAND_RECORD_PREFIX_RE.test(firstText);
+    return parseOutlineCommandProtocol(firstText) !== null;
+  }
+
+  function isSlashCommandInvocationRecord(record) {
+    if (!record || record.type !== 'user') return false;
+    const firstText = firstTextOfRecord(record);
+    const protocol = parseOutlineCommandProtocol(firstText);
+    return !!protocol && protocol.kind === 'invocation';
+  }
+
+  function isInternalCommandProtocolRecord(record) {
+    return isSlashCommandRecord(record) && !isSlashCommandInvocationRecord(record);
+  }
+
+  function outlineTextForRecord(record) {
+    const raw = transcriptText(record);
+    const protocol = parseOutlineCommandProtocol(raw);
+    if (protocol && protocol.kind === 'invocation') return protocol.preview;
+    const classified = classifyUserRecordBlocks(record);
+    return classified.proseText || (classified.hadArrayContent ? '' : raw);
+  }
+
+  function isOutlineUserRecord(record) {
+    return !!(
+      record &&
+      record.type === 'user' &&
+      !record.isSynthetic &&
+      !record.parentToolUseId &&
+      !transcriptHasToolResult(record) &&
+      !isCompactSummaryRecord(record) &&
+      !isInternalCommandProtocolRecord(record)
+    );
   }
 
   function isTranscriptRecord(value) {
@@ -11283,6 +11314,14 @@ import {
       setupBusyStateObserver,
       setupFileDragReferenceHint,
       setupUserBubbleNativeActionSuppression,
+      locateActiveSessionState,
+      transcriptRecordForElement,
+      transcriptRecordIndex,
+      recordUuid,
+      recordBetaMessageId,
+      getActiveSessionId,
+      isOutlineUserRecord,
+      outlineTextForRecord,
       setupDeferredNextMessageQueue,
       setupChangeReviewFileReview,
       setupAskRequestRefinement,
@@ -11297,6 +11336,7 @@ import {
     initLegacyDiffIsland(legacyContext);
     initLegacyForkRewind(legacyContext);
     initLegacyUserBubble(legacyContext);
+    initLegacyConversationOutline(legacyContext);
     initLegacyDeferredNext(legacyContext);
     setupChangeReviewFileReview();
     setupCommandMenuTransientSelectionCleanup();

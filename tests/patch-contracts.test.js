@@ -504,6 +504,7 @@ function assertRuntimeSourceContracts() {
     diff_island: 'initLegacyDiffIsland',
     fork_rewind: 'initLegacyForkRewind',
     user_bubble: 'initLegacyUserBubble',
+    conversation_outline: 'initLegacyConversationOutline',
     deferred_next: 'initLegacyDeferredNext',
     ask_refinement: 'initLegacyAskRefinement',
   };

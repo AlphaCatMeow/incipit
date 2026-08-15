@@ -453,6 +453,7 @@ export function injectStyles() {
     return link;
   }
   ensureStylesheet('claude-enhance-styles-link', 'theme.css');
+  ensureStylesheet('incipit-conversation-outline-link', 'conversation_outline.css');
   const overrides = [
     ['warm-white', 'incipit-warm-white-link', 'warm-white-override.css'],
     ['ink-black', 'incipit-ink-black-link', 'ink-black-override.css'],

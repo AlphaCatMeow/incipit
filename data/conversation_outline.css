@@ -1,0 +1,265 @@
+/* Conversation outline is a separate runtime asset so the frozen theme source stays reproducible. */
+[data-incipit-conversation-outline] {
+  position: absolute;
+  z-index: 19;
+  top: 12px;
+  left: 6px;
+  bottom: var(--incipit-outline-bottom, 12px);
+  width: 34px;
+  min-height: 48px;
+  color: var(--ink-text-secondary);
+  letter-spacing: 0;
+  pointer-events: auto;
+  opacity: 1;
+  transition: opacity 160ms ease;
+}
+
+[data-incipit-conversation-outline][hidden] {
+  display: none !important;
+}
+
+[data-incipit-conversation-outline][data-incipit-outline-touch="1"]
+  [data-incipit-outline-rail] {
+  width: 44px;
+  left: -4px;
+}
+
+[data-incipit-conversation-outline][data-incipit-outline-touch="1"]
+  [data-incipit-outline-marker] {
+  width: 44px;
+  min-height: 9px;
+}
+
+[data-incipit-conversation-outline][data-incipit-outline-touch="1"]
+  [data-incipit-outline-item] {
+  min-height: 44px;
+}
+
+[data-incipit-conversation-outline][data-incipit-outline-touch="1"]
+  [data-incipit-outline-pin] {
+  opacity: 1;
+}
+
+[data-incipit-conversation-outline][data-incipit-outline-touch="1"]
+  [data-incipit-outline-jump] {
+  min-height: 44px;
+}
+
+[data-incipit-conversation-outline][data-incipit-outline-touch="1"]
+  [data-incipit-outline-pin] {
+  width: 40px;
+  height: 40px;
+}
+
+[data-incipit-conversation-outline][data-incipit-outline-touch="1"]
+  [data-incipit-outline-panel] {
+  left: -4px;
+  max-height: min(82%, 560px);
+}
+
+[data-incipit-conversation-outline][data-incipit-outline-touch="1"][data-incipit-outline-touch-visible="0"][data-incipit-outline-expanded="0"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+[data-incipit-outline-rail] {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+[data-incipit-outline-markers] {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+}
+
+[data-incipit-outline-marker] {
+  box-sizing: border-box;
+  width: 34px;
+  height: 8px;
+  min-height: 8px;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-text-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  cursor: pointer;
+}
+
+[data-incipit-outline-marker] > span {
+  display: block;
+  width: 8px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.62;
+  transition: width 120ms ease, opacity 120ms ease, color 120ms ease;
+}
+
+[data-incipit-outline-marker][data-pinned="1"] {
+  color: var(--ink-accent);
+}
+
+[data-incipit-outline-marker][data-pinned="1"] > span {
+  width: 12px;
+  opacity: 0.86;
+}
+
+[data-incipit-outline-marker][data-active="1"] {
+  color: var(--ink-text-primary);
+}
+
+[data-incipit-outline-marker][data-active="1"] > span {
+  width: 20px;
+  opacity: 1;
+}
+
+[data-incipit-outline-marker][data-active="1"][data-pinned="1"] {
+  color: var(--ink-accent-bright);
+}
+
+[data-incipit-outline-panel] {
+  box-sizing: border-box;
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: min(240px, calc(100vw - 24px));
+  max-height: min(78%, 560px);
+  padding: 6px;
+  border: 1px solid var(--ink-border-hairline);
+  border-radius: 6px;
+  background: var(--ink-surface-panel);
+  color: var(--ink-text-primary);
+  box-shadow: var(--ink-dropdown-shadow);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(-8px);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 140ms;
+}
+
+[data-incipit-conversation-outline][data-incipit-outline-expanded="1"]
+  [data-incipit-outline-panel] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(-50%) translateX(0);
+  transition-delay: 0s;
+}
+
+[data-incipit-outline-section-label] {
+  min-height: 24px;
+  padding: 5px 8px 3px;
+  color: var(--ink-text-tertiary);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0;
+}
+
+[data-incipit-outline-divider] {
+  height: 1px;
+  margin: 5px 6px;
+  background: var(--ink-border-divider);
+}
+
+[data-incipit-outline-item] {
+  box-sizing: border-box;
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  align-items: center;
+  border-radius: 4px;
+  background: transparent;
+}
+
+[data-incipit-outline-item]:hover,
+[data-incipit-outline-item]:focus-within {
+  background: var(--ink-surface-hover-bg);
+}
+
+[data-incipit-outline-item][data-active="1"] {
+  background: var(--ink-accent-wash);
+}
+
+[data-incipit-outline-jump],
+[data-incipit-outline-pin] {
+  box-sizing: border-box;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+[data-incipit-outline-jump] {
+  min-width: 0;
+  min-height: 36px;
+  padding: 7px 4px 7px 8px;
+  overflow: hidden;
+  color: var(--ink-text-secondary);
+  font-family: var(--incipit-body-font);
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-incipit-outline-item][data-active="1"] [data-incipit-outline-jump] {
+  color: var(--ink-text-primary);
+}
+
+[data-incipit-outline-pin] {
+  width: 28px;
+  height: 28px;
+  padding: 6px;
+  border-radius: 4px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-text-tertiary);
+  opacity: 0;
+}
+
+[data-incipit-outline-item]:hover [data-incipit-outline-pin],
+[data-incipit-outline-item]:focus-within [data-incipit-outline-pin],
+[data-incipit-outline-item][data-pinned="1"] [data-incipit-outline-pin] {
+  opacity: 1;
+}
+
+[data-incipit-outline-item][data-pinned="1"] [data-incipit-outline-pin] {
+  color: var(--ink-accent);
+}
+
+[data-incipit-outline-pin]:hover {
+  background: var(--ink-surface-hover-bg);
+  color: var(--ink-accent-bright);
+}
+
+[data-incipit-outline-marker]:focus-visible,
+[data-incipit-outline-jump]:focus-visible,
+[data-incipit-outline-pin]:focus-visible {
+  outline: 2px solid var(--ink-accent-focus);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-incipit-conversation-outline],
+  [data-incipit-outline-marker] > span,
+  [data-incipit-outline-panel] {
+    transition: none !important;
+  }
+}
