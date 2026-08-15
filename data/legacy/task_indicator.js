@@ -221,7 +221,7 @@ function createTaskIndicatorController(ctx) {
 
   function render() {
     if (!snapshot || snapshot.total === 0) {
-      if (root) root.hidden = true;
+      if (root) { root.hidden = true; setExpanded(false); }
       return;
     }
     ensureRoot();

@@ -134,6 +134,64 @@ const assert = require('assert');
   assert.strictEqual(wrappedFound.total, 1);
   assert.strictEqual(wrappedFound.state, 'running');
 
+  // A fresh user instruction after the last TodoWrite call must hide the
+  // stale snapshot, so a new turn doesn't inherit the previous turn's pill.
+  const turnOneWithTodo = [
+    { type: 'user', content: 'do the first turn' },
+    {
+      type: 'assistant',
+      message: { content: [
+        { type: 'tool_use', name: 'TodoWrite', input: { todos: [
+          { content: 'only step', status: 'completed' },
+        ] } },
+      ] },
+    },
+  ];
+  const beforeNewInstruction = findLatestTaskSnapshot(turnOneWithTodo);
+  assert.ok(beforeNewInstruction, 'must still see the snapshot before any new instruction arrives');
+  assert.strictEqual(beforeNewInstruction.state, 'completed');
+
+  const turnTwoStarted = turnOneWithTodo.concat([
+    { type: 'user', content: 'now do a second, unrelated thing' },
+  ]);
+  assert.strictEqual(
+    findLatestTaskSnapshot(turnTwoStarted),
+    null,
+    'a fresh user instruction after the last TodoWrite call must hide the stale snapshot',
+  );
+
+  const turnTwoRespondedWithoutTodo = turnTwoStarted.concat([
+    { type: 'assistant', message: { content: [{ type: 'text', text: 'working on it' }] } },
+  ]);
+  assert.strictEqual(
+    findLatestTaskSnapshot(turnTwoRespondedWithoutTodo),
+    null,
+    'must stay hidden through the new turn until a fresh TodoWrite call happens',
+  );
+
+  const turnTwoNewTodo = turnTwoRespondedWithoutTodo.concat([
+    {
+      type: 'assistant',
+      message: { content: [
+        { type: 'tool_use', name: 'TodoWrite', input: { todos: [
+          { content: 'second turn step', status: 'in_progress' },
+        ] } },
+      ] },
+    },
+  ]);
+  const afterFreshTodo = findLatestTaskSnapshot(turnTwoNewTodo);
+  assert.ok(afterFreshTodo, 'a fresh TodoWrite call in the new turn must show again');
+  assert.strictEqual(afterFreshTodo.total, 1);
+
+  // A tool_result-only user record is a roundtrip, not a real instruction —
+  // it must not be mistaken for a turn boundary.
+  const roundtripOnly = turnOneWithTodo.concat([
+    { type: 'user', content: [{ type: 'tool_result', tool_use_id: 'abc', content: 'ok' }] },
+  ]);
+  const stillVisible = findLatestTaskSnapshot(roundtripOnly);
+  assert.ok(stillVisible, 'a tool_result roundtrip user record must not be mistaken for a new instruction');
+  assert.strictEqual(stillVisible.state, 'completed');
+
   assert.strictEqual(findLatestTaskSnapshot([]), null);
   assert.strictEqual(findLatestTaskSnapshot([{ type: 'user', content: 'no tools here' }]), null);
   assert.strictEqual(findLatestTaskSnapshot(null), null);
