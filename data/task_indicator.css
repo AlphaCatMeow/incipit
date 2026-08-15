@@ -1,0 +1,205 @@
+/* Task indicator is a separate runtime asset so the frozen theme source stays reproducible. */
+[data-incipit-task-indicator] {
+  position: fixed;
+  z-index: 99999;
+  left: 0;
+  bottom: 12px;
+  transform: translateX(-50%);
+  color: var(--ink-text-secondary);
+  font-family: var(--incipit-body-font);
+  pointer-events: auto;
+}
+
+[data-incipit-task-indicator][hidden] {
+  display: none !important;
+}
+
+[data-incipit-task-pill] {
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--ink-border-hairline);
+  border-radius: 13px;
+  background: var(--ink-surface-panel);
+  color: var(--ink-text-secondary);
+  box-shadow: var(--ink-dropdown-shadow);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+[data-incipit-task-pill]:hover {
+  background: var(--ink-surface-hover-bg);
+}
+
+[data-incipit-task-pill-icon] {
+  display: flex;
+  width: 14px;
+  height: 14px;
+  color: var(--ink-text-tertiary);
+}
+
+[data-incipit-task-pill-icon] svg {
+  width: 100%;
+  height: 100%;
+}
+
+[data-incipit-task-indicator][data-state="running"] [data-incipit-task-pill-icon] {
+  color: var(--ink-accent);
+}
+
+[data-incipit-task-indicator][data-state="completed"] [data-incipit-task-pill-icon] {
+  color: var(--ink-add-fg);
+}
+
+[data-incipit-task-pill-label] {
+  color: var(--ink-text-primary);
+}
+
+[data-incipit-task-pill-sep] {
+  color: var(--ink-text-tertiary);
+}
+
+[data-incipit-task-pill-count] {
+  color: var(--ink-text-tertiary);
+}
+
+[data-incipit-task-panel] {
+  box-sizing: border-box;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  margin-bottom: 8px;
+  width: min(280px, calc(100vw - 24px));
+  max-height: min(60vh, 420px);
+  padding: 8px;
+  border: 1px solid var(--ink-border-hairline);
+  border-radius: 8px;
+  background: var(--ink-surface-panel);
+  color: var(--ink-text-primary);
+  box-shadow: var(--ink-dropdown-shadow);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(4px);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 140ms;
+}
+
+[data-incipit-task-indicator][data-expanded="1"] [data-incipit-task-panel] {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+  transition-delay: 0s;
+}
+
+[data-incipit-task-panel-header] {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 6px 6px;
+}
+
+[data-incipit-task-panel-title] {
+  color: var(--ink-text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+[data-incipit-task-panel-status] {
+  color: var(--ink-text-tertiary);
+  font-size: 11px;
+}
+
+[data-incipit-task-indicator][data-state="completed"] [data-incipit-task-panel-status] {
+  color: var(--ink-add-fg);
+}
+
+[data-incipit-task-indicator][data-state="running"] [data-incipit-task-panel-status] {
+  color: var(--ink-accent);
+}
+
+[data-incipit-task-panel-progress] {
+  padding: 0 6px 6px;
+  color: var(--ink-text-tertiary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+[data-incipit-task-panel-list] {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+[data-incipit-task-row] {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  padding: 5px 6px;
+  border-radius: 4px;
+}
+
+[data-incipit-task-row-icon] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  color: var(--ink-text-tertiary);
+}
+
+[data-incipit-task-row-icon] svg {
+  width: 100%;
+  height: 100%;
+}
+
+[data-incipit-task-row][data-status="completed"] [data-incipit-task-row-icon] {
+  color: var(--ink-add-fg);
+}
+
+[data-incipit-task-row][data-status="in_progress"] [data-incipit-task-row-icon] {
+  color: var(--ink-accent);
+}
+
+[data-incipit-task-row-text] {
+  color: var(--ink-text-secondary);
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0;
+  overflow-wrap: break-word;
+}
+
+[data-incipit-task-row][data-status="in_progress"] [data-incipit-task-row-text] {
+  color: var(--ink-text-primary);
+}
+
+[data-incipit-task-row][data-status="completed"] [data-incipit-task-row-text] {
+  color: var(--ink-text-tertiary);
+  text-decoration: line-through;
+  text-decoration-color: var(--ink-border-hairline);
+}
+
+[data-incipit-task-pill]:focus-visible {
+  outline: 2px solid var(--ink-accent-focus);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-incipit-task-panel] {
+    transition: none !important;
+  }
+}

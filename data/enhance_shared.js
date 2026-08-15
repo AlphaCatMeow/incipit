@@ -454,6 +454,7 @@ export function injectStyles() {
   }
   ensureStylesheet('claude-enhance-styles-link', 'theme.css');
   ensureStylesheet('incipit-conversation-outline-link', 'conversation_outline.css');
+  ensureStylesheet('incipit-task-indicator-link', 'task_indicator.css');
   const overrides = [
     ['warm-white', 'incipit-warm-white-link', 'warm-white-override.css'],
     ['ink-black', 'incipit-ink-black-link', 'ink-black-override.css'],

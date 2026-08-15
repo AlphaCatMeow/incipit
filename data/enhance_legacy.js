@@ -10,6 +10,7 @@ import { initLegacyForkRewind } from './legacy/fork_rewind.js';
 import { initLegacyUserBubble } from './legacy/user_bubble.js';
 import { initLegacyConversationOutline } from './legacy/conversation_outline.js';
 import { parseOutlineCommandProtocol } from './legacy/conversation_outline_model.js';
+import { initLegacyTaskIndicator } from './legacy/task_indicator.js';
 import { initLegacyDeferredNext } from './legacy/deferred_next.js';
 import { initLegacyAskRefinement } from './legacy/ask_refinement.js';
 import {
@@ -11337,6 +11338,7 @@ import {
     initLegacyForkRewind(legacyContext);
     initLegacyUserBubble(legacyContext);
     initLegacyConversationOutline(legacyContext);
+    initLegacyTaskIndicator(legacyContext);
     initLegacyDeferredNext(legacyContext);
     setupChangeReviewFileReview();
     setupCommandMenuTransientSelectionCleanup();
