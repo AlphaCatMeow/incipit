@@ -1,9 +1,12 @@
 {
-  "name": "incipit",
+  "name": "@alphacatmeow/incipit",
   "version": "1.3.0",
   "description": "A frontend rework of the official Claude Code VS Code extension — surface redrawn, engine untouched.",
   "bin": {
     "incipit": "bin/cli.js"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "main": "src/install.js",
   "files": [
@@ -73,12 +76,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yc-duan/incipit.git"
+    "url": "git+https://github.com/AlphaCatMeow/incipit.git"
   },
   "bugs": {
-    "url": "https://github.com/yc-duan/incipit/issues"
+    "url": "https://github.com/AlphaCatMeow/incipit/issues"
   },
-  "homepage": "https://github.com/yc-duan/incipit#readme",
+  "homepage": "https://github.com/AlphaCatMeow/incipit#readme",
   "author": "",
   "license": "AGPL-3.0-or-later"
 }
