@@ -282,6 +282,97 @@ const assert = require('assert');
   const prioritySnapshot = findLatestTaskSnapshot(bothSources);
   assert.strictEqual(prioritySnapshot.items[0].text, 'TodoWrite task', 'TodoWrite must take priority over markdown');
 
+  // TaskCreate/TaskUpdate/TaskList tool results detection
+  const taskToolResult = [
+    { type: 'assistant', message: { content: [
+      { type: 'tool_use', name: 'TaskCreate', id: 'task1', input: { subject: 'Setup environment' } },
+    ] } },
+    { type: 'user', content: [
+      { type: 'tool_result', tool_use_id: 'task1', content: 'Created task 1.',
+        details: {
+          kind: 'task_list',
+          action: 'created',
+          taskId: '1',
+          tasks: [
+            { id: '1', subject: 'Setup environment', description: 'Install deps', activeForm: 'Setting up', status: 'pending' },
+          ],
+        },
+      },
+    ] },
+  ];
+  const taskToolSnapshot = findLatestTaskSnapshot(taskToolResult);
+  assert.ok(taskToolSnapshot, 'must detect TaskCreate tool result');
+  assert.strictEqual(taskToolSnapshot.total, 1);
+  assert.strictEqual(taskToolSnapshot.items[0].text, 'Setup environment');
+  assert.strictEqual(taskToolSnapshot.items[0].status, 'pending');
+
+  const taskToolMixed = [
+    { type: 'assistant', message: { content: [
+      { type: 'tool_use', name: 'TaskList', id: 'list1', input: {} },
+    ] } },
+    { type: 'user', content: [
+      { type: 'tool_result', tool_use_id: 'list1', content: 'Current task list.',
+        details: {
+          kind: 'task_list',
+          action: 'listed',
+          tasks: [
+            { id: '1', subject: 'First task', status: 'completed' },
+            { id: '2', subject: 'Second task', status: 'in_progress' },
+            { id: '3', subject: 'Third task', status: 'pending' },
+          ],
+        },
+      },
+    ] },
+  ];
+  const taskToolMixedSnapshot = findLatestTaskSnapshot(taskToolMixed);
+  assert.strictEqual(taskToolMixedSnapshot.total, 3);
+  assert.strictEqual(taskToolMixedSnapshot.completed, 1);
+  assert.strictEqual(taskToolMixedSnapshot.state, 'running');
+
+  // TaskList should have priority over markdown
+  const taskToolAndMarkdown = [
+    { type: 'assistant', message: { content: [
+      { type: 'text', text: '- [ ] Markdown task' },
+      { type: 'tool_use', name: 'TaskList', id: 'list2', input: {} },
+    ] } },
+    { type: 'user', content: [
+      { type: 'tool_result', tool_use_id: 'list2', content: 'Current task list.',
+        details: {
+          kind: 'task_list',
+          action: 'listed',
+          tasks: [
+            { id: '1', subject: 'Tool task', status: 'pending' },
+          ],
+        },
+      },
+    ] },
+  ];
+  const taskPrioritySnapshot = findLatestTaskSnapshot(taskToolAndMarkdown);
+  assert.strictEqual(taskPrioritySnapshot.items[0].text, 'Tool task', 'TaskList must take priority over markdown');
+
+  // TodoWrite should have priority over TaskList
+  const todoAndTaskTool = [
+    { type: 'assistant', message: { content: [
+      { type: 'tool_use', name: 'TodoWrite', input: { todos: [
+        { content: 'TodoWrite task', status: 'pending' },
+      ] } },
+      { type: 'tool_use', name: 'TaskList', id: 'list3', input: {} },
+    ] } },
+    { type: 'user', content: [
+      { type: 'tool_result', tool_use_id: 'list3', content: 'Current task list.',
+        details: {
+          kind: 'task_list',
+          action: 'listed',
+          tasks: [
+            { id: '1', subject: 'Tool task', status: 'pending' },
+          ],
+        },
+      },
+    ] },
+  ];
+  const todoPrioritySnapshot = findLatestTaskSnapshot(todoAndTaskTool);
+  assert.strictEqual(todoPrioritySnapshot.items[0].text, 'TodoWrite task', 'TodoWrite must take priority over TaskList');
+
   console.log('task-indicator-model: checks PASSED');
 })().catch(error => {
   console.error(error);

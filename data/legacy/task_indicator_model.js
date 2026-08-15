@@ -1,7 +1,8 @@
 // Task indicator model: extracts task lists from conversation records.
-// Supports two sources (priority order):
+// Supports three sources (priority order):
 //   1. TodoWrite tool (legacy, kept for backward compatibility)
-//   2. Markdown task lists in assistant text:
+//   2. TaskCreate/TaskUpdate/TaskList tool results (current standard)
+//   3. Markdown task lists in assistant text:
 //      - [ ] text  → pending
 //      - [x] text  → completed
 //      - [X] text  → completed
@@ -139,6 +140,35 @@ function extractAssistantText(record) {
   return textBlocks.length > 0 ? textBlocks.join('\n') : null;
 }
 
+// Extract task list from TaskCreate/TaskUpdate/TaskList tool results
+function extractTaskToolResults(record) {
+  if (!record) return null;
+  const content = recordContent(record);
+  if (!Array.isArray(content)) return null;
+
+  // Look for tool_result blocks with task list details
+  for (let i = content.length - 1; i >= 0; i--) {
+    const block = unwrapContentBlock(content[i]);
+    if (!block || block.type !== 'tool_result') continue;
+
+    const details = block.details;
+    if (!details || details.kind !== 'task_list') continue;
+
+    const tasks = details.tasks;
+    if (!Array.isArray(tasks) || tasks.length === 0) continue;
+
+    // Convert TaskItem format to normalized format
+    // TaskItem: { id, subject, description, activeForm, status }
+    // Normalized: { content, status }
+    return tasks.map(task => ({
+      content: task.subject || task.description || `Task ${task.id}`,
+      status: task.status || 'pending'
+    }));
+  }
+
+  return null;
+}
+
 export function findLatestTaskSnapshot(records, options = {}) {
   const source = Array.isArray(records) ? records : [];
   const getToolUseBlocks = typeof options.getToolUseBlocks === 'function'
@@ -147,35 +177,67 @@ export function findLatestTaskSnapshot(records, options = {}) {
   const isNewUserInstruction = typeof options.isNewUserInstruction === 'function'
     ? options.isNewUserInstruction
     : defaultIsNewUserInstruction;
+
+  // Scan from end, collecting all task sources until we hit a new user instruction
+  let todoWriteSnapshot = null;
+  let taskToolSnapshot = null;
+  let markdownSnapshot = null;
+  let foundAnyTaskSource = false;
+
   for (let index = source.length - 1; index >= 0; index--) {
     const record = source[index];
 
-    // Priority 1: TodoWrite tool (legacy, kept for backward compatibility)
-    const blocks = getToolUseBlocks(record, index);
-    if (Array.isArray(blocks)) {
-      for (let b = blocks.length - 1; b >= 0; b--) {
-        const block = blocks[b];
-        if (block && block.name === 'TodoWrite' && block.input && Array.isArray(block.input.todos)) {
-          return normalizeTaskSnapshot(block.input.todos);
+    // Stop at new user instruction (but check current record first)
+    const isNewInstruction = isNewUserInstruction(record);
+
+    // Check for TodoWrite tool (highest priority)
+    if (!todoWriteSnapshot) {
+      const blocks = getToolUseBlocks(record, index);
+      if (Array.isArray(blocks)) {
+        for (let b = blocks.length - 1; b >= 0; b--) {
+          const block = blocks[b];
+          if (block && block.name === 'TodoWrite' && block.input && Array.isArray(block.input.todos)) {
+            todoWriteSnapshot = normalizeTaskSnapshot(block.input.todos);
+            foundAnyTaskSource = true;
+            break;
+          }
         }
       }
     }
 
-    // Priority 2: Markdown task list in assistant text
-    if (record && record.type === 'assistant') {
+    // Check for TaskCreate/TaskUpdate/TaskList tool results (medium priority)
+    if (!taskToolSnapshot && record && record.type === 'user') {
+      const taskList = extractTaskToolResults(record);
+      if (taskList) {
+        taskToolSnapshot = normalizeTaskSnapshot(taskList);
+        foundAnyTaskSource = true;
+      }
+    }
+
+    // Check for Markdown task list (lowest priority)
+    if (!markdownSnapshot && record && record.type === 'assistant') {
       const text = extractAssistantText(record);
       if (text) {
         const tasks = extractMarkdownTasks(text);
         if (tasks) {
-          return normalizeTaskSnapshot(tasks);
+          markdownSnapshot = normalizeTaskSnapshot(tasks);
+          foundAnyTaskSource = true;
         }
       }
     }
 
-    // A fresh user instruction after the last task source means that
-    // list belongs to a finished turn — hide it rather than show stale
-    // progress until the new turn produces its own task list.
-    if (isNewUserInstruction(record)) return null;
+    // If this is a new user instruction and we haven't found any task source yet,
+    // it means the task list belongs to a finished turn — return null
+    if (isNewInstruction && !foundAnyTaskSource) {
+      return null;
+    }
+
+    // If we've collected task sources and hit a boundary, return highest priority
+    if (foundAnyTaskSource && isNewInstruction) {
+      return todoWriteSnapshot || taskToolSnapshot || markdownSnapshot;
+    }
   }
-  return null;
+
+  // Return highest priority task source found (or null if none)
+  return todoWriteSnapshot || taskToolSnapshot || markdownSnapshot;
 }
