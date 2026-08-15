@@ -31,6 +31,7 @@ const {
   setFeature,
   getTheme,
   setBodyFontSize,
+  setConversationWidth,
   setPalette,
   setBodyBold,
   setBodyFontFamily,
@@ -42,6 +43,7 @@ const {
   BODY_FONT_SIZE_OPTIONS,
   BODY_FONT_FAMILY_OPTIONS,
   CODE_FONT_FAMILY_OPTIONS,
+  CONVERSATION_WIDTH_OPTIONS,
   DEFAULT_THEME,
   getStoredTargets,
   setLastUsedTargetId,
@@ -565,6 +567,7 @@ function formatApplyConfigInline(features, theme, customIcon = null) {
     `${t('configure.feature_session')} ${features && features.sessionUsage ? on : off}`,
     `${t('configure.feature_editor_overlay')} ${features && features.editorSelectionOverlay ? on : off}`,
     `${t('configure.param_body_size')} ${theme && theme.bodyFontSize ? theme.bodyFontSize : DEFAULT_THEME.bodyFontSize} px`,
+    `${t('configure.param_conversation_width')} ${theme && theme.conversationWidth ? theme.conversationWidth : DEFAULT_THEME.conversationWidth} px`,
     paletteDisplayLabel(theme || DEFAULT_THEME),
     `${t('configure.param_body_font')} ${bodyFontLabel}`,
     `${t('configure.param_code_font')} ${codeFontLabel}`,
@@ -981,6 +984,7 @@ async function handleConfigure() {
           ? t('configure.experimental_value_on')
           : t('configure.experimental_value_off'),
         bodyFontSize: t('configure.param_body_size'),
+        conversationWidth: t('configure.param_conversation_width'),
         palette: t('configure.param_palette'),
         paletteValue,
         bodyFont: t('configure.param_body_font'),
@@ -994,9 +998,9 @@ async function handleConfigure() {
       },
     });
 
-    // Rows: math, session, experimental submenu, bodysize, palette,
-    // bodyfont, codefont, icon, reset, back.
-    const ROW_COUNT = 10;
+    // Rows: math, session, experimental submenu, bodysize, conversation
+    // width, palette, bodyfont, codefont, icon, reset, back.
+    const ROW_COUNT = 11;
 
     const outcome = await keyLoop({
       render,
@@ -1029,12 +1033,13 @@ async function handleConfigure() {
           }
           if (index === 2) return { done: true, result: { action: 'experimental' } };
           if (index === 3) return { done: true, result: { action: 'bodysize' } };
-          if (index === 4) return { done: true, result: { action: 'palette' } };
-          if (index === 5) return { done: true, result: { action: 'bodyfont' } };
-          if (index === 6) return { done: true, result: { action: 'codefont' } };
-          if (index === 7) return { done: true, result: { action: 'icon' } };
-          if (index === 8) return { done: true, result: { action: 'reset' } };
-          if (index === 9) return { done: true, result: { action: 'back' } };
+          if (index === 4) return { done: true, result: { action: 'conversationwidth' } };
+          if (index === 5) return { done: true, result: { action: 'palette' } };
+          if (index === 6) return { done: true, result: { action: 'bodyfont' } };
+          if (index === 7) return { done: true, result: { action: 'codefont' } };
+          if (index === 8) return { done: true, result: { action: 'icon' } };
+          if (index === 9) return { done: true, result: { action: 'reset' } };
+          if (index === 10) return { done: true, result: { action: 'back' } };
           return;
         }
         // Letter shortcuts (r for reset, number for direct row activation).
@@ -1045,10 +1050,11 @@ async function handleConfigure() {
         if (str === '2') { index = 1; return { done: true, result: { action: 'toggle', index: 1 } }; }
         if (str === '3') { index = 2; return { done: true, result: { action: 'experimental' } }; }
         if (str === '4') { index = 3; return { done: true, result: { action: 'bodysize' } }; }
-        if (str === '5') { index = 4; return { done: true, result: { action: 'palette' } }; }
-        if (str === '6') { index = 5; return { done: true, result: { action: 'bodyfont' } }; }
-        if (str === '7') { index = 6; return { done: true, result: { action: 'codefont' } }; }
-        if (str === '8') { index = 7; return { done: true, result: { action: 'icon' } }; }
+        if (str === '5') { index = 4; return { done: true, result: { action: 'conversationwidth' } }; }
+        if (str === '6') { index = 5; return { done: true, result: { action: 'palette' } }; }
+        if (str === '7') { index = 6; return { done: true, result: { action: 'bodyfont' } }; }
+        if (str === '8') { index = 7; return { done: true, result: { action: 'codefont' } }; }
+        if (str === '9') { index = 8; return { done: true, result: { action: 'icon' } }; }
       },
     });
 
@@ -1064,6 +1070,10 @@ async function handleConfigure() {
     }
     if (outcome.action === 'bodysize') {
       await runScreenTransition(chooseBodyFontSize);
+      continue;
+    }
+    if (outcome.action === 'conversationwidth') {
+      await runScreenTransition(chooseConversationWidth);
       continue;
     }
     if (outcome.action === 'palette') {
@@ -2344,6 +2354,62 @@ async function chooseBodyFontSize() {
   });
 
   if (outcome.pick != null) setBodyFontSize(outcome.pick);
+}
+
+async function chooseConversationWidth() {
+  const defaultMark = t('configure.body_size_default_mark');
+  const current = getTheme().conversationWidth;
+  let index = Math.max(0, CONVERSATION_WIDTH_OPTIONS.indexOf(current));
+
+  const render = () => {
+    const options = CONVERSATION_WIDTH_OPTIONS.map((width, idx) => ({
+      mark: `${idx + 1}.`,
+      label: `${width} px` +
+        (width === DEFAULT_THEME.conversationWidth ? `  ${defaultMark}` : ''),
+      selected: idx === index,
+    }));
+    options.push({ mark: 'b.', label: t('configure.back'), selected: index === CONVERSATION_WIDTH_OPTIONS.length });
+    renderLanguagePicker({
+      version: PACKAGE_VERSION,
+      heading: t('configure.conversation_width_heading'),
+      optionsList: options,
+      hint: t('hint.picker'),
+    });
+  };
+
+  const total = CONVERSATION_WIDTH_OPTIONS.length + 1;  // options + back row
+  const outcome = await keyLoop({
+    render,
+    onKey: (str, key) => {
+      if (!key) return;
+      if (key.name === 'up' || key.name === 'k') {
+        index = (index - 1 + total) % total;
+        return;
+      }
+      if (key.name === 'down' || key.name === 'j') {
+        index = (index + 1) % total;
+        return;
+      }
+      if (key.name === 'backspace' || key.name === 'escape' ||
+          key.name === 'b' || key.name === 'q' ||
+          str === 'b' || str === 'q') {
+        return { done: true, result: { back: true } };
+      }
+      if (key.name === 'return' || key.name === 'enter') {
+        if (index < CONVERSATION_WIDTH_OPTIONS.length) {
+          return { done: true, result: { pick: CONVERSATION_WIDTH_OPTIONS[index] } };
+        }
+        return { done: true, result: { back: true } };
+      }
+      // Number shortcut: 1/2/3 immediately pick that width.
+      const n = parseInt(str, 10);
+      if (Number.isFinite(n) && n >= 1 && n <= CONVERSATION_WIDTH_OPTIONS.length) {
+        return { done: true, result: { pick: CONVERSATION_WIDTH_OPTIONS[n - 1] } };
+      }
+    },
+  });
+
+  if (outcome.pick != null) setConversationWidth(outcome.pick);
 }
 
 async function choosePalette() {

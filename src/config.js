@@ -37,8 +37,11 @@ const DEFAULT_FEATURES = Object.freeze({
 // (Plex Serif 400) to `PaperReading` (Plex Serif 500 real cuts) to fight
 // irradiation thinning on light surfaces — meaningful only on warm-white,
 // which the UI enforces at pick time and `getTheme()` enforces at read time
-// so non-warm-white palettes always report `bodyBold: false`.
+// so non-warm-white palettes always report `bodyBold: false`. `conversationWidth`
+// is the centered message column's max-width in px; same discrete-options /
+// snap-back-to-default pattern as `bodyFontSize`.
 const BODY_FONT_SIZE_OPTIONS = Object.freeze([12, 13, 14, 15, 16]);
+const CONVERSATION_WIDTH_OPTIONS = Object.freeze([570, 680, 780, 880, 980]);
 const PALETTE_OPTIONS = Object.freeze(['warm-black', 'ink-black', 'warm-white']);
 const CUSTOM_ICON_EXTENSIONS = Object.freeze(['.svg', '.png']);
 
@@ -80,6 +83,7 @@ const DEFAULT_THEME = Object.freeze({
   bodyBold: false,
   bodyFontFamily: 'plex-hei',
   codeFontFamily: 'rec-mono',
+  conversationWidth: 570,
 });
 
 function readConfig() {
@@ -193,7 +197,10 @@ function getTheme() {
   const bodyBold = (palette === 'warm-white' && raw.bodyBold === true);
   const bodyFontFamily = resolveBodyFontFamily(raw.bodyFontFamily);
   const codeFontFamily = resolveCodeFontFamily(raw.codeFontFamily);
-  return { bodyFontSize: size, palette, bodyBold, bodyFontFamily, codeFontFamily };
+  const conversationWidth = CONVERSATION_WIDTH_OPTIONS.includes(raw.conversationWidth)
+    ? raw.conversationWidth
+    : DEFAULT_THEME.conversationWidth;
+  return { bodyFontSize: size, palette, bodyBold, bodyFontFamily, codeFontFamily, conversationWidth };
 }
 
 function normalizeCustomIconPath(saved) {
@@ -294,6 +301,16 @@ function setBodyFontSize(size) {
   const cfg = readConfig();
   const raw = (cfg.theme && typeof cfg.theme === 'object') ? cfg.theme : {};
   cfg.theme = { ...raw, bodyFontSize: size };
+  writeConfig(cfg);
+}
+
+function setConversationWidth(width) {
+  if (!CONVERSATION_WIDTH_OPTIONS.includes(width)) {
+    throw new Error(`Unsupported conversation width: ${width}`);
+  }
+  const cfg = readConfig();
+  const raw = (cfg.theme && typeof cfg.theme === 'object') ? cfg.theme : {};
+  cfg.theme = { ...raw, conversationWidth: width };
   writeConfig(cfg);
 }
 
@@ -452,6 +469,7 @@ module.exports = {
   DEFAULT_THEME,
   BODY_FONT_SIZE_OPTIONS,
   PALETTE_OPTIONS,
+  CONVERSATION_WIDTH_OPTIONS,
   CUSTOM_ICON_EXTENSIONS,
   BODY_FONT_FAMILY_OPTIONS,
   BODY_FONT_FACE_BY_KEY,
@@ -465,6 +483,7 @@ module.exports = {
   setFeature,
   getTheme,
   setBodyFontSize,
+  setConversationWidth,
   setPalette,
   setBodyBold,
   setBodyFontFamily,

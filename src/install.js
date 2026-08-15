@@ -1371,6 +1371,7 @@ function buildThemeOverrideBlock(theme) {
          (emphasisFont ? `  --incipit-emphasis-font: ${emphasisFont};\n` : '') +
          (paperFace ? `  --incipit-paper-reading-font: ${paperFace};\n` : '') +
          `  --incipit-code-font: ${codeFont};\n` +
+         `  --incipit-conversation-column-width: ${theme.conversationWidth}px;\n` +
          '}\n';
 }
 

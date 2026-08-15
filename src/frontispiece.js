@@ -470,13 +470,14 @@ function renderConfigureMenu(options) {
   emitKnob(   2, '3.', labels.experimental, labels.experimentalValue);
   printer.blank();
   emitKnob(   3, '4.', labels.bodyFontSize, `${theme.bodyFontSize} px`);
-  emitKnob(   4, '5.', labels.palette, labels.paletteValue);
-  emitKnob(   5, '6.', labels.bodyFont, labels.bodyFontValue);
-  emitKnob(   6, '7.', labels.codeFont, labels.codeFontValue);
-  emitKnob(   7, '8.', labels.icon, labels.iconValue);
+  emitKnob(   4, '5.', labels.conversationWidth, `${theme.conversationWidth} px`);
+  emitKnob(   5, '6.', labels.palette, labels.paletteValue);
+  emitKnob(   6, '7.', labels.bodyFont, labels.bodyFontValue);
+  emitKnob(   7, '8.', labels.codeFont, labels.codeFontValue);
+  emitKnob(   8, '9.', labels.icon, labels.iconValue);
   printer.blank();
-  emitPlain(  8, 'r.', labels.reset);
-  emitPlain(  9, 'b.', labels.back);
+  emitPlain(  9, 'r.', labels.reset);
+  emitPlain(  10, 'b.', labels.back);
   printer.scrollEnd();
 
   for (let i = 0; i < gaps.menuGapBeforeRule; i++) printer.blank();

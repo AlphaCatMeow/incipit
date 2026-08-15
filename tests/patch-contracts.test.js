@@ -29,6 +29,7 @@ const DEFAULT_THEME = Object.freeze({
     key: 'rec-mono',
     css: "'Rec Mono Linear', 'Noto Sans SC', 'Microsoft YaHei UI', 'Microsoft YaHei', Consolas, Monaco, 'Courier New', monospace",
   },
+  conversationWidth: 570,
 });
 
 function hasContractFiles(dir) {
