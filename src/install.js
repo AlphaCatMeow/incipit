@@ -220,6 +220,16 @@ const HOST_CONTACT_ROUTE_CATALOG = Object.freeze([
     extensionSha256: '7951e104be33cfaf0d0cc98a1c2621000b29021a9b1e9fef511ffdda9281af67',
     webviewSha256: '98150befd672dffc371d3209f2184667c2ca0c049ab7fc54cbfb174836949844',
   },
+  {
+    version: '2.1.251',
+    extensionSha256: '3976184231e566251a8e9c5f5e940ce2d3abb1ecce9ee4ec6e7d1067f00f43ba',
+    webviewSha256: 'a0751d183a681e8cc59696250bda26d7ae495fd82b8574a31e65bbfeb0b0d9ad',
+  },
+  {
+    version: '2.1.258',
+    extensionSha256: '8d0ec100338102e52f3fce91abfa8ddb91281b5922206e56f655869dfdbf4348',
+    webviewSha256: '559c3a4f04c143e05c52893a95394c1d77b2cda760dad7dbb732ba2dd91bac70',
+  },
 ]);
 
 function sanitizeFontFamilyValue(raw) {
