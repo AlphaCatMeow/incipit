@@ -19,7 +19,9 @@
 //   · the official composer text layer is fully host-owned: incipit only feeds
 //     host input foreground tokens (+ retints reference chips); it never edits
 //     text/selection, styles the text layers, or syncs mirror scroll geometry
-//     (a manual sync races the host on paste/insert and desyncs the layers)
+//     (a manual sync races the host on paste/insert and desyncs the layers).
+//     The single sanctioned mirror rule is static scroll headroom (an empty
+//     `::after` block) so the host's own scrollTop copy can never clamp.
 
 const assert = require('assert');
 const fs = require('fs');
@@ -28,6 +30,7 @@ const path = require('path');
 const legacy = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_legacy.js'), 'utf8');
 const theme = fs.readFileSync(path.join(__dirname, '..', 'data', 'theme.css'), 'utf8');
 const warm = fs.readFileSync(path.join(__dirname, '..', 'data', 'warm-white-override.css'), 'utf8');
+const ink = fs.readFileSync(path.join(__dirname, '..', 'data', 'ink-black-override.css'), 'utf8');
 const shared = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_shared.js'), 'utf8');
 const hostProbe = fs.readFileSync(path.join(__dirname, '..', 'data', 'host_probe.js'), 'utf8');
 const runtime = fs.readFileSync(path.join(__dirname, '..', 'data', 'runtime_kernel.js'), 'utf8');
@@ -599,6 +602,24 @@ function cssRuleBody(selector) {
     !theme.includes('--app-mention-chip-foreground') &&
     !composerTextSelector.test(theme),
     'theme.css must not style messageInput, mentionMirror, or voiceInterim');
+  // The one sanctioned mirror rule: invisible scroll headroom. Chromium leaves
+  // a placeholder <br> at the end of the editable after a trailing line is
+  // deleted; the mirror (rendered from textContent) is then one line shorter,
+  // the host's scrollTop copy clamps at the bottom, and the visible text drifts
+  // off the caret. An empty ::after block keeps the mirror's scroll range >=
+  // the editor's so the copy never clamps. It must stay range-only: no colour,
+  // padding, font, position, or anything that could change the visible paint.
+  const mirrorHeadroomSelector = '[class*="messageInputContainer_"] > [class*="mentionMirror_"]::after';
+  const themeWithoutComments = theme.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.strictEqual(themeWithoutComments.split('mentionMirror').length - 1, 1,
+    'theme.css may reference the composer mirror in exactly one rule (the scroll headroom block)');
+  assert.ok(themeWithoutComments.includes(mirrorHeadroomSelector + ' {'),
+    'mirror headroom must target the mirror as a direct child of messageInputContainer via ::after');
+  assert.strictEqual(cssRuleBody(mirrorHeadroomSelector).replace(/\s+/g, ' ').trim(),
+    'content: ""; display: block; height: 200px;',
+    'mirror headroom rule must only extend scrollable range (empty block, fixed height, no !important)');
+  assert.ok(!warm.includes('mentionMirror') && !ink.includes('mentionMirror'),
+    'palette overrides must not add any mirror rule of their own');
   assert.ok(!theme.includes('* {\n  scrollbar-width: auto !important;') &&
     theme.includes('*:not([class*="inputContainer_"]):not([class*="inputContainer_"] *):not([contenteditable]):not([contenteditable] *)') &&
     theme.includes('scrollbar-width: auto !important;'),

@@ -3489,6 +3489,40 @@ fieldset[class*="inputContainer_"][data-permission-mode]:focus-within,
   box-shadow: var(--ink-input-container-background-shadow) !important;
 }
 
+/* Composer mirror scroll headroom.
+
+   The host composer is two stacked layers inside `messageInputContainer_*`:
+   the transparent contenteditable (`messageInput_*`, the only real scroller,
+   max-height 200px) and the visible mention mirror (position:absolute;
+   inset:0; overflow:hidden), which the host keeps aligned by copying the
+   editor's scrollTop onto the mirror on every `scroll` event.
+
+   Chromium's editing engine leaves a placeholder `<br>` at the end of the
+   editable once a trailing line has been deleted, and keeps it there. The
+   mirror is rendered from React state built from `textContent`, which cannot
+   see that `<br>`, so from then on every trailing empty line makes the editor
+   one line taller than the mirror. At the bottom of a long input the copied
+   scrollTop exceeds the mirror's own maximum, the mirror clamps, and the
+   visible text sits up to one line above the caret: text that Backspace
+   "cannot delete", a caret on the wrong line. Reproduced against the
+   unpatched 2.1.258 composer in headless Chromium, see
+   dev-notes/2026-09-01-composer-mirror-clamp-investigation.md.
+
+   The fix is a zero-content block after the mirror text that extends the
+   mirror's scrollable range by a full composer viewport. mirror.scrollHeight
+   then always covers editor.scrollHeight for any placeholder deficit, so the
+   host's scrollTop copy is never clamped and the layers stay aligned. Nothing
+   visible changes: the mirror box is inset-derived, the block is clipped by
+   overflow:hidden, and at scrollTop 0 the paint is identical. incipit still
+   never reads or writes composer text, selection, or scroll; this is a static
+   guarantee about the mirror's range, not a sync (R-12). Keep this the only
+   rule that touches the mirror. */
+[class*="messageInputContainer_"] > [class*="mentionMirror_"]::after {
+  content: "";
+  display: block;
+  height: 200px;
+}
+
 /* File drag reference hint.
 
    incipit does not own the drop. It only adds a small composer-local hint

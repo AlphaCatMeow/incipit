@@ -2253,6 +2253,13 @@ import {
   // layer). The genuinely-needed non-interference fixes stay: global scrollbar
   // CSS excludes composer/contenteditable, the input container box model is
   // untouched, and no padding is added to the visible layer.
+  //
+  // The one static guarantee incipit does add lives in theme.css: an empty
+  // `::after` block gives the mirror scroll headroom so the host's own scrollTop
+  // copy can never clamp when Chromium's trailing placeholder <br> makes the
+  // editable one line taller than the mirror (the bottom-of-input drift, see
+  // dev-notes/2026-09-01-composer-mirror-clamp-investigation.md). That is CSS
+  // range, not a sync; do not reintroduce JS here.
 
   function fileDragHintText() {
     return FILE_DRAG_HINT_TEXT[CFG.language] || FILE_DRAG_HINT_TEXT.en;

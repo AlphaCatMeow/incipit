@@ -1,8 +1,8 @@
 {
   "version": 1,
-  "generatedFrom": "2026-07-21 pre-tokenization worktree",
+  "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "083a25c1c3a88e87b6eeb48da416c93580168ddd4376a36266b2e7c31de58c3a",
+    "themeSha256": "c111fcb05d97501547d9af5588fc085ad6b08117ff82a13c738dd12c53a523f7",
     "warmWhiteSha256": "804abae57073ab5f471a108a7b88566fad3c10f8c0e7b805102cd6fce8d6d516"
   },
   "themeSequence": [
@@ -2213,6 +2213,9 @@
     "\u0001[class*=\"inputContainerBackground\"]\u0001background-color\u0001!",
     "\u0001[class*=\"inputContainerBackground\"]\u0001border-radius\u0001!",
     "\u0001[class*=\"inputContainerBackground\"]\u0001box-shadow\u0001!",
+    "\u0001[class*=\"messageInputContainer_\"]>[class*=\"mentionMirror_\"]::after\u0001content\u0001",
+    "\u0001[class*=\"messageInputContainer_\"]>[class*=\"mentionMirror_\"]::after\u0001display\u0001",
+    "\u0001[class*=\"messageInputContainer_\"]>[class*=\"mentionMirror_\"]::after\u0001height\u0001",
     "\u0001fieldset[class*=\"inputContainer_\"][data-incipit-file-drag-hint=\"over\"]\u0001position\u0001!",
     "\u0001[class*=\"inputContainer_\"][data-incipit-file-drag-hint=\"over\"]:has(>[class*=\"inputContainerBackground\"])\u0001position\u0001!",
     "\u0001fieldset[class*=\"inputContainer_\"][data-incipit-file-drag-hint=\"over\"]:focus-within\u0001position\u0001!",
@@ -12748,6 +12751,21 @@
       "key": "\u0001[class*=\"menuHeaderHint\"] kbd\u0001vertical-align",
       "important": true,
       "resolved": "middle"
+    },
+    {
+      "key": "\u0001[class*=\"messageInputContainer_\"]>[class*=\"mentionMirror_\"]::after\u0001content",
+      "important": false,
+      "resolved": "\"\""
+    },
+    {
+      "key": "\u0001[class*=\"messageInputContainer_\"]>[class*=\"mentionMirror_\"]::after\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[class*=\"messageInputContainer_\"]>[class*=\"mentionMirror_\"]::after\u0001height",
+      "important": false,
+      "resolved": "200px"
     },
     {
       "key": "\u0001[class*=\"modalBackdrop_\"]:has([class*=\"diffEditorContainer\"])\u0001background-color",
@@ -35075,6 +35093,21 @@
       "key": "\u0001[class*=\"menuHeaderHint\"] kbd\u0001vertical-align",
       "important": true,
       "resolved": "middle"
+    },
+    {
+      "key": "\u0001[class*=\"messageInputContainer_\"]>[class*=\"mentionMirror_\"]::after\u0001content",
+      "important": false,
+      "resolved": "\"\""
+    },
+    {
+      "key": "\u0001[class*=\"messageInputContainer_\"]>[class*=\"mentionMirror_\"]::after\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[class*=\"messageInputContainer_\"]>[class*=\"mentionMirror_\"]::after\u0001height",
+      "important": false,
+      "resolved": "200px"
     },
     {
       "key": "\u0001[class*=\"modalBackdrop_\"]:has([class*=\"diffEditorContainer\"])\u0001background-color",
