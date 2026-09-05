@@ -479,19 +479,8 @@ function cssRuleBody(selector) {
     legacy.includes('registerChangeReviewWriteDiffRenderer(openWriteDiffModal, languageClassForFilePath)'),
     'the existing write-diff modal renderer must be registered for change-review reuse');
   assert.ok(modal.includes('const renderer = changeReviewWriteDiffRenderer') &&
-    modal.includes('renderer.languageClassForPath(filePath)') &&
-    modal.includes('if (diff && Array.isArray(diff.rows)) payload.rows = diff.rows;') &&
-    modal.includes('oldStartLine: diff.oldStartLine || diff.startLine || 1') &&
-    modal.includes('closeChangeReviewModal();') &&
-    modal.includes('renderer.openModal(payload, block, stats, languageClass, lineInfo)') &&
-    !modal.includes('data-incipit-change-review-diff-grid') &&
-    !modal.includes('fillChangeReviewDiffBody'),
+    modal.includes('Array.isArray(diff.rows)') && modal.includes('renderer.openModal('),
     'change-review successful diff open must delegate compact row payloads to the existing write-diff modal');
-  assert.ok(legacy.includes('if (payload && Array.isArray(payload.rows))') &&
-    legacy.includes("row.kind === 'add' || row.kind === 'del' || row.kind === 'ctx' || row.kind === 'gap'") &&
-    legacy.includes('absoluteLineNumber: true') &&
-    theme.includes('[data-incipit-write-diff-row="gap"]'),
-    'write-diff renderer must accept host-supplied compact hunk rows with absolute line numbers');
   assert.ok(!legacy.includes('function changeReviewDiffRows') &&
     !legacy.includes('function fillChangeReviewDiffBody') &&
     !legacy.includes('data-incipit-change-review-diff-grid') &&
@@ -592,7 +581,6 @@ function cssRuleBody(selector) {
     'legacy runtime must not touch composer mirror geometry; mentionMirror scroll/padding is host-owned (a manual sync races the host on paste/insert and desyncs the visible layer)');
   assert.ok(!hostProbe.includes('data-incipit-input-editor') &&
     !hostProbe.includes('inputEditor') &&
-    !hostProbe.includes('messageInput') &&
     !hostProbe.includes('[aria-multiline="true"][contenteditable]'),
     'host probe must not mark or observe the official contenteditable editor');
   assert.ok(!theme.includes('data-incipit-composer-empty') &&

@@ -2,8 +2,8 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "c111fcb05d97501547d9af5588fc085ad6b08117ff82a13c738dd12c53a523f7",
-    "warmWhiteSha256": "804abae57073ab5f471a108a7b88566fad3c10f8c0e7b805102cd6fce8d6d516"
+    "themeSha256": "40b67a140491013869cc390b28eb3d1bf3a1b22541f8fdb0fd2865e47199507d",
+    "warmWhiteSha256": "89c7567100dc06247948902bfd22918bdf2fb8e3bca8759165eecb673c54b478"
   },
   "themeSequence": [
     "\u0001@font-face#1\u0001font-family\u0001",
@@ -100,36 +100,80 @@
     "\u0001:root\u0001--incipit-emphasis-font\u0001",
     "\u0001:root\u0001--incipit-code-font\u0001",
     "\u0001:root\u0001--incipit-conversation-column-width\u0001",
+    "\u0001:root\u0001--incipit-conversation-gutter\u0001",
     "\u0001[data-incipit-messages-container]\u0001position\u0001!",
     "\u0001[data-incipit-messages-container]\u0001background\u0001!",
     "\u0001[data-incipit-messages-container]\u0001background-color\u0001!",
     "\u0001[data-incipit-messages-container]\u0001background-image\u0001!",
     "\u0001[data-incipit-messages-container]\u0001isolation\u0001!",
     "\u0001[data-incipit-messages-container]\u0001contain\u0001!",
+    "\u0001[data-incipit-messages-container]\u0001padding-inline\u0001!",
     "\u0001[data-incipit-message]\u0001box-sizing\u0001!",
     "\u0001[data-incipit-user-message-container]\u0001box-sizing\u0001!",
     "\u0001[data-incipit-spinner-row]\u0001box-sizing\u0001!",
+    "\u0001[data-incipit-turn]\u0001box-sizing\u0001!",
+    "\u0001[data-incipit-compact-message]\u0001box-sizing\u0001!",
+    "\u0001[data-incipit-system-message]\u0001box-sizing\u0001!",
     "\u0001[data-incipit-message]\u0001width\u0001!",
     "\u0001[data-incipit-user-message-container]\u0001width\u0001!",
     "\u0001[data-incipit-spinner-row]\u0001width\u0001!",
+    "\u0001[data-incipit-turn]\u0001width\u0001!",
+    "\u0001[data-incipit-compact-message]\u0001width\u0001!",
+    "\u0001[data-incipit-system-message]\u0001width\u0001!",
     "\u0001[data-incipit-message]\u0001max-width\u0001!",
     "\u0001[data-incipit-user-message-container]\u0001max-width\u0001!",
     "\u0001[data-incipit-spinner-row]\u0001max-width\u0001!",
-    "\u0001[data-incipit-message]\u0001margin-left\u0001!",
-    "\u0001[data-incipit-user-message-container]\u0001margin-left\u0001!",
-    "\u0001[data-incipit-spinner-row]\u0001margin-left\u0001!",
-    "\u0001[data-incipit-message]\u0001margin-right\u0001!",
-    "\u0001[data-incipit-user-message-container]\u0001margin-right\u0001!",
-    "\u0001[data-incipit-spinner-row]\u0001margin-right\u0001!",
+    "\u0001[data-incipit-turn]\u0001max-width\u0001!",
+    "\u0001[data-incipit-compact-message]\u0001max-width\u0001!",
+    "\u0001[data-incipit-system-message]\u0001max-width\u0001!",
+    "\u0001[data-incipit-message]\u0001margin-inline\u0001!",
+    "\u0001[data-incipit-user-message-container]\u0001margin-inline\u0001!",
+    "\u0001[data-incipit-spinner-row]\u0001margin-inline\u0001!",
+    "\u0001[data-incipit-turn]\u0001margin-inline\u0001!",
+    "\u0001[data-incipit-compact-message]\u0001margin-inline\u0001!",
+    "\u0001[data-incipit-system-message]\u0001margin-inline\u0001!",
+    "\u0001[data-incipit-message]\u0001min-width\u0001!",
+    "\u0001[data-incipit-user-message-container]\u0001min-width\u0001!",
+    "\u0001[data-incipit-spinner-row]\u0001min-width\u0001!",
+    "\u0001[data-incipit-turn]\u0001min-width\u0001!",
+    "\u0001[data-incipit-compact-message]\u0001min-width\u0001!",
+    "\u0001[data-incipit-system-message]\u0001min-width\u0001!",
+    "\u0001[data-incipit-composer-shell]\u0001left\u0001!",
+    "\u0001[data-incipit-composer-shell]\u0001right\u0001!",
+    "\u0001[data-incipit-composer-wrapper]\u0001box-sizing\u0001!",
+    "\u0001[data-incipit-permission-surface]\u0001box-sizing\u0001!",
+    "\u0001[data-incipit-composer-wrapper]\u0001width\u0001!",
+    "\u0001[data-incipit-permission-surface]\u0001width\u0001!",
+    "\u0001[data-incipit-composer-wrapper]\u0001max-width\u0001!",
+    "\u0001[data-incipit-permission-surface]\u0001max-width\u0001!",
+    "\u0001[data-incipit-composer-wrapper]\u0001margin-inline\u0001!",
+    "\u0001[data-incipit-permission-surface]\u0001margin-inline\u0001!",
+    "\u0001[data-incipit-composer-wrapper]\u0001min-width\u0001!",
+    "\u0001[data-incipit-permission-surface]\u0001min-width\u0001!",
+    "\u0001[data-incipit-composer-rail]\u0001box-sizing\u0001!",
+    "\u0001[data-incipit-change-review-turn]\u0001box-sizing\u0001!",
+    "\u0001[data-incipit-composer-rail]\u0001width\u0001!",
+    "\u0001[data-incipit-change-review-turn]\u0001width\u0001!",
+    "\u0001[data-incipit-composer-rail]\u0001max-width\u0001!",
+    "\u0001[data-incipit-change-review-turn]\u0001max-width\u0001!",
+    "\u0001[data-incipit-composer-rail]\u0001min-width\u0001!",
+    "\u0001[data-incipit-change-review-turn]\u0001min-width\u0001!",
+    "\u0001[data-incipit-message]\u0001padding-inline\u0001!",
+    "\u0001[data-incipit-compact-message]\u0001padding-inline\u0001!",
+    "\u0001[data-incipit-system-message]\u0001padding-inline\u0001!",
+    "\u0001[data-incipit-message]\u0001overflow-wrap\u0001",
+    "\u0001[data-incipit-compact-message]\u0001overflow-wrap\u0001",
+    "\u0001[data-incipit-system-message]\u0001overflow-wrap\u0001",
+    "\u0001[data-incipit-message]::before\u0001display\u0001!",
+    "\u0001[data-incipit-message]::after\u0001display\u0001!",
+    "\u0001[data-incipit-message]::before\u0001content\u0001!",
+    "\u0001[data-incipit-message]::after\u0001content\u0001!",
+    "\u0001[data-incipit-user-message-container]>[data-incipit-user-bubble]\u0001margin-inline-start\u0001!",
+    "\u0001[data-incipit-user-message-container]>[data-incipit-user-bubble]\u0001margin-inline-end\u0001!",
     "\u0001[data-incipit-message]\u0001font-size\u0001",
     "\u0001[data-incipit-message]>[data-incipit-markdown-root]\u0001max-height\u0001!",
     "\u0001[data-incipit-message]>[data-incipit-markdown-root]\u0001overflow\u0001!",
     "\u0001[data-incipit-message]>[data-incipit-markdown-root]\u0001overflow-x\u0001!",
-    "\u0001[data-incipit-message]::before\u0001top\u0001!",
-    "\u0001[data-incipit-message]:has(>[data-incipit-markdown-root]>p)::before\u0001top\u0001!",
-    "\u0001[data-incipit-message]:has(>[data-incipit-markdown-root] span>p)::before\u0001top\u0001!",
-    "\u0001[data-incipit-message]:has([data-incipit-thinking-content])::before\u0001top\u0001!",
-    "\u0001[data-incipit-message]:has([data-incipit-thinking-summary])::before\u0001top\u0001!",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary] svg[data-incipit-thinking-toggle]\u0001display\u0001!",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001content\u0001",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001display\u0001",
@@ -150,9 +194,6 @@
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001mask-size\u0001",
     "\u0001details[data-incipit-thinking][open]>summary[data-incipit-thinking-summary]::after\u0001transform\u0001",
     "\u0001details[data-incipit-thinking]:not([open])>summary[data-incipit-thinking-summary]::after\u0001transform\u0001",
-    "\u0001[data-incipit-message]::after\u0001width\u0001!",
-    "\u0001[data-incipit-message]::after\u0001left\u0001!",
-    "\u0001[data-incipit-message]::after\u0001background-color\u0001!",
     "\u0001[data-incipit-markdown-root]>p\u0001width\u0001",
     "\u0001[data-incipit-markdown-root]>ul\u0001width\u0001",
     "\u0001[data-incipit-markdown-root]>ol\u0001width\u0001",
@@ -600,6 +641,8 @@
     "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]\u0001padding-bottom\u0001",
     "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]\u0001border-top-width\u0001",
     "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]\u0001border-bottom-width\u0001",
+    "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]:not([data-incipit-fold-animating])\u0001content-visibility\u0001",
+    "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]:not([data-incipit-fold-animating])\u0001contain-intrinsic-size\u0001",
     "\u0001[data-incipit-tool-use][data-incipit-tool-has-stats=\"1\"] [data-incipit-tool-secondary]\u0001display\u0001!",
     "\u0001[data-incipit-tool-stats]\u0001display\u0001",
     "\u0001[data-incipit-tool-stats]\u0001align-items\u0001",
@@ -4433,7 +4476,249 @@
     "\u0001[class*=\"menuHeaderHint\"] kbd\u0001box-shadow\u0001!",
     "\u0001[class*=\"keys_\"] kbd\u0001box-shadow\u0001!",
     "\u0001[class*=\"menuHeaderHint\"] kbd[data-incipit-kbd-svg=\"1\"] svg\u0001stroke\u0001!",
-    "\u0001[class*=\"keys_\"] kbd[data-incipit-kbd-svg=\"1\"] svg\u0001stroke\u0001!"
+    "\u0001[class*=\"keys_\"] kbd[data-incipit-kbd-svg=\"1\"] svg\u0001stroke\u0001!",
+    "\u0001[data-incipit-tool-headline=\"1\"] [class*=\"toolSummary\"]\u0001display\u0001!",
+    "\u0001[data-incipit-file-tool=\"1\"] [class*=\"toolBody_\"]\u0001display\u0001!",
+    "\u0001[data-incipit-tool-headline=\"1\"]\u0001display\u0001",
+    "\u0001[data-incipit-tool-headline=\"1\"]\u0001min-width\u0001",
+    "\u0001[data-incipit-tool-headline=\"1\"]\u0001width\u0001",
+    "\u0001[data-incipit-tool-heading]\u0001min-width\u0001",
+    "\u0001[data-incipit-tool-heading]\u0001width\u0001",
+    "\u0001[data-incipit-tool-heading]\u0001color\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001display\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001grid-template-columns\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001align-items\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001gap\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001box-sizing\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001width\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001min-width\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001padding\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001border\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001background\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001color\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001font\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001text-align\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001cursor\u0001",
+    "\u0001[data-incipit-tool-toggle]:hover\u0001color\u0001",
+    "\u0001[data-incipit-tool-label]\u0001overflow\u0001",
+    "\u0001[data-incipit-tool-label]\u0001text-overflow\u0001",
+    "\u0001[data-incipit-tool-label]\u0001max-width\u0001",
+    "\u0001[data-incipit-tool-label]\u0001white-space\u0001",
+    "\u0001[data-incipit-tool-subject]\u0001display\u0001",
+    "\u0001[data-incipit-tool-subject]\u0001min-width\u0001",
+    "\u0001[data-incipit-tool-subject]\u0001overflow\u0001",
+    "\u0001[data-incipit-tool-filename-stem]\u0001min-width\u0001",
+    "\u0001[data-incipit-tool-filename-stem]\u0001overflow\u0001",
+    "\u0001[data-incipit-tool-filename-stem]\u0001text-overflow\u0001",
+    "\u0001[data-incipit-tool-filename-stem]\u0001white-space\u0001",
+    "\u0001[data-incipit-tool-filename-extension]\u0001flex\u0001",
+    "\u0001[data-incipit-tool-icon]\u0001display\u0001",
+    "\u0001[data-incipit-tool-icon] svg\u0001display\u0001",
+    "\u0001[data-incipit-tool-icon]\u0001width\u0001",
+    "\u0001[data-incipit-tool-icon] svg\u0001width\u0001",
+    "\u0001[data-incipit-tool-icon]\u0001height\u0001",
+    "\u0001[data-incipit-tool-icon] svg\u0001height\u0001",
+    "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001display\u0001",
+    "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001grid-column\u0001",
+    "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001grid-row\u0001",
+    "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition\u0001",
+    "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-chevron]\u0001transform\u0001",
+    "\u0001[data-incipit-tool-counts]\u0001display\u0001",
+    "\u0001[data-incipit-tool-counts]\u0001gap\u0001",
+    "\u0001[data-incipit-tool-counts]\u0001white-space\u0001",
+    "\u0001[data-incipit-tool-counts]\u0001font-variant-numeric\u0001",
+    "\u0001[data-incipit-tool-state]\u0001white-space\u0001",
+    "\u0001[data-incipit-tool-state]\u0001font-size\u0001",
+    "\u0001[data-incipit-tool-counts][hidden]\u0001display\u0001!",
+    "\u0001[data-incipit-tool-state][hidden]\u0001display\u0001!",
+    "\u0001[data-incipit-tool-readable-detail][hidden]\u0001display\u0001!",
+    "\u0001[data-incipit-tool-error][hidden]\u0001display\u0001!",
+    "\u0001[data-incipit-tool-readable-detail]\u0001display\u0001",
+    "\u0001[data-incipit-tool-readable-detail]\u0001align-items\u0001",
+    "\u0001[data-incipit-tool-readable-detail]\u0001flex-wrap\u0001",
+    "\u0001[data-incipit-tool-readable-detail]\u0001gap\u0001",
+    "\u0001[data-incipit-tool-readable-detail]\u0001padding\u0001",
+    "\u0001[data-incipit-tool-readable-detail]\u0001font-family\u0001",
+    "\u0001[data-incipit-tool-readable-detail]\u0001font-size\u0001",
+    "\u0001[data-incipit-tool-readable-detail]\u0001overflow-wrap\u0001",
+    "\u0001[data-incipit-tool-readable-detail]\u0001white-space\u0001",
+    "\u0001[data-incipit-tool-full-text]\u0001min-width\u0001",
+    "\u0001[data-incipit-tool-full-text]\u0001flex\u0001",
+    "\u0001[data-incipit-tool-original-name]\u0001color\u0001",
+    "\u0001[data-incipit-tool-original-name]\u0001font-size\u0001",
+    "\u0001[data-incipit-tool-detail-row]\u0001display\u0001",
+    "\u0001[data-incipit-tool-detail-row]\u0001flex-wrap\u0001",
+    "\u0001[data-incipit-tool-detail-row]\u0001align-items\u0001",
+    "\u0001[data-incipit-tool-detail-row]\u0001gap\u0001",
+    "\u0001[data-incipit-tool-detail-row]\u0001width\u0001",
+    "\u0001[data-incipit-tool-detail-row]\u0001min-width\u0001",
+    "\u0001[data-incipit-tool-open-file]\u0001border\u0001",
+    "\u0001[data-incipit-tool-open-file]\u0001padding\u0001",
+    "\u0001[data-incipit-tool-open-file]\u0001background\u0001",
+    "\u0001[data-incipit-tool-open-file]\u0001color\u0001",
+    "\u0001[data-incipit-tool-open-file]\u0001font\u0001",
+    "\u0001[data-incipit-tool-open-file]\u0001cursor\u0001",
+    "\u0001[data-incipit-tool-error]\u0001color\u0001",
+    "\u0001[data-incipit-tool-error]\u0001white-space\u0001",
+    "\u0001[data-incipit-tool-error]\u0001overflow-wrap\u0001",
+    "\u0001[data-incipit-tool-error]\u0001padding\u0001",
+    "\u0001[data-incipit-tool-state=\"error\"] [data-incipit-tool-state]\u0001color\u0001",
+    "\u0001[data-incipit-file-tool-body]\u0001display\u0001",
+    "\u0001[data-incipit-file-tool-body]\u0001grid-template-rows\u0001",
+    "\u0001[data-incipit-file-tool-body]\u0001transition\u0001",
+    "\u0001[data-incipit-file-tool-body][data-incipit-expanded=\"1\"]\u0001grid-template-rows\u0001",
+    "\u0001[data-incipit-file-tool-body][hidden]\u0001display\u0001!",
+    "\u0001[data-incipit-file-tool-inner]\u0001min-height\u0001",
+    "\u0001[data-incipit-file-tool-inner]\u0001min-width\u0001",
+    "\u0001[data-incipit-file-tool-inner]\u0001overflow\u0001",
+    "\u0001[data-incipit-file-tool-inner]>[data-incipit-diff-view]\u0001margin\u0001",
+    "\u0001[data-incipit-diff-view]\u0001border\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001border\u0001",
+    "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001height\u0001",
+    "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001height\u0001",
+    "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001min-height\u0001",
+    "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001min-height\u0001",
+    "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001pointer-events\u0001",
+    "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001pointer-events\u0001",
+    "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-view] button\u0001color\u0001",
+    "\u0001[data-incipit-diff-dialog] button\u0001color\u0001",
+    "\u0001[data-incipit-diff-view] button\u0001font\u0001",
+    "\u0001[data-incipit-diff-dialog] button\u0001font\u0001",
+    "\u0001[data-incipit-diff-view] button\u0001font-size\u0001",
+    "\u0001[data-incipit-diff-dialog] button\u0001font-size\u0001",
+    "\u0001[data-incipit-diff-view] button\u0001cursor\u0001",
+    "\u0001[data-incipit-diff-dialog] button\u0001cursor\u0001",
+    "\u0001[data-incipit-diff-view] button\u0001background\u0001",
+    "\u0001[data-incipit-diff-dialog] button\u0001background\u0001",
+    "\u0001[data-incipit-diff-view] button\u0001border\u0001",
+    "\u0001[data-incipit-diff-dialog] button\u0001border\u0001",
+    "\u0001[data-incipit-diff-view] button\u0001padding\u0001",
+    "\u0001[data-incipit-diff-dialog] button\u0001padding\u0001",
+    "\u0001[data-incipit-diff-view] button\u0001border-radius\u0001",
+    "\u0001[data-incipit-diff-dialog] button\u0001border-radius\u0001",
+    "\u0001[data-incipit-diff-view] button:hover\u0001background\u0001",
+    "\u0001[data-incipit-diff-dialog] button:hover\u0001background\u0001",
+    "\u0001[data-incipit-diff-view] button:disabled\u0001opacity\u0001",
+    "\u0001[data-incipit-diff-dialog] button:disabled\u0001opacity\u0001",
+    "\u0001[data-incipit-diff-view] button:disabled\u0001cursor\u0001",
+    "\u0001[data-incipit-diff-dialog] button:disabled\u0001cursor\u0001",
+    "\u0001[data-incipit-diff-view] [data-incipit-diff-title]\u0001flex\u0001",
+    "\u0001[data-incipit-diff-dialog] [data-incipit-diff-title]\u0001flex\u0001",
+    "\u0001[data-incipit-diff-view] [data-incipit-diff-title]\u0001min-width\u0001",
+    "\u0001[data-incipit-diff-dialog] [data-incipit-diff-title]\u0001min-width\u0001",
+    "\u0001[data-incipit-diff-view] [data-incipit-diff-title]\u0001text-align\u0001",
+    "\u0001[data-incipit-diff-dialog] [data-incipit-diff-title]\u0001text-align\u0001",
+    "\u0001[data-incipit-diff-full]\u0001flex\u0001",
+    "\u0001[data-incipit-diff-close]\u0001flex\u0001",
+    "\u0001[data-incipit-diff-full]\u0001white-space\u0001",
+    "\u0001[data-incipit-diff-close]\u0001white-space\u0001",
+    "\u0001[data-incipit-diff-counts][hidden]\u0001display\u0001!",
+    "\u0001[data-incipit-diff-viewport]\u0001box-sizing\u0001",
+    "\u0001[data-incipit-diff-viewport]\u0001max-height\u0001",
+    "\u0001[data-incipit-diff-viewport]\u0001overflow\u0001",
+    "\u0001[data-incipit-diff-viewport]\u0001scrollbar-gutter\u0001",
+    "\u0001[data-incipit-diff-viewport]\u0001scrollbar-width\u0001",
+    "\u0001[data-incipit-diff-viewport]\u0001scrollbar-color\u0001",
+    "\u0001[data-incipit-diff-viewport]\u0001background\u0001",
+    "\u0001[data-incipit-diff-viewport]:hover\u0001scrollbar-color\u0001",
+    "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001width\u0001",
+    "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001min-width\u0001",
+    "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001overflow\u0001",
+    "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row]\u0001grid-template-columns\u0001",
+    "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row]\u0001min-height\u0001",
+    "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-pre]\u0001grid-column\u0001",
+    "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-pre]\u0001min-height\u0001",
+    "\u0001[data-incipit-diff-sign]\u0001user-select\u0001",
+    "\u0001[data-incipit-diff-sign]\u0001color\u0001",
+    "\u0001[data-incipit-diff-gap]\u0001grid-column\u0001",
+    "\u0001[data-incipit-diff-gap]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-gap]\u0001border-block\u0001",
+    "\u0001[data-incipit-diff-gap]\u0001font\u0001",
+    "\u0001[data-incipit-diff-eof]\u0001display\u0001",
+    "\u0001[data-incipit-diff-eof]\u0001color\u0001",
+    "\u0001[data-incipit-diff-eof]\u0001font-size\u0001",
+    "\u0001[data-incipit-diff-match]\u0001outline\u0001",
+    "\u0001[data-incipit-diff-match]\u0001outline-offset\u0001",
+    "\u0001[data-incipit-diff-pages]\u0001display\u0001",
+    "\u0001[data-incipit-diff-pages]\u0001align-items\u0001",
+    "\u0001[data-incipit-diff-pages]\u0001justify-content\u0001",
+    "\u0001[data-incipit-diff-pages]\u0001gap\u0001",
+    "\u0001[data-incipit-diff-pages]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-pages]\u0001border-top\u0001",
+    "\u0001[data-incipit-diff-pages]\u0001color\u0001",
+    "\u0001[data-incipit-diff-pages]\u0001font-size\u0001",
+    "\u0001[data-incipit-diff-pages][hidden]\u0001display\u0001!",
+    "\u0001[data-incipit-diff-notice][hidden]\u0001display\u0001!",
+    "\u0001[data-incipit-diff-retry][hidden]\u0001display\u0001!",
+    "\u0001[data-incipit-diff-notice]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-empty]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-notice]\u0001color\u0001",
+    "\u0001[data-incipit-diff-empty]\u0001color\u0001",
+    "\u0001[data-incipit-diff-notice]\u0001font\u0001",
+    "\u0001[data-incipit-diff-empty]\u0001font\u0001",
+    "\u0001[data-incipit-diff-notice]\u0001overflow-wrap\u0001",
+    "\u0001[data-incipit-diff-empty]\u0001overflow-wrap\u0001",
+    "\u0001[data-incipit-diff-retry]\u0001margin\u0001",
+    "\u0001[data-incipit-diff-state=\"loading\"] [data-incipit-diff-preview-content]\u0001min-height\u0001",
+    "\u0001[data-incipit-diff-state=\"error\"] [data-incipit-diff-notice]\u0001color\u0001",
+    "\u0001[data-incipit-diff-state=\"permission\"] [data-incipit-diff-notice]\u0001color\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001box-sizing\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001position\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001inset\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001width\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001max-width\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001max-height\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001height\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001margin\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001color\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001background\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001border-radius\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001box-shadow\u0001",
+    "\u0001[data-incipit-diff-dialog]\u0001overflow\u0001",
+    "\u0001[data-incipit-diff-dialog][open]\u0001display\u0001",
+    "\u0001[data-incipit-diff-dialog][open]\u0001flex-direction\u0001",
+    "\u0001[data-incipit-diff-dialog]::backdrop\u0001background\u0001",
+    "\u0001[data-incipit-diff-full-content]\u0001display\u0001",
+    "\u0001[data-incipit-diff-full-content]\u0001flex-direction\u0001",
+    "\u0001[data-incipit-diff-full-content]\u0001min-height\u0001",
+    "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001flex\u0001",
+    "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001min-height\u0001",
+    "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001max-height\u0001",
+    "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001overscroll-behavior\u0001",
+    "\u0001[data-incipit-diff-full-path]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-full-path]\u0001max-height\u0001",
+    "\u0001[data-incipit-diff-full-path]\u0001overflow\u0001",
+    "\u0001[data-incipit-diff-full-path]\u0001color\u0001",
+    "\u0001[data-incipit-diff-full-path]\u0001font\u0001",
+    "\u0001[data-incipit-diff-full-path]\u0001overflow-wrap\u0001",
+    "\u0001[data-incipit-diff-toolbar]\u0001display\u0001",
+    "\u0001[data-incipit-diff-toolbar]\u0001align-items\u0001",
+    "\u0001[data-incipit-diff-toolbar]\u0001flex-wrap\u0001",
+    "\u0001[data-incipit-diff-toolbar]\u0001gap\u0001",
+    "\u0001[data-incipit-diff-toolbar]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-toolbar]\u0001border-block\u0001",
+    "\u0001[data-incipit-diff-toolbar]\u0001color\u0001",
+    "\u0001[data-incipit-diff-find]\u0001min-width\u0001",
+    "\u0001[data-incipit-diff-find]\u0001flex\u0001",
+    "\u0001[data-incipit-diff-find]\u0001background\u0001",
+    "\u0001[data-incipit-diff-find]\u0001color\u0001",
+    "\u0001[data-incipit-diff-find]\u0001border\u0001",
+    "\u0001[data-incipit-diff-find]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-find]\u0001font\u0001",
+    "\u0001[data-incipit-diff-search-status]\u0001font-size\u0001",
+    "@media (max-width: 380px)\u0001[data-incipit-tool-state]\u0001grid-column\u0001",
+    "@media (max-width: 380px)\u0001[data-incipit-tool-state]\u0001grid-row\u0001",
+    "@media (max-width: 380px)\u0001[data-incipit-tool-label]\u0001max-width\u0001",
+    "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001width\u0001",
+    "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-width\u0001",
+    "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-height\u0001",
+    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-file-tool-body]\u0001transition\u0001",
+    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-body]\u0001transition\u0001",
+    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-grep-expansion]\u0001transition\u0001",
+    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition\u0001"
   ],
   "warmSequence": [
     "\u0001:root\u0001--app-background\u0001!",
@@ -4618,6 +4903,7 @@
     "\u0001[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]) [class*=\"iconButton_\"]\u0001color\u0001!",
     "\u0001[class*=\"modalBackdrop_\"]:has([class*=\"diffEditorContainer\"])\u0001background-color\u0001!",
     "\u0001[data-incipit-write-diff-modal]\u0001background-color\u0001",
+    "\u0001[data-incipit-diff-dialog]::backdrop\u0001background-color\u0001",
     "\u0001[data-incipit-markdown-root] table th\u0001border-bottom\u0001!",
     "\u0001[data-incipit-markdown-root] table td\u0001border-bottom\u0001!",
     "\u0001[data-incipit-message] table th\u0001border-bottom\u0001!",
@@ -5530,7 +5816,12 @@
     {
       "key": "\u0001:root\u0001--incipit-conversation-column-width",
       "important": false,
-      "resolved": "570px"
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001:root\u0001--incipit-conversation-gutter",
+      "important": false,
+      "resolved": "clamp(12px,3vw,32px)"
     },
     {
       "key": "\u0001:root\u0001--incipit-emphasis-font",
@@ -16268,6 +16559,16 @@
       "resolved": "8px 0 16px"
     },
     {
+      "key": "\u0001[data-incipit-change-review-turn]\u0001max-width",
+      "important": true,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-change-review-turn]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
       "key": "\u0001[data-incipit-change-review-turn]\u0001padding",
       "important": true,
       "resolved": "7px 8px"
@@ -16398,6 +16699,41 @@
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
     },
     {
+      "key": "\u0001[data-incipit-compact-message]\u0001box-sizing",
+      "important": true,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001margin-inline",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001max-width",
+      "important": true,
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001padding-inline",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001width",
+      "important": true,
+      "resolved": "100%"
+    },
+    {
       "key": "\u0001[data-incipit-composer-rail-hidden]\u0001display",
       "important": true,
       "resolved": "none"
@@ -16439,6 +16775,41 @@
     },
     {
       "key": "\u0001[data-incipit-composer-rail]\u0001width",
+      "important": true,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-shell]\u0001left",
+      "important": true,
+      "resolved": "clamp(12px,3vw,32px)"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-shell]\u0001right",
+      "important": true,
+      "resolved": "calc(clamp(12px,3vw,32px) + 0px)"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-wrapper]\u0001box-sizing",
+      "important": true,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-wrapper]\u0001margin-inline",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-wrapper]\u0001max-width",
+      "important": true,
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-wrapper]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-wrapper]\u0001width",
       "important": true,
       "resolved": "100%"
     },
@@ -17973,6 +18344,21 @@
       "resolved": "background-color 120ms ease,opacity 120ms ease"
     },
     {
+      "key": "\u0001[data-incipit-diff-close]\u0001flex",
+      "important": false,
+      "resolved": "0 0 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-close]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-counts][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
       "key": "\u0001[data-incipit-diff-counts]\u0001align-items",
       "important": false,
       "resolved": "center"
@@ -17996,6 +18382,351 @@
       "key": "\u0001[data-incipit-diff-counts]\u0001margin-left",
       "important": false,
       "resolved": "2px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001height",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001min-height",
+      "important": false,
+      "resolved": "32px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001padding",
+      "important": false,
+      "resolved": "5px 9px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001pointer-events",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-title]\u0001flex",
+      "important": false,
+      "resolved": "1 1 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-title]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-title]\u0001text-align",
+      "important": false,
+      "resolved": "start"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button:disabled\u0001cursor",
+      "important": false,
+      "resolved": "default"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button:disabled\u0001opacity",
+      "important": false,
+      "resolved": ".5"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button:hover\u0001background",
+      "important": false,
+      "resolved": "var(--incipit-diff-button-bg-hover)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001border-radius",
+      "important": false,
+      "resolved": "3px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001font-size",
+      "important": false,
+      "resolved": "12px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001padding",
+      "important": false,
+      "resolved": "3px 5px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]::backdrop\u0001background",
+      "important": false,
+      "resolved": "rgba(0,0,0,0.45)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog][open]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog][open]\u0001flex-direction",
+      "important": false,
+      "resolved": "column"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001background",
+      "important": false,
+      "resolved": "var(--incipit-diff-surface)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001border",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-border)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001border-radius",
+      "important": false,
+      "resolved": "8px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001box-shadow",
+      "important": false,
+      "resolved": "0 12px 40px var(--incipit-diff-shadow)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001box-sizing",
+      "important": false,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-text)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001height",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001inset",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001margin",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001max-height",
+      "important": false,
+      "resolved": "calc(100vh - 32px)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001max-width",
+      "important": false,
+      "resolved": "calc(100vw - 32px)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001padding",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001position",
+      "important": false,
+      "resolved": "fixed"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001width",
+      "important": false,
+      "resolved": "min(1100px,calc(100vw - 32px))"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-empty]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-empty]\u0001font",
+      "important": false,
+      "resolved": "12px/1.5 'Reading','IBM Plex Serif','LXGW WenKai','Kaiti SC','STKaiti','KaiTi',serif"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-empty]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-empty]\u0001padding",
+      "important": false,
+      "resolved": "10px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-eof]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-eof]\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-eof]\u0001font-size",
+      "important": false,
+      "resolved": ".9em"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001background",
+      "important": false,
+      "resolved": "var(--incipit-diff-surface)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001border",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-border)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-text)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001flex",
+      "important": false,
+      "resolved": "1 1 140px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001font",
+      "important": false,
+      "resolved": "12px 'Rec Mono Linear','Noto Sans SC','Microsoft YaHei UI','Microsoft YaHei',Consolas,Monaco,'Courier New',monospace"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001min-width",
+      "important": false,
+      "resolved": "100px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001padding",
+      "important": false,
+      "resolved": "5px 7px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001flex",
+      "important": false,
+      "resolved": "1 1 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001max-height",
+      "important": false,
+      "resolved": "calc(100vh - 210px)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001min-height",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001overscroll-behavior",
+      "important": false,
+      "resolved": "contain"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content]\u0001flex-direction",
+      "important": false,
+      "resolved": "column"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content]\u0001min-height",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001font",
+      "important": false,
+      "resolved": "11px/1.5 'Rec Mono Linear','Noto Sans SC','Microsoft YaHei UI','Microsoft YaHei',Consolas,Monaco,'Courier New',monospace"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001max-height",
+      "important": false,
+      "resolved": "4.5em"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001overflow",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001padding",
+      "important": false,
+      "resolved": "6px 10px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full]\u0001flex",
+      "important": false,
+      "resolved": "0 0 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-gap]\u0001border-block",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-divider)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-gap]\u0001font",
+      "important": false,
+      "resolved": ".9em/1.6 'Rec Mono Linear','Noto Sans SC','Microsoft YaHei UI','Microsoft YaHei',Consolas,Monaco,'Courier New',monospace"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-gap]\u0001grid-column",
+      "important": false,
+      "resolved": "1 / -1"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-gap]\u0001padding",
+      "important": false,
+      "resolved": "6px 10px"
     },
     {
       "key": "\u0001[data-incipit-diff-header]\u0001align-items",
@@ -18483,6 +19214,126 @@
       "resolved": "relative"
     },
     {
+      "key": "\u0001[data-incipit-diff-match]\u0001outline",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-header-text)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-match]\u0001outline-offset",
+      "important": false,
+      "resolved": "-1px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-notice][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-notice]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-notice]\u0001font",
+      "important": false,
+      "resolved": "12px/1.5 'Reading','IBM Plex Serif','LXGW WenKai','Kaiti SC','STKaiti','KaiTi',serif"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-notice]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-notice]\u0001padding",
+      "important": false,
+      "resolved": "10px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001align-items",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001border-top",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-divider)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001font-size",
+      "important": false,
+      "resolved": "11px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001gap",
+      "important": false,
+      "resolved": "8px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001justify-content",
+      "important": false,
+      "resolved": "space-between"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001padding",
+      "important": false,
+      "resolved": "5px 8px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-retry][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-retry]\u0001margin",
+      "important": false,
+      "resolved": "0 8px 8px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-search-status]\u0001font-size",
+      "important": false,
+      "resolved": "11px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-sign]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-sign]\u0001user-select",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-state=\"error\"] [data-incipit-diff-notice]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-del-fg)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-state=\"loading\"] [data-incipit-diff-preview-content]\u0001min-height",
+      "important": false,
+      "resolved": "64px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-state=\"permission\"] [data-incipit-diff-notice]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-del-fg)"
+    },
+    {
       "key": "\u0001[data-incipit-diff-title]\u0001display",
       "important": false,
       "resolved": "block"
@@ -18511,6 +19362,211 @@
       "key": "\u0001[data-incipit-diff-title]\u0001white-space",
       "important": false,
       "resolved": "nowrap"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001align-items",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001border-block",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-divider)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-header-text)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001flex-wrap",
+      "important": false,
+      "resolved": "wrap"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001gap",
+      "important": false,
+      "resolved": "5px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001padding",
+      "important": false,
+      "resolved": "5px 8px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001height",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001min-height",
+      "important": false,
+      "resolved": "32px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001padding",
+      "important": false,
+      "resolved": "5px 9px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001pointer-events",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-title]\u0001flex",
+      "important": false,
+      "resolved": "1 1 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-title]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-title]\u0001text-align",
+      "important": false,
+      "resolved": "start"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button:disabled\u0001cursor",
+      "important": false,
+      "resolved": "default"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button:disabled\u0001opacity",
+      "important": false,
+      "resolved": ".5"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button:hover\u0001background",
+      "important": false,
+      "resolved": "var(--incipit-diff-button-bg-hover)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001border-radius",
+      "important": false,
+      "resolved": "3px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001font-size",
+      "important": false,
+      "resolved": "12px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001padding",
+      "important": false,
+      "resolved": "3px 5px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view]\u0001border",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-border)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001min-width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001overflow",
+      "important": false,
+      "resolved": "visible"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001width",
+      "important": false,
+      "resolved": "max-content"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-pre]\u0001grid-column",
+      "important": false,
+      "resolved": "3"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-pre]\u0001min-height",
+      "important": false,
+      "resolved": "1.55em"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row]\u0001grid-template-columns",
+      "important": false,
+      "resolved": "42px 16px minmax(0,1fr)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row]\u0001min-height",
+      "important": false,
+      "resolved": "1.55em"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]:hover\u0001scrollbar-color",
+      "important": false,
+      "resolved": "var(--incipit-diff-scrollbar-thumb-hover) var(--incipit-diff-scrollbar-track-y)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001background",
+      "important": false,
+      "resolved": "var(--incipit-diff-surface)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001box-sizing",
+      "important": false,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001max-height",
+      "important": false,
+      "resolved": "min(20em,50vh)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001overflow",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-color",
+      "important": false,
+      "resolved": "var(--incipit-diff-scrollbar-thumb) var(--incipit-diff-scrollbar-track-y)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-gutter",
+      "important": false,
+      "resolved": "stable"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-width",
+      "important": false,
+      "resolved": "thin"
     },
     {
       "key": "\u0001[data-incipit-dropdown] .active\u0001background",
@@ -18839,6 +19895,56 @@
     },
     {
       "key": "\u0001[data-incipit-effort-label]>svg\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-body][data-incipit-expanded=\"1\"]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "1fr"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-body][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-body]\u0001display",
+      "important": false,
+      "resolved": "grid"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-body]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "0fr"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-body]\u0001transition",
+      "important": false,
+      "resolved": "grid-template-rows 220ms ease"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-inner]>[data-incipit-diff-view]\u0001margin",
+      "important": false,
+      "resolved": "5px 0 10px"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-inner]\u0001min-height",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-inner]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-inner]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool=\"1\"] [class*=\"toolBody_\"]\u0001display",
       "important": true,
       "resolved": "none"
     },
@@ -21353,44 +22459,24 @@
       "resolved": "1.55em"
     },
     {
-      "key": "\u0001[data-incipit-message]::after\u0001background-color",
+      "key": "\u0001[data-incipit-message]::after\u0001content",
       "important": true,
-      "resolved": "rgba(255,255,255,0.18)"
+      "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message]::after\u0001left",
+      "key": "\u0001[data-incipit-message]::after\u0001display",
       "important": true,
-      "resolved": "11.5px"
+      "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message]::after\u0001width",
+      "key": "\u0001[data-incipit-message]::before\u0001content",
       "important": true,
-      "resolved": "2px"
+      "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message]::before\u0001top",
+      "key": "\u0001[data-incipit-message]::before\u0001display",
       "important": true,
-      "resolved": "15px"
-    },
-    {
-      "key": "\u0001[data-incipit-message]:has([data-incipit-thinking-content])::before\u0001top",
-      "important": true,
-      "resolved": "16px"
-    },
-    {
-      "key": "\u0001[data-incipit-message]:has([data-incipit-thinking-summary])::before\u0001top",
-      "important": true,
-      "resolved": "16px"
-    },
-    {
-      "key": "\u0001[data-incipit-message]:has(>[data-incipit-markdown-root] span>p)::before\u0001top",
-      "important": true,
-      "resolved": "16px"
-    },
-    {
-      "key": "\u0001[data-incipit-message]:has(>[data-incipit-markdown-root]>p)::before\u0001top",
-      "important": true,
-      "resolved": "16px"
+      "resolved": "none"
     },
     {
       "key": "\u0001[data-incipit-message]:hover>.incipit-assistant-action-row\u0001opacity",
@@ -21488,19 +22574,29 @@
       "resolved": "13px"
     },
     {
-      "key": "\u0001[data-incipit-message]\u0001margin-left",
-      "important": true,
-      "resolved": "auto"
-    },
-    {
-      "key": "\u0001[data-incipit-message]\u0001margin-right",
+      "key": "\u0001[data-incipit-message]\u0001margin-inline",
       "important": true,
       "resolved": "auto"
     },
     {
       "key": "\u0001[data-incipit-message]\u0001max-width",
       "important": true,
-      "resolved": "570px"
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-message]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-message]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-message]\u0001padding-inline",
+      "important": true,
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-message]\u0001text-autospace",
@@ -21541,6 +22637,11 @@
       "key": "\u0001[data-incipit-messages-container]\u0001isolation",
       "important": true,
       "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-messages-container]\u0001padding-inline",
+      "important": true,
+      "resolved": "clamp(12px,3vw,32px)"
     },
     {
       "key": "\u0001[data-incipit-messages-container]\u0001position",
@@ -23258,6 +24359,31 @@
       "resolved": "0"
     },
     {
+      "key": "\u0001[data-incipit-permission-surface]\u0001box-sizing",
+      "important": true,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-permission-surface]\u0001margin-inline",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-permission-surface]\u0001max-width",
+      "important": true,
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-permission-surface]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-permission-surface]\u0001width",
+      "important": true,
+      "resolved": "100%"
+    },
+    {
       "key": "\u0001[data-incipit-send-button] [class*=\"sendIcon\"]\u0001display",
       "important": true,
       "resolved": "none"
@@ -23448,19 +24574,19 @@
       "resolved": "border-box"
     },
     {
-      "key": "\u0001[data-incipit-spinner-row]\u0001margin-left",
-      "important": true,
-      "resolved": "auto"
-    },
-    {
-      "key": "\u0001[data-incipit-spinner-row]\u0001margin-right",
+      "key": "\u0001[data-incipit-spinner-row]\u0001margin-inline",
       "important": true,
       "resolved": "auto"
     },
     {
       "key": "\u0001[data-incipit-spinner-row]\u0001max-width",
       "important": true,
-      "resolved": "570px"
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-spinner-row]\u0001min-width",
+      "important": true,
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-spinner-row]\u0001width",
@@ -23496,6 +24622,41 @@
       "key": "\u0001[data-incipit-sticky-message]\u0001z-index",
       "important": true,
       "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001box-sizing",
+      "important": true,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001margin-inline",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001max-width",
+      "important": true,
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001padding-inline",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001width",
+      "important": true,
+      "resolved": "100%"
     },
     {
       "key": "\u0001[data-incipit-tool-added]\u0001color",
@@ -23601,6 +24762,111 @@
       "key": "\u0001[data-incipit-tool-command]\u0001font-variation-settings",
       "important": false,
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts]\u0001display",
+      "important": false,
+      "resolved": "inline-flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts]\u0001font-variant-numeric",
+      "important": false,
+      "resolved": "tabular-nums"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts]\u0001gap",
+      "important": false,
+      "resolved": "5px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001align-items",
+      "important": false,
+      "resolved": "baseline"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001flex-wrap",
+      "important": false,
+      "resolved": "wrap"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001gap",
+      "important": false,
+      "resolved": "8px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-error][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-error]\u0001color",
+      "important": false,
+      "resolved": "var(--app-error-foreground)"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-error]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-error]\u0001padding",
+      "important": false,
+      "resolved": "5px 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-error]\u0001white-space",
+      "important": false,
+      "resolved": "pre-wrap"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-filename-extension]\u0001flex",
+      "important": false,
+      "resolved": "0 0 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-filename-stem]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-filename-stem]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-filename-stem]\u0001text-overflow",
+      "important": false,
+      "resolved": "ellipsis"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-filename-stem]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
     },
     {
       "key": "\u0001[data-incipit-tool-filepath]:hover\u0001background-color",
@@ -23746,6 +25012,16 @@
       "key": "\u0001[data-incipit-tool-fingerprint]\u0001margin-left",
       "important": false,
       "resolved": "0.4em"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-full-text]\u0001flex",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-full-text]\u0001min-width",
+      "important": false,
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-tool-grep-chevron]\u0001margin-left",
@@ -24013,6 +25289,111 @@
       "resolved": "auto 1fr"
     },
     {
+      "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001grid-column",
+      "important": false,
+      "resolved": "6"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001grid-row",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition",
+      "important": false,
+      "resolved": "transform 180ms ease"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading]\u0001color",
+      "important": false,
+      "resolved": "#bcbcb9"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading]\u0001width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-headline=\"1\"] [class*=\"toolSummary\"]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-headline=\"1\"]\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-headline=\"1\"]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-headline=\"1\"]\u0001width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon] svg\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon] svg\u0001height",
+      "important": false,
+      "resolved": "16px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon] svg\u0001width",
+      "important": false,
+      "resolved": "16px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon]\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon]\u0001height",
+      "important": false,
+      "resolved": "16px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon]\u0001width",
+      "important": false,
+      "resolved": "16px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-label]\u0001max-width",
+      "important": false,
+      "resolved": "12em"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-label]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-label]\u0001text-overflow",
+      "important": false,
+      "resolved": "ellipsis"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-label]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
+    },
+    {
       "key": "\u0001[data-incipit-tool-local-actions] .claude-user-copy-btn svg\u0001height",
       "important": false,
       "resolved": "14px"
@@ -24098,6 +25479,46 @@
       "resolved": "400"
     },
     {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001padding",
+      "important": false,
+      "resolved": "2px 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-original-name]\u0001color",
+      "important": false,
+      "resolved": "#bcbcb9"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-original-name]\u0001font-size",
+      "important": false,
+      "resolved": ".9em"
+    },
+    {
       "key": "\u0001[data-incipit-tool-out-more]:hover\u0001color",
       "important": false,
       "resolved": "#f8f8f6"
@@ -24158,9 +25579,79 @@
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
     },
     {
+      "key": "\u0001[data-incipit-tool-readable-detail][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001align-items",
+      "important": false,
+      "resolved": "baseline"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001flex-wrap",
+      "important": false,
+      "resolved": "wrap"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001font-family",
+      "important": false,
+      "resolved": "'Rec Mono Linear','Noto Sans SC','Microsoft YaHei UI','Microsoft YaHei',Consolas,Monaco,'Courier New',monospace"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001font-size",
+      "important": false,
+      "resolved": ".9em"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001gap",
+      "important": false,
+      "resolved": "8px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001padding",
+      "important": false,
+      "resolved": "4px 0 8px 23px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001white-space",
+      "important": false,
+      "resolved": "pre-wrap"
+    },
+    {
       "key": "\u0001[data-incipit-tool-removed]\u0001color",
       "important": true,
       "resolved": "#c96a6a"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-state][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-state]\u0001font-size",
+      "important": false,
+      "resolved": ".85em"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-state]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-state=\"error\"] [data-incipit-tool-state]\u0001color",
+      "important": false,
+      "resolved": "var(--app-error-foreground)"
     },
     {
       "key": "\u0001[data-incipit-tool-stats]\u0001align-items",
@@ -24203,6 +25694,21 @@
       "resolved": "middle"
     },
     {
+      "key": "\u0001[data-incipit-tool-subject]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-subject]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-subject]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
       "key": "\u0001[data-incipit-tool-summary]:has([data-incipit-tool-stats]) [data-incipit-tool-name]\u0001flex",
       "important": true,
       "resolved": "0 0 auto"
@@ -24236,6 +25742,86 @@
       "key": "\u0001[data-incipit-tool-summary]\u0001font-variation-settings",
       "important": false,
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]:hover\u0001color",
+      "important": false,
+      "resolved": "#f8f8f6"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-chevron]\u0001transform",
+      "important": false,
+      "resolved": "rotate(90deg)"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001align-items",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001box-sizing",
+      "important": false,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001display",
+      "important": false,
+      "resolved": "grid"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001gap",
+      "important": false,
+      "resolved": "7px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001grid-template-columns",
+      "important": false,
+      "resolved": "16px auto minmax(0,1fr) auto auto 14px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001padding",
+      "important": false,
+      "resolved": "5px 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001text-align",
+      "important": false,
+      "resolved": "start"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001width",
+      "important": false,
+      "resolved": "100%"
     },
     {
       "key": "\u0001[data-incipit-tool-use] [class*=\"toolBody_\"]:has([class*=\"toolBodyGrid\"])\u0001background",
@@ -24648,6 +26234,16 @@
       "resolved": "none"
     },
     {
+      "key": "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]:not([data-incipit-fold-animating])\u0001contain-intrinsic-size",
+      "important": false,
+      "resolved": "0 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]:not([data-incipit-fold-animating])\u0001content-visibility",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
       "key": "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]\u0001border-bottom-width",
       "important": false,
       "resolved": "0"
@@ -24926,6 +26522,31 @@
       "key": "\u0001[data-incipit-truncation-gradient]\u0001pointer-events",
       "important": true,
       "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-turn]\u0001box-sizing",
+      "important": true,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-turn]\u0001margin-inline",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-turn]\u0001max-width",
+      "important": true,
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-turn]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-turn]\u0001width",
+      "important": true,
+      "resolved": "100%"
     },
     {
       "key": "\u0001[data-incipit-usage-label]\u0001font-family",
@@ -25743,24 +27364,34 @@
       "resolved": "100%"
     },
     {
+      "key": "\u0001[data-incipit-user-message-container]>[data-incipit-user-bubble]\u0001margin-inline-end",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-user-message-container]>[data-incipit-user-bubble]\u0001margin-inline-start",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
       "key": "\u0001[data-incipit-user-message-container]\u0001box-sizing",
       "important": true,
       "resolved": "border-box"
     },
     {
-      "key": "\u0001[data-incipit-user-message-container]\u0001margin-left",
-      "important": true,
-      "resolved": "auto"
-    },
-    {
-      "key": "\u0001[data-incipit-user-message-container]\u0001margin-right",
+      "key": "\u0001[data-incipit-user-message-container]\u0001margin-inline",
       "important": true,
       "resolved": "auto"
     },
     {
       "key": "\u0001[data-incipit-user-message-container]\u0001max-width",
       "important": true,
-      "resolved": "570px"
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-user-message-container]\u0001min-width",
+      "important": true,
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-user-message-container]\u0001width",
@@ -27073,6 +28704,56 @@
       "resolved": "1"
     },
     {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-height",
+      "important": false,
+      "resolved": "calc(100vh - 16px)"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-width",
+      "important": false,
+      "resolved": "calc(100vw - 16px)"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001width",
+      "important": false,
+      "resolved": "calc(100vw - 16px)"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-tool-label]\u0001max-width",
+      "important": false,
+      "resolved": "8em"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-tool-state]\u0001grid-column",
+      "important": false,
+      "resolved": "2 / 6"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-tool-state]\u0001grid-row",
+      "important": false,
+      "resolved": "2"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-file-tool-body]\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-body]\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-grep-expansion]\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
       "key": "\u0001*:not([class*=\"inputContainer_\"]):not([class*=\"inputContainer_\"] *):not([contenteditable]):not([contenteditable] *)\u0001scrollbar-color",
       "important": true,
       "resolved": "#3c3c3c transparent"
@@ -27607,7 +29288,12 @@
     {
       "key": "\u0001:root\u0001--incipit-conversation-column-width",
       "important": false,
-      "resolved": "570px"
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001:root\u0001--incipit-conversation-gutter",
+      "important": false,
+      "resolved": "clamp(12px,3vw,32px)"
     },
     {
       "key": "\u0001:root\u0001--incipit-emphasis-font",
@@ -38765,6 +40451,16 @@
       "resolved": "8px 0 16px"
     },
     {
+      "key": "\u0001[data-incipit-change-review-turn]\u0001max-width",
+      "important": true,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-change-review-turn]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
       "key": "\u0001[data-incipit-change-review-turn]\u0001padding",
       "important": true,
       "resolved": "7px 8px"
@@ -38895,6 +40591,41 @@
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
     },
     {
+      "key": "\u0001[data-incipit-compact-message]\u0001box-sizing",
+      "important": true,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001margin-inline",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001max-width",
+      "important": true,
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001padding-inline",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-compact-message]\u0001width",
+      "important": true,
+      "resolved": "100%"
+    },
+    {
       "key": "\u0001[data-incipit-composer-rail-hidden]\u0001display",
       "important": true,
       "resolved": "none"
@@ -38936,6 +40667,41 @@
     },
     {
       "key": "\u0001[data-incipit-composer-rail]\u0001width",
+      "important": true,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-shell]\u0001left",
+      "important": true,
+      "resolved": "clamp(12px,3vw,32px)"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-shell]\u0001right",
+      "important": true,
+      "resolved": "calc(clamp(12px,3vw,32px) + 0px)"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-wrapper]\u0001box-sizing",
+      "important": true,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-wrapper]\u0001margin-inline",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-wrapper]\u0001max-width",
+      "important": true,
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-wrapper]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-composer-wrapper]\u0001width",
       "important": true,
       "resolved": "100%"
     },
@@ -40485,6 +42251,21 @@
       "resolved": "background-color 120ms ease,opacity 120ms ease"
     },
     {
+      "key": "\u0001[data-incipit-diff-close]\u0001flex",
+      "important": false,
+      "resolved": "0 0 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-close]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-counts][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
       "key": "\u0001[data-incipit-diff-counts]\u0001align-items",
       "important": false,
       "resolved": "center"
@@ -40508,6 +42289,356 @@
       "key": "\u0001[data-incipit-diff-counts]\u0001margin-left",
       "important": false,
       "resolved": "2px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001height",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001min-height",
+      "important": false,
+      "resolved": "32px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001padding",
+      "important": false,
+      "resolved": "5px 9px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-header]\u0001pointer-events",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-title]\u0001flex",
+      "important": false,
+      "resolved": "1 1 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-title]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] [data-incipit-diff-title]\u0001text-align",
+      "important": false,
+      "resolved": "start"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button:disabled\u0001cursor",
+      "important": false,
+      "resolved": "default"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button:disabled\u0001opacity",
+      "important": false,
+      "resolved": ".5"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button:hover\u0001background",
+      "important": false,
+      "resolved": "var(--incipit-diff-button-bg-hover)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001border-radius",
+      "important": false,
+      "resolved": "3px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001font-size",
+      "important": false,
+      "resolved": "12px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog] button\u0001padding",
+      "important": false,
+      "resolved": "3px 5px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]::backdrop\u0001background",
+      "important": false,
+      "resolved": "rgba(0,0,0,0.45)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]::backdrop\u0001background-color",
+      "important": false,
+      "resolved": "rgba(0,0,0,0.20)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog][open]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog][open]\u0001flex-direction",
+      "important": false,
+      "resolved": "column"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001background",
+      "important": false,
+      "resolved": "var(--incipit-diff-surface)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001border",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-border)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001border-radius",
+      "important": false,
+      "resolved": "8px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001box-shadow",
+      "important": false,
+      "resolved": "0 12px 40px var(--incipit-diff-shadow)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001box-sizing",
+      "important": false,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-text)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001height",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001inset",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001margin",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001max-height",
+      "important": false,
+      "resolved": "calc(100vh - 32px)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001max-width",
+      "important": false,
+      "resolved": "calc(100vw - 32px)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001padding",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001position",
+      "important": false,
+      "resolved": "fixed"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-dialog]\u0001width",
+      "important": false,
+      "resolved": "min(1100px,calc(100vw - 32px))"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-empty]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-empty]\u0001font",
+      "important": false,
+      "resolved": "12px/1.5 'Reading','IBM Plex Serif','LXGW WenKai','Kaiti SC','STKaiti','KaiTi',serif"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-empty]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-empty]\u0001padding",
+      "important": false,
+      "resolved": "10px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-eof]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-eof]\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-eof]\u0001font-size",
+      "important": false,
+      "resolved": ".9em"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001background",
+      "important": false,
+      "resolved": "var(--incipit-diff-surface)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001border",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-border)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-text)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001flex",
+      "important": false,
+      "resolved": "1 1 140px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001font",
+      "important": false,
+      "resolved": "12px 'Rec Mono Linear','Noto Sans SC','Microsoft YaHei UI','Microsoft YaHei',Consolas,Monaco,'Courier New',monospace"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001min-width",
+      "important": false,
+      "resolved": "100px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-find]\u0001padding",
+      "important": false,
+      "resolved": "5px 7px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001flex",
+      "important": false,
+      "resolved": "1 1 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001max-height",
+      "important": false,
+      "resolved": "calc(100vh - 210px)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001min-height",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content] [data-incipit-diff-viewport]\u0001overscroll-behavior",
+      "important": false,
+      "resolved": "contain"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content]\u0001flex-direction",
+      "important": false,
+      "resolved": "column"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-content]\u0001min-height",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001font",
+      "important": false,
+      "resolved": "11px/1.5 'Rec Mono Linear','Noto Sans SC','Microsoft YaHei UI','Microsoft YaHei',Consolas,Monaco,'Courier New',monospace"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001max-height",
+      "important": false,
+      "resolved": "4.5em"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001overflow",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full-path]\u0001padding",
+      "important": false,
+      "resolved": "6px 10px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full]\u0001flex",
+      "important": false,
+      "resolved": "0 0 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-full]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-gap]\u0001border-block",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-divider)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-gap]\u0001font",
+      "important": false,
+      "resolved": ".9em/1.6 'Rec Mono Linear','Noto Sans SC','Microsoft YaHei UI','Microsoft YaHei',Consolas,Monaco,'Courier New',monospace"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-gap]\u0001grid-column",
+      "important": false,
+      "resolved": "1 / -1"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-gap]\u0001padding",
+      "important": false,
+      "resolved": "6px 10px"
     },
     {
       "key": "\u0001[data-incipit-diff-header]\u0001align-items",
@@ -40995,6 +43126,126 @@
       "resolved": "relative"
     },
     {
+      "key": "\u0001[data-incipit-diff-match]\u0001outline",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-header-text)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-match]\u0001outline-offset",
+      "important": false,
+      "resolved": "-1px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-notice][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-notice]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-notice]\u0001font",
+      "important": false,
+      "resolved": "12px/1.5 'Reading','IBM Plex Serif','LXGW WenKai','Kaiti SC','STKaiti','KaiTi',serif"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-notice]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-notice]\u0001padding",
+      "important": false,
+      "resolved": "10px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001align-items",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001border-top",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-divider)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001font-size",
+      "important": false,
+      "resolved": "11px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001gap",
+      "important": false,
+      "resolved": "8px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001justify-content",
+      "important": false,
+      "resolved": "space-between"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-pages]\u0001padding",
+      "important": false,
+      "resolved": "5px 8px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-retry][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-retry]\u0001margin",
+      "important": false,
+      "resolved": "0 8px 8px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-search-status]\u0001font-size",
+      "important": false,
+      "resolved": "11px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-sign]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-muted)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-sign]\u0001user-select",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-state=\"error\"] [data-incipit-diff-notice]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-del-fg)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-state=\"loading\"] [data-incipit-diff-preview-content]\u0001min-height",
+      "important": false,
+      "resolved": "64px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-state=\"permission\"] [data-incipit-diff-notice]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-del-fg)"
+    },
+    {
       "key": "\u0001[data-incipit-diff-title]\u0001display",
       "important": false,
       "resolved": "block"
@@ -41023,6 +43274,211 @@
       "key": "\u0001[data-incipit-diff-title]\u0001white-space",
       "important": false,
       "resolved": "nowrap"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001align-items",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001border-block",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-divider)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001color",
+      "important": false,
+      "resolved": "var(--incipit-diff-header-text)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001flex-wrap",
+      "important": false,
+      "resolved": "wrap"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001gap",
+      "important": false,
+      "resolved": "5px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-toolbar]\u0001padding",
+      "important": false,
+      "resolved": "5px 8px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001height",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001min-height",
+      "important": false,
+      "resolved": "32px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001padding",
+      "important": false,
+      "resolved": "5px 9px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-header]\u0001pointer-events",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-title]\u0001flex",
+      "important": false,
+      "resolved": "1 1 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-title]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] [data-incipit-diff-title]\u0001text-align",
+      "important": false,
+      "resolved": "start"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button:disabled\u0001cursor",
+      "important": false,
+      "resolved": "default"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button:disabled\u0001opacity",
+      "important": false,
+      "resolved": ".5"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button:hover\u0001background",
+      "important": false,
+      "resolved": "var(--incipit-diff-button-bg-hover)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001border-radius",
+      "important": false,
+      "resolved": "3px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001font-size",
+      "important": false,
+      "resolved": "12px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view] button\u0001padding",
+      "important": false,
+      "resolved": "3px 5px"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-view]\u0001border",
+      "important": false,
+      "resolved": "1px solid var(--incipit-diff-border)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001min-width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001overflow",
+      "important": false,
+      "resolved": "visible"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001width",
+      "important": false,
+      "resolved": "max-content"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-pre]\u0001grid-column",
+      "important": false,
+      "resolved": "3"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-pre]\u0001min-height",
+      "important": false,
+      "resolved": "1.55em"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row]\u0001grid-template-columns",
+      "important": false,
+      "resolved": "42px 16px minmax(0,1fr)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row]\u0001min-height",
+      "important": false,
+      "resolved": "1.55em"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]:hover\u0001scrollbar-color",
+      "important": false,
+      "resolved": "var(--incipit-diff-scrollbar-thumb-hover) var(--incipit-diff-scrollbar-track-y)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001background",
+      "important": false,
+      "resolved": "var(--incipit-diff-surface)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001box-sizing",
+      "important": false,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001max-height",
+      "important": false,
+      "resolved": "min(20em,50vh)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001overflow",
+      "important": false,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-color",
+      "important": false,
+      "resolved": "var(--incipit-diff-scrollbar-thumb) var(--incipit-diff-scrollbar-track-y)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-gutter",
+      "important": false,
+      "resolved": "stable"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-width",
+      "important": false,
+      "resolved": "thin"
     },
     {
       "key": "\u0001[data-incipit-dropdown] .active\u0001background",
@@ -41351,6 +43807,56 @@
     },
     {
       "key": "\u0001[data-incipit-effort-label]>svg\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-body][data-incipit-expanded=\"1\"]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "1fr"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-body][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-body]\u0001display",
+      "important": false,
+      "resolved": "grid"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-body]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "0fr"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-body]\u0001transition",
+      "important": false,
+      "resolved": "grid-template-rows 220ms ease"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-inner]>[data-incipit-diff-view]\u0001margin",
+      "important": false,
+      "resolved": "5px 0 10px"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-inner]\u0001min-height",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-inner]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool-inner]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-file-tool=\"1\"] [class*=\"toolBody_\"]\u0001display",
       "important": true,
       "resolved": "none"
     },
@@ -43870,39 +46376,24 @@
       "resolved": "rgba(60,55,40,0.14)"
     },
     {
-      "key": "\u0001[data-incipit-message]::after\u0001left",
+      "key": "\u0001[data-incipit-message]::after\u0001content",
       "important": true,
-      "resolved": "11.5px"
+      "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message]::after\u0001width",
+      "key": "\u0001[data-incipit-message]::after\u0001display",
       "important": true,
-      "resolved": "2px"
+      "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message]::before\u0001top",
+      "key": "\u0001[data-incipit-message]::before\u0001content",
       "important": true,
-      "resolved": "15px"
+      "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message]:has([data-incipit-thinking-content])::before\u0001top",
+      "key": "\u0001[data-incipit-message]::before\u0001display",
       "important": true,
-      "resolved": "16px"
-    },
-    {
-      "key": "\u0001[data-incipit-message]:has([data-incipit-thinking-summary])::before\u0001top",
-      "important": true,
-      "resolved": "16px"
-    },
-    {
-      "key": "\u0001[data-incipit-message]:has(>[data-incipit-markdown-root] span>p)::before\u0001top",
-      "important": true,
-      "resolved": "16px"
-    },
-    {
-      "key": "\u0001[data-incipit-message]:has(>[data-incipit-markdown-root]>p)::before\u0001top",
-      "important": true,
-      "resolved": "16px"
+      "resolved": "none"
     },
     {
       "key": "\u0001[data-incipit-message]:hover>.incipit-assistant-action-row\u0001opacity",
@@ -44000,19 +46491,29 @@
       "resolved": "13px"
     },
     {
-      "key": "\u0001[data-incipit-message]\u0001margin-left",
-      "important": true,
-      "resolved": "auto"
-    },
-    {
-      "key": "\u0001[data-incipit-message]\u0001margin-right",
+      "key": "\u0001[data-incipit-message]\u0001margin-inline",
       "important": true,
       "resolved": "auto"
     },
     {
       "key": "\u0001[data-incipit-message]\u0001max-width",
       "important": true,
-      "resolved": "570px"
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-message]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-message]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-message]\u0001padding-inline",
+      "important": true,
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-message]\u0001text-autospace",
@@ -44053,6 +46554,11 @@
       "key": "\u0001[data-incipit-messages-container]\u0001isolation",
       "important": true,
       "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-messages-container]\u0001padding-inline",
+      "important": true,
+      "resolved": "clamp(12px,3vw,32px)"
     },
     {
       "key": "\u0001[data-incipit-messages-container]\u0001position",
@@ -45775,6 +48281,31 @@
       "resolved": "0"
     },
     {
+      "key": "\u0001[data-incipit-permission-surface]\u0001box-sizing",
+      "important": true,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-permission-surface]\u0001margin-inline",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-permission-surface]\u0001max-width",
+      "important": true,
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-permission-surface]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-permission-surface]\u0001width",
+      "important": true,
+      "resolved": "100%"
+    },
+    {
       "key": "\u0001[data-incipit-send-button] [class*=\"sendIcon\"]\u0001display",
       "important": true,
       "resolved": "none"
@@ -45965,19 +48496,19 @@
       "resolved": "border-box"
     },
     {
-      "key": "\u0001[data-incipit-spinner-row]\u0001margin-left",
-      "important": true,
-      "resolved": "auto"
-    },
-    {
-      "key": "\u0001[data-incipit-spinner-row]\u0001margin-right",
+      "key": "\u0001[data-incipit-spinner-row]\u0001margin-inline",
       "important": true,
       "resolved": "auto"
     },
     {
       "key": "\u0001[data-incipit-spinner-row]\u0001max-width",
       "important": true,
-      "resolved": "570px"
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-spinner-row]\u0001min-width",
+      "important": true,
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-spinner-row]\u0001width",
@@ -46013,6 +48544,41 @@
       "key": "\u0001[data-incipit-sticky-message]\u0001z-index",
       "important": true,
       "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001box-sizing",
+      "important": true,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001margin-inline",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001max-width",
+      "important": true,
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001padding-inline",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-system-message]\u0001width",
+      "important": true,
+      "resolved": "100%"
     },
     {
       "key": "\u0001[data-incipit-thinking-summary]\u0001color",
@@ -46128,6 +48694,111 @@
       "key": "\u0001[data-incipit-tool-command]\u0001font-variation-settings",
       "important": false,
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts]\u0001display",
+      "important": false,
+      "resolved": "inline-flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts]\u0001font-variant-numeric",
+      "important": false,
+      "resolved": "tabular-nums"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts]\u0001gap",
+      "important": false,
+      "resolved": "5px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001align-items",
+      "important": false,
+      "resolved": "baseline"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001flex-wrap",
+      "important": false,
+      "resolved": "wrap"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001gap",
+      "important": false,
+      "resolved": "8px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-detail-row]\u0001width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-error][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-error]\u0001color",
+      "important": false,
+      "resolved": "var(--app-error-foreground)"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-error]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-error]\u0001padding",
+      "important": false,
+      "resolved": "5px 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-error]\u0001white-space",
+      "important": false,
+      "resolved": "pre-wrap"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-filename-extension]\u0001flex",
+      "important": false,
+      "resolved": "0 0 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-filename-stem]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-filename-stem]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-filename-stem]\u0001text-overflow",
+      "important": false,
+      "resolved": "ellipsis"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-filename-stem]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
     },
     {
       "key": "\u0001[data-incipit-tool-filepath]:hover\u0001background-color",
@@ -46273,6 +48944,16 @@
       "key": "\u0001[data-incipit-tool-fingerprint]\u0001margin-left",
       "important": false,
       "resolved": "0.4em"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-full-text]\u0001flex",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-full-text]\u0001min-width",
+      "important": false,
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-tool-grep-chevron]\u0001margin-left",
@@ -46540,6 +49221,111 @@
       "resolved": "auto 1fr"
     },
     {
+      "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001grid-column",
+      "important": false,
+      "resolved": "6"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001grid-row",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition",
+      "important": false,
+      "resolved": "transform 180ms ease"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading]\u0001color",
+      "important": false,
+      "resolved": "#797569"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-heading]\u0001width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-headline=\"1\"] [class*=\"toolSummary\"]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-headline=\"1\"]\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-headline=\"1\"]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-headline=\"1\"]\u0001width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon] svg\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon] svg\u0001height",
+      "important": false,
+      "resolved": "16px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon] svg\u0001width",
+      "important": false,
+      "resolved": "16px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon]\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon]\u0001height",
+      "important": false,
+      "resolved": "16px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon]\u0001width",
+      "important": false,
+      "resolved": "16px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-label]\u0001max-width",
+      "important": false,
+      "resolved": "12em"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-label]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-label]\u0001text-overflow",
+      "important": false,
+      "resolved": "ellipsis"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-label]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
+    },
+    {
       "key": "\u0001[data-incipit-tool-local-actions] .claude-user-copy-btn svg\u0001height",
       "important": false,
       "resolved": "14px"
@@ -46625,6 +49411,46 @@
       "resolved": "400"
     },
     {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-open-file]\u0001padding",
+      "important": false,
+      "resolved": "2px 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-original-name]\u0001color",
+      "important": false,
+      "resolved": "#797569"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-original-name]\u0001font-size",
+      "important": false,
+      "resolved": ".9em"
+    },
+    {
       "key": "\u0001[data-incipit-tool-out-more]:hover\u0001color",
       "important": false,
       "resolved": "#0d0d0d"
@@ -46685,9 +49511,79 @@
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
     },
     {
+      "key": "\u0001[data-incipit-tool-readable-detail][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001align-items",
+      "important": false,
+      "resolved": "baseline"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001flex-wrap",
+      "important": false,
+      "resolved": "wrap"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001font-family",
+      "important": false,
+      "resolved": "'Rec Mono Linear','Noto Sans SC','Microsoft YaHei UI','Microsoft YaHei',Consolas,Monaco,'Courier New',monospace"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001font-size",
+      "important": false,
+      "resolved": ".9em"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001gap",
+      "important": false,
+      "resolved": "8px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001padding",
+      "important": false,
+      "resolved": "4px 0 8px 23px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-readable-detail]\u0001white-space",
+      "important": false,
+      "resolved": "pre-wrap"
+    },
+    {
       "key": "\u0001[data-incipit-tool-removed]\u0001color",
       "important": true,
       "resolved": "#c92626"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-state][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-state]\u0001font-size",
+      "important": false,
+      "resolved": ".85em"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-state]\u0001white-space",
+      "important": false,
+      "resolved": "nowrap"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-state=\"error\"] [data-incipit-tool-state]\u0001color",
+      "important": false,
+      "resolved": "var(--app-error-foreground)"
     },
     {
       "key": "\u0001[data-incipit-tool-stats]\u0001align-items",
@@ -46730,6 +49626,21 @@
       "resolved": "middle"
     },
     {
+      "key": "\u0001[data-incipit-tool-subject]\u0001display",
+      "important": false,
+      "resolved": "flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-subject]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-subject]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
       "key": "\u0001[data-incipit-tool-summary]:has([data-incipit-tool-stats]) [data-incipit-tool-name]\u0001flex",
       "important": true,
       "resolved": "0 0 auto"
@@ -46763,6 +49674,86 @@
       "key": "\u0001[data-incipit-tool-summary]\u0001font-variation-settings",
       "important": false,
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]:hover\u0001color",
+      "important": false,
+      "resolved": "#0d0d0d"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-chevron]\u0001transform",
+      "important": false,
+      "resolved": "rotate(90deg)"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001align-items",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001box-sizing",
+      "important": false,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001display",
+      "important": false,
+      "resolved": "grid"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001gap",
+      "important": false,
+      "resolved": "7px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001grid-template-columns",
+      "important": false,
+      "resolved": "16px auto minmax(0,1fr) auto auto 14px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001padding",
+      "important": false,
+      "resolved": "5px 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001text-align",
+      "important": false,
+      "resolved": "start"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001width",
+      "important": false,
+      "resolved": "100%"
     },
     {
       "key": "\u0001[data-incipit-tool-use] [class*=\"toolBody_\"] pre code\u0001background",
@@ -47245,6 +50236,16 @@
       "resolved": "none"
     },
     {
+      "key": "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]:not([data-incipit-fold-animating])\u0001contain-intrinsic-size",
+      "important": false,
+      "resolved": "0 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]:not([data-incipit-fold-animating])\u0001content-visibility",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
       "key": "\u0001[data-incipit-tool-use][data-incipit-tool-collapsed=\"true\"] [data-incipit-tool-body]\u0001border-bottom-width",
       "important": false,
       "resolved": "0"
@@ -47528,6 +50529,31 @@
       "key": "\u0001[data-incipit-truncation-gradient]\u0001pointer-events",
       "important": true,
       "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-turn]\u0001box-sizing",
+      "important": true,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-turn]\u0001margin-inline",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
+      "key": "\u0001[data-incipit-turn]\u0001max-width",
+      "important": true,
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-turn]\u0001min-width",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-turn]\u0001width",
+      "important": true,
+      "resolved": "100%"
     },
     {
       "key": "\u0001[data-incipit-usage-label]\u0001font-family",
@@ -48345,24 +51371,34 @@
       "resolved": "100%"
     },
     {
+      "key": "\u0001[data-incipit-user-message-container]>[data-incipit-user-bubble]\u0001margin-inline-end",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-user-message-container]>[data-incipit-user-bubble]\u0001margin-inline-start",
+      "important": true,
+      "resolved": "auto"
+    },
+    {
       "key": "\u0001[data-incipit-user-message-container]\u0001box-sizing",
       "important": true,
       "resolved": "border-box"
     },
     {
-      "key": "\u0001[data-incipit-user-message-container]\u0001margin-left",
-      "important": true,
-      "resolved": "auto"
-    },
-    {
-      "key": "\u0001[data-incipit-user-message-container]\u0001margin-right",
+      "key": "\u0001[data-incipit-user-message-container]\u0001margin-inline",
       "important": true,
       "resolved": "auto"
     },
     {
       "key": "\u0001[data-incipit-user-message-container]\u0001max-width",
       "important": true,
-      "resolved": "570px"
+      "resolved": "780px"
+    },
+    {
+      "key": "\u0001[data-incipit-user-message-container]\u0001min-width",
+      "important": true,
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-user-message-container]\u0001width",
@@ -49678,6 +52714,56 @@
       "key": "@keyframes incipit-inline-edit-fade-in\u0001to\u0001opacity",
       "important": false,
       "resolved": "1"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-height",
+      "important": false,
+      "resolved": "calc(100vh - 16px)"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-width",
+      "important": false,
+      "resolved": "calc(100vw - 16px)"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001width",
+      "important": false,
+      "resolved": "calc(100vw - 16px)"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-tool-label]\u0001max-width",
+      "important": false,
+      "resolved": "8em"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-tool-state]\u0001grid-column",
+      "important": false,
+      "resolved": "2 / 6"
+    },
+    {
+      "key": "@media (max-width: 380px)\u0001[data-incipit-tool-state]\u0001grid-row",
+      "important": false,
+      "resolved": "2"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-file-tool-body]\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-body]\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-grep-expansion]\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition",
+      "important": false,
+      "resolved": "none"
     },
     {
       "key": "\u0001*:not([class*=\"inputContainer_\"]):not([class*=\"inputContainer_\"] *):not([contenteditable]):not([contenteditable] *)\u0001scrollbar-color",

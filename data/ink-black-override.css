@@ -214,6 +214,8 @@
   --ink-diff-button-border: rgba(255,255,255,0.14);
   --ink-diff-button-text: #fbfbfc;
   --ink-diff-del-border: rgba(201, 106, 106, 0.35);
+  --ink-diff-dialog-bg: rgba(0,0,0,0.45);
+  --ink-diff-dialog-bg-override: rgba(0,0,0,0.20);
   --ink-diff-divider: rgba(255,255,255,0.08);
   --ink-diff-editor-container-bg: rgba(0,0,0,0.45);
   --ink-diff-gradient-start: rgba(10,11,11,0);
@@ -298,7 +300,7 @@
   --ink-markdown-root-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-menu-divider-bg: rgba(255,255,255,0.14);
   --ink-menu-popup-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
-  --ink-message-after-bg: rgba(255,255,255,0.18);
+  --ink-message-after-bg-override: rgba(55,55,55,0.14);
   --ink-message-bg: linear-gradient(to right,transparent,rgba(200,200,200,0.28) 20%,rgba(200,200,200,0.28) 80%,transparent);
   --ink-message-border-bottom: 1px solid rgba(255,255,255,0.10);
   --ink-message-border-bottom-2: 1.5px solid rgba(255,255,255,0.16);
@@ -459,7 +461,6 @@
   --ink-usage-fill-bg: #c2c4c7;
   --ink-usage-track-bg-override: #d6d6d6;
   --ink-write-diff-modal-bg: rgba(0,0,0,0.45);
-  --ink-write-diff-modal-bg-override: rgba(0,0,0,0.20);
 }
 
 :root {

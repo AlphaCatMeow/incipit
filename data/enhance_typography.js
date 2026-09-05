@@ -61,10 +61,10 @@ function domConversationLooksBusy() {
   }
 }
 
-function noteTranscriptActionMutation() {
+function noteTranscriptActionMutation(roots = null) {
   const fn = hook('noteTranscriptActionMutation');
   if (!fn) return;
-  try { fn(); }
+  try { fn(roots); }
   catch (e) { warn('transcript mutation hook failed:', e); }
 }
 
@@ -575,6 +575,11 @@ const HOST_DIFF_MODAL_CONTENT_SELECTOR = '[class*="diffEditorContainer"], .monac
 // render again.
 const TRANSCRIPT_ACTION_MUTATION_IGNORED_SELECTOR = [
   '[data-incipit-change-review-turn]',
+  '[data-incipit-tool-heading]',
+  '[data-incipit-file-tool-body]',
+  '[data-incipit-diff-view]',
+  '[data-incipit-diff-dialog]',
+  '.incipit-transcript-action-row',
 ].join(', ');
 
 function isDiffSurfaceNode(node) {
@@ -1332,7 +1337,7 @@ function handleMutations(mutations) {
       if (m.addedNodes.length) dirty = true;
     }
   }
-  if (dirty) noteTranscriptActionMutation();
+  if (dirty) noteTranscriptActionMutation(workQueued ? Array.from(pendingRoots) : null);
   if (workQueued || pendingSegments.size || pendingRoots.size) schedule();
 }
 
@@ -1393,7 +1398,7 @@ function setupObserver() {
     // mounted under this messages root. Subsequent growth is handled by
     // `handleMutations` adding individual subtrees to `pendingRoots`.
     pendingRoots.add(root);
-    noteTranscriptActionMutation();
+    noteTranscriptActionMutation(root);
     schedule();
   }
 
@@ -1590,6 +1595,7 @@ function shouldDeferRegularCodeHighlight(block, busy) {
 }
 
 function highlightOneCodeBlock(block, options = {}) {
+  if (block.closest?.('[data-incipit-diff-view], [data-incipit-diff-dialog], [data-incipit-tool-collapsed="true"]')) return;
   const isDiffIsland = isIncipitDiffCodeBlock(block);
   if (!isDiffIsland && shouldDeferRegularCodeHighlight(block, options.busy === true)) {
     rememberDeferredCodeBlock(block);
@@ -1643,8 +1649,8 @@ export function highlightAllCode(root) {
   }
 }
 
-const HIGHLIGHT_CHUNK_BUDGET_MS = 8;
-const HIGHLIGHT_CHUNK_MIN_BLOCKS = 8;
+const HIGHLIGHT_CHUNK_BUDGET_MS = 4;
+const HIGHLIGHT_CHUNK_MIN_BLOCKS = 1;
 const pendingCodeHighlights = [];
 const pendingCodeHighlightSet = new Set();
 let codeHighlightRaf = 0;

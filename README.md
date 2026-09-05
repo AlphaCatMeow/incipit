@@ -121,7 +121,9 @@ These statistics also read local transcript files only. They do not upload proje
 
 ## diff
 
-Edit / Write diffs no longer use the host's default split-pane Monaco: filename + `+N −M` sit at the header, deleted lines get a deep red background, added lines a deep green, line numbers are kept restrained, and character-level differences receive a second pass of inline coloring in the same hue but more visible. Short diffs render expanded; long diffs fold into a card with `Click to expand` opening the full content in a popover.
+Edit / MultiEdit / Write previews start collapsed behind a compact action and filename. Expand a tool to see its historical patch with surrounding context, line numbers, and separate change sections in one scrollable preview. `Full diff` opens a searchable view with access to every changed line. Colors follow the selected theme, and long filenames shorten to fit without hiding their identity.
+
+Historical context comes from the saved tool result. When it is unavailable, the preview identifies the known replacement fragments or requested contents instead of guessing from today's file. Large views render in pages and reuse bounded diff caches. The conversation, compact markers, change review, and composer share a reading column that adapts from a narrow sidebar to a wide editor panel.
 
 <p align="center">
   <img src="docs/screenshots/diff-warm-black.png" width="360" alt="incipit diff in warm-black: wine red / forest green backgrounds with character-level inline coloring" />

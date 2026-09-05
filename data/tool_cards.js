@@ -1,0 +1,387 @@
+import { configureDiffSource, fetchToolDiff, clearDiffSource } from './diff/source.js';
+import { getDiffModel, clearDiffModels } from './diff/client.js';
+import { createDiffPreview, closeFullDiff } from './diff/view.js';
+import { subscribe } from './runtime_kernel.js';
+
+const controllers = new Map();
+const foldChoices = new Map();
+const FILE_CHANGES = new Set(['Edit', 'MultiEdit', 'Write']);
+const LABELS = { Edit: 'Edit file', MultiEdit: 'Edit file', Write: 'Write file', Read: 'Read file',
+  ReadCoalesced: 'Read files', Bash: 'Run command', Grep: 'Search', Glob: 'Find files', TodoWrite: 'Update tasks' };
+const ICONS = {
+  file: '<path d="M9 2H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8z"/><path d="M9 2v6h6M6 11h6M6 13h4"/>',
+  edit: '<path d="M10 3H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-5"/><path d="m9 11-3 1 1-3 7-7 2 2z"/>',
+  terminal: '<rect x="2" y="3" width="14" height="12" rx="2"/><path d="m5 6 3 3-3 3m5 0h3"/>',
+  search: '<circle cx="8" cy="8" r="5"/><path d="m12 12 4 4"/>',
+  tool: '<path d="m5 3-2 2 4 4-4 4 2 2 4-4 4 4 2-2-4-4 4-4-2-2-4 4z"/>',
+};
+let initialized = false;
+let identityProvider = null;
+let visibilityObserver = null;
+let activeSession = '';
+let sweepTimer = null;
+
+function setAttribute(node, name, value) {
+  if (node.getAttribute(name) !== value) node.setAttribute(name, value);
+}
+
+function node(tag, attr, text) {
+  const value = document.createElement(tag);
+  if (attr) value.setAttribute(attr, '');
+  if (text !== undefined) value.textContent = text;
+  return value;
+}
+
+function iconFor(name) {
+  const icon = FILE_CHANGES.has(name) ? 'edit' : name === 'Bash' ? 'terminal' :
+    ['Read', 'ReadCoalesced'].includes(name) ? 'file' : ['Grep', 'Glob'].includes(name) ? 'search' : 'tool';
+  return '<svg viewBox="0 0 18 18" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[icon] + '</svg>';
+}
+
+function fileName(value) { return String(value || '').split(/[/\\]/).pop() || ''; }
+
+function identity() {
+  try { return identityProvider ? identityProvider() : {}; }
+  catch (_) { return {}; }
+}
+
+function publicState(data) {
+  if (data.result?.is_error || ['error', 'failed', 'failure'].includes(data.status)) return 'error';
+  if (data.result?.type === 'tool_result' && data.result.tool_use_id === data.block?.id) return 'complete';
+  if (['pending', 'running', 'in_progress'].includes(data.status)) return 'running';
+  if (data.result || ['success', 'succeeded', 'completed', 'complete', 'ok'].includes(data.status)) return 'complete';
+  return 'unknown';
+}
+
+function inputVersion(block) {
+  const input = block.input || {};
+  return [block.id, block.name, input.file_path, input.old_string, input.new_string, input.content,
+    input.edits, input.replace_all];
+}
+
+function sameVersion(a, b) { return a && a.length === b.length && a.every((value, i) => value === b[i]); }
+
+function rememberChoice(key, open) {
+  foldChoices.delete(key); foldChoices.set(key, open);
+  while (foldChoices.size > 1000) foldChoices.delete(foldChoices.keys().next().value);
+}
+
+function observeNativeState(root, onChange) {
+  const observer = new MutationObserver(records => {
+    if (records.some(record => !record.target.closest('[data-incipit-tool-heading], [data-incipit-file-tool-body], [data-incipit-tool-error]'))) onChange?.();
+  });
+  observer.observe(root, { attributes: true, attributeFilter: ['class', 'aria-busy'], subtree: true });
+  return observer;
+}
+
+function resetSession(sessionId) {
+  if (sessionId === activeSession) return;
+  activeSession = sessionId || '';
+  for (const controller of [...controllers.values()]) controller.dispose();
+  controllers.clear(); foldChoices.clear(); clearDiffSource(); clearDiffModels(); closeFullDiff();
+}
+
+export function initToolCards(options) {
+  identityProvider = options.getIdentity;
+  configureDiffSource(options.getApi);
+  if (initialized) return;
+  initialized = true;
+  activeSession = identity().sessionId || '';
+  if (typeof IntersectionObserver === 'function') {
+    visibilityObserver = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        const controller = controllers.get(entry.target);
+        if (!controller) continue;
+        controller.intersecting = entry.isIntersecting;
+        if (entry.isIntersecting) controller.prefetch();
+        else controller.releaseSource?.();
+      }
+    }, { rootMargin: '240px' });
+  }
+  subscribe('sessionChanged', state => resetSession(state.sessionId || ''));
+  window.addEventListener('pagehide', () => resetSession(''));
+}
+
+function buildHeadline(root, data, options) {
+  const header = node('div', 'data-incipit-tool-heading');
+  const toggle = node('button', 'data-incipit-tool-toggle'); toggle.type = 'button';
+  const glyph = node('span', 'data-incipit-tool-icon');
+  const label = node('span', 'data-incipit-tool-label');
+  const subject = node('span', 'data-incipit-tool-subject');
+  const stem = node('span', 'data-incipit-tool-filename-stem');
+  const extension = node('span', 'data-incipit-tool-filename-extension'); subject.append(stem, extension);
+  const counts = node('span', 'data-incipit-tool-counts'); counts.hidden = true;
+  const state = node('span', 'data-incipit-tool-state');
+  const chevron = node('span', 'data-incipit-tool-chevron');
+  chevron.innerHTML = '<svg viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="m7 4 5 5-5 5"/></svg>';
+  toggle.append(glyph, label, subject, counts, state, chevron); header.appendChild(toggle);
+  const details = node('div', 'data-incipit-tool-readable-detail'); details.hidden = true;
+  header.appendChild(details);
+  root.insertBefore(header, root.firstChild);
+  root.dataset.incipitToolHeadline = '1';
+  let lastName = '', lastSubject = '', lastDetail = '';
+  function update(next) {
+    const block = next.block, input = block.input || {};
+    const filePath = input.file_path || input.path || '';
+    const readPaths = block.name === 'ReadCoalesced' && Array.isArray(input.fileReads)
+      ? input.fileReads.map(read => read.file_path || read.path).filter(value => typeof value === 'string') : [];
+    const isFile = typeof filePath === 'string' && !!filePath;
+    const description = isFile ? fileName(filePath) : readPaths.length ? readPaths.map(fileName).join(', ') : String(input.description || input.query || input.pattern ||
+      (block.name === 'Bash' ? input.command || '' : '') || '').replace(/\s+/g, ' ').trim();
+    if (lastName !== block.name) {
+      lastName = block.name; glyph.innerHTML = iconFor(block.name); label.textContent = LABELS[block.name] || block.name;
+    }
+    if (lastSubject !== description) {
+      lastSubject = description;
+      const dot = isFile ? description.lastIndexOf('.') : -1;
+      stem.textContent = dot > 0 ? description.slice(0, dot) : description;
+      extension.textContent = dot > 0 ? description.slice(dot) : '';
+    }
+    const full = isFile ? filePath : readPaths.length ? readPaths.join('\n') : String(input.command || input.description || input.query || input.pattern || block.name);
+    if (lastDetail !== full) {
+      lastDetail = full;
+      details.replaceChildren();
+      details.appendChild(node('span', 'data-incipit-tool-original-name', block.name));
+      function appendPath(value, canOpen) {
+        const row = node('div', 'data-incipit-tool-detail-row');
+        row.appendChild(node('span', 'data-incipit-tool-full-text', value));
+        details.appendChild(row);
+        if (!canOpen || !options.openFile) return;
+        const open = node('button', 'data-incipit-tool-open-file', 'Open file'); open.type = 'button';
+        open.setAttribute('aria-label', 'Open file: ' + value);
+        open.addEventListener('click', event => {
+          event.stopPropagation();
+          try { options.openFile(value); }
+          catch (error) { row.appendChild(node('span', 'data-incipit-tool-error', error.message || 'The file could not be opened.')); }
+        });
+        row.appendChild(open);
+      }
+      if (readPaths.length) readPaths.forEach(value => appendPath(value, true));
+      else appendPath(full, isFile);
+    }
+    setAttribute(toggle, 'aria-label', (LABELS[block.name] || block.name) + (description ? ': ' + description : ''));
+    const status = publicState(next);
+    setAttribute(root, 'data-incipit-tool-state', status);
+    const statusText = status === 'running' ? 'Running' : status === 'error' ? 'Failed' : status === 'unknown' ? 'Status unavailable' : '';
+    if (state.textContent !== statusText) state.textContent = statusText;
+    state.hidden = status === 'complete';
+  }
+  toggle.addEventListener('click', event => { event.stopPropagation(); options.toggle(); });
+  header.addEventListener('click', event => event.stopPropagation());
+  update(data);
+  return { header, toggle, chevron, details, update, setCounts(stats) {
+    counts.replaceChildren(); counts.hidden = !stats;
+    if (stats) counts.append(node('span', 'data-incipit-tool-added', '+' + stats.added), node('span', 'data-incipit-tool-removed', '\u2212' + stats.removed));
+  } };
+}
+
+function createFileCard(root, initial, options) {
+  let data = initial;
+  let version = inputVersion(data.block);
+  const session = identity();
+  const key = (session.sessionId || '') + ':' + data.block.id;
+  let open = foldChoices.get(key) === true;
+  let disposed = false, closeTimer = null, transitionGeneration = 0, revision = 0;
+  let sourcePayload = null, sourcePromise = null, sourceController = null, view = null, sourceKnown = false;
+  const body = node('div', 'data-incipit-file-tool-body');
+  const inner = node('div', 'data-incipit-file-tool-inner');
+  const diff = node('div');
+  inner.appendChild(diff); body.appendChild(inner); body.hidden = !open; body.inert = !open;
+  root.dataset.incipitFileTool = '1';
+  root.dataset.incipitToolCollapsed = String(!open);
+  const headline = buildHeadline(root, data, { toggle: () => setOpen(!open), openFile: options.openFile });
+  const nativeStateObserver = observeNativeState(root, options.onNativeChange);
+  const toolError = node('div', 'data-incipit-tool-error'); toolError.hidden = true;
+  root.appendChild(toolError);
+  root.appendChild(body);
+  const bodyId = 'incipit-tool-preview-' + Math.random().toString(36).slice(2);
+  body.id = bodyId; headline.toggle.setAttribute('aria-controls', bodyId);
+  headline.toggle.setAttribute('aria-expanded', String(open));
+  body.addEventListener('click', event => event.stopPropagation());
+
+  async function loadSource(signal, refresh = false) {
+    if (sourcePayload && !refresh) return sourcePayload;
+    if (sourcePromise && !refresh) return sourcePromise;
+    sourceController?.abort(); sourceController = new AbortController();
+    const controller = sourceController;
+    const epoch = revision;
+    const current = identity();
+    const abort = () => controller.abort();
+    signal?.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted) controller.abort();
+    const promise = fetchToolDiff({ sessionId: current.sessionId, cwd: current.cwd,
+      toolUseId: data.block.id, filePath: data.block.input.file_path }, { signal: controller.signal })
+      .then(payload => {
+        if (disposed || epoch !== revision) throw Object.assign(new Error('Diff view changed.'), { name: 'AbortError' });
+        if (payload.state === 'ready') {
+          sourceKnown = true;
+          if (open) sourcePayload = payload;
+          headline.setCounts(payload.quality === 'coarse' ? null : payload.stats);
+        }
+        return payload;
+      }).finally(() => {
+        signal?.removeEventListener('abort', abort);
+        if (sourcePromise === promise) sourcePromise = null;
+      });
+    sourcePromise = promise;
+    return promise;
+  }
+
+  async function loadModel({ signal, refresh }) {
+    if (publicState(data) === 'error') throw new Error('This tool failed; no completed file change is available.');
+    const payload = await loadSource(signal, refresh);
+    if (!payload.ok) throw Object.assign(new Error(payload.error || payload.notice || 'Historical diff unavailable.'), { code: payload.code });
+    if (payload.state === 'pending') throw new Error('The tool result is still being saved. Retry in a moment.');
+    if (payload.state !== 'ready') {
+      const input = data.block.input;
+      const edits = Array.isArray(input.edits) ? input.edits.map(edit => ({ oldText: edit.old_string, newText: edit.new_string })) :
+        [{ oldText: input.old_string, newText: input.new_string }];
+      if (edits.every(edit => typeof edit.oldText === 'string' && typeof edit.newText === 'string')) {
+        return getDiffModel({ source: 'tool-input', filePath: input.file_path, edits, lineNumbers: 'relative',
+          notice: (payload.notice || 'Historical context is unavailable.') + ' Showing the supplied replacement fragments only.' }, { signal });
+      }
+      if (data.block.name === 'Write' && typeof input.content === 'string') {
+        return getDiffModel({ source: 'tool-input', filePath: input.file_path, proposedText: input.content,
+          notice: (payload.notice || 'The previous contents are unavailable.') + ' Showing the requested contents only; added and removed lines cannot be verified.' }, { signal });
+      }
+      throw new Error(payload.notice || 'The original file snapshot is unavailable. Open the current file to inspect it.');
+    }
+    return getDiffModel(payload, { key, signal });
+  }
+
+  function ensureView() {
+    if (view) return;
+    view = createDiffPreview(diff, { filePath: data.block.input.file_path, loadModel,
+      openFile: path => options.openFile?.(path), language: options.language,
+      onStats: stats => headline.setCounts(stats) });
+  }
+
+  function setOpen(value) {
+    if (disposed) return;
+    open = value; rememberChoice(key, value);
+    const token = ++transitionGeneration;
+    clearTimeout(closeTimer);
+    if (!value) {
+      view?.rememberPosition();
+      if (body.contains(document.activeElement) || headline.details.contains(document.activeElement)) headline.toggle.focus({ preventScroll: true });
+    }
+    headline.toggle.setAttribute('aria-expanded', String(value));
+    headline.details.hidden = !value;
+    root.dataset.incipitToolCollapsed = String(!value);
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (value) {
+      body.hidden = false; body.inert = false; ensureView(); view.setVisible(true);
+      requestAnimationFrame(() => { if (token === transitionGeneration) body.dataset.incipitExpanded = '1'; });
+    } else {
+      if (body.contains(document.activeElement)) headline.toggle.focus({ preventScroll: true });
+      body.inert = true; body.dataset.incipitExpanded = '0';
+      const finish = () => { if (token === transitionGeneration) { body.hidden = true; view?.setVisible(false); sourcePayload = null; } };
+      if (reduced) finish(); else closeTimer = setTimeout(finish, 260);
+    }
+  }
+
+  const controller = {
+    kind: 'file',
+    toolId: data.block.id,
+    intersecting: !visibilityObserver,
+    releaseSource() { if (!open) sourcePayload = null; },
+    prefetch() {
+      if (disposed || publicState(data) !== 'complete' || sourceKnown || sourcePromise) return;
+      loadSource().catch(error => {
+        if (error.name !== 'AbortError') globalThis.__incipitHealth?.set?.('tool.diffSource', 'degraded', { reason: error.message });
+      });
+    },
+    update(next) {
+      const previousState = publicState(data);
+      const previousPath = data.block.input.file_path;
+      data = next;
+      const nextVersion = inputVersion(next.block);
+      if (!sameVersion(version, nextVersion)) {
+        version = nextVersion; revision++; sourcePayload = null; sourceKnown = false; sourceController?.abort(); sourcePromise = null;
+        headline.setCounts(null);
+        if (previousPath !== next.block.input.file_path) { view?.dispose(); view = null; diff.replaceChildren(); }
+        else view?.invalidate();
+      }
+      headline.update(next);
+      const failed = publicState(next) === 'error';
+      const content = next.result && next.result.content;
+      const message = typeof content === 'string' ? content : Array.isArray(content)
+        ? content.filter(block => block && block.type === 'text').map(block => block.text || '').join('\n') : '';
+      toolError.hidden = !failed;
+      if (failed) {
+        headline.setCounts(null);
+        const text = message || 'The file operation failed. Inspect the tool result before retrying.';
+        if (toolError.textContent !== text) toolError.textContent = text;
+        if (previousState !== 'error') { sourceController?.abort(); sourcePayload = null; view?.invalidate(); }
+      }
+      if (!headline.header.isConnected) root.insertBefore(headline.header, root.firstChild);
+      if (!toolError.isConnected) root.appendChild(toolError);
+      if (!body.isConnected) root.appendChild(body);
+      if (open) {
+        ensureView();
+        if (previousPath !== next.block.input.file_path) view.setVisible(true);
+        else if (previousState !== 'complete' && publicState(next) === 'complete' && !sourcePayload) view.invalidate();
+      }
+      if (controller.intersecting) controller.prefetch();
+    },
+    dispose() {
+      if (disposed) return;
+      disposed = true; revision++; transitionGeneration++; clearTimeout(closeTimer);
+      sourceController?.abort(); view?.dispose(); visibilityObserver?.unobserve(root);
+      nativeStateObserver.disconnect();
+      headline.header.remove(); body.remove(); toolError.remove(); delete root.dataset.incipitFileTool; delete root.dataset.incipitToolHeadline;
+      delete root.dataset.incipitToolCollapsed;
+      controllers.delete(root);
+    },
+  };
+  if (open) setOpen(true);
+  visibilityObserver?.observe(root);
+  return controller;
+}
+
+/** Return true only when the recognized file-tool island is completely owned here. */
+export function enhanceToolCard(root, data, options) {
+  if (!data?.block || data.block.type !== 'tool_use' || typeof data.block.name !== 'string' || !data.block.name ||
+      !data.block.input || typeof data.block.input !== 'object' || Array.isArray(data.block.input) || !options.summary) {
+    controllers.get(root)?.dispose();
+    return false;
+  }
+  const isFile = FILE_CHANGES.has(data.block.name) && typeof data.block.id === 'string' &&
+    typeof data.block.input?.file_path === 'string' && data.block.input.file_path;
+  let controller = controllers.get(root);
+  if (controller && (controller.toolId !== data.block.id || (controller.kind === 'file') !== !!isFile)) {
+    controller.dispose(); controller = null;
+  }
+  if (isFile) {
+    if (!controller) { controller = createFileCard(root, data, options); controllers.set(root, controller); }
+    controller.update(data);
+    return true;
+  }
+  if (!controller) {
+    if (!root.dataset.incipitToolCollapsed) root.dataset.incipitToolCollapsed = 'true';
+    const headline = buildHeadline(root, data, { openFile: options.openFile, toggle: () => {
+      options.toggle?.();
+      const open = root.dataset.incipitToolCollapsed !== 'true';
+      headline.toggle.setAttribute('aria-expanded', String(open)); headline.details.hidden = !open;
+    } });
+    const nativeStateObserver = observeNativeState(root, options.onNativeChange);
+    controller = {
+      kind: 'generic',
+      toolId: data.block.id,
+      prefetch() {},
+      update(next) { headline.update(next); headline.toggle.setAttribute('aria-expanded', String(root.dataset.incipitToolCollapsed === 'false')); },
+      dispose() { nativeStateObserver.disconnect(); headline.header.remove(); delete root.dataset.incipitToolHeadline; delete root.dataset.incipitToolCollapsed; controllers.delete(root); },
+    };
+    controllers.set(root, controller);
+    headline.toggle.setAttribute('aria-expanded', 'false');
+  } else controller.update(data);
+  return false;
+}
+
+export function sweepToolCards() {
+  if (sweepTimer) return;
+  sweepTimer = setTimeout(() => {
+    sweepTimer = null;
+    for (const [root, controller] of controllers) if (!root.isConnected) controller.dispose();
+  }, 250);
+}

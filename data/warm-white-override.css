@@ -213,6 +213,8 @@
   --ink-diff-button-border: rgba(0, 0, 0, 0.12);
   --ink-diff-button-text: #0d0d0d;
   --ink-diff-del-border: rgba(176, 62, 54, 0.34);
+  --ink-diff-dialog-bg: rgba(0,0,0,0.45);
+  --ink-diff-dialog-bg-override: rgba(0,0,0,0.20);
   --ink-diff-divider: rgba(0, 0, 0, 0.08);
   --ink-diff-editor-container-bg: rgba(0,0,0,0.20);
   --ink-diff-gradient-start: rgba(250, 250, 245, 0);
@@ -297,7 +299,7 @@
   --ink-markdown-root-image: radial-gradient(circle,rgba(191,93,58,0.85) 1px,transparent 1.6px);
   --ink-menu-divider-bg: rgba(60,55,40,0.20);
   --ink-menu-popup-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
-  --ink-message-after-bg: rgba(60,55,40,0.14);
+  --ink-message-after-bg-override: rgba(60,55,40,0.14);
   --ink-message-bg: linear-gradient(to right,transparent,rgba(150,145,130,0.30) 20%,rgba(150,145,130,0.30) 80%,transparent);
   --ink-message-border-bottom: 1px solid rgba(160,150,130,0.30);
   --ink-message-border-bottom-2: 1.5px solid rgba(160,150,130,0.45);
@@ -458,7 +460,6 @@
   --ink-usage-fill-bg: #a8896e;
   --ink-usage-track-bg-override: #d8d6cf;
   --ink-write-diff-modal-bg: rgba(0,0,0,0.45);
-  --ink-write-diff-modal-bg-override: rgba(0,0,0,0.20);
 }
 
 /* ============================================================
@@ -585,6 +586,11 @@
 :root[data-incipit-body-bold] [data-incipit-user-bubble],
 :root[data-incipit-body-bold] [data-incipit-user-bubble] [data-incipit-user-content] {
   font-family: var(--incipit-paper-reading-font, 'PaperReading'), var(--incipit-body-font) !important;
+}
+
+/* Timeline vertical connector. */
+[data-incipit-message]::after {
+  background-color: var(--ink-message-after-bg-override) !important;
 }
 
 /* ---------- Tool summary + thinking summary unified middle tone ----------
@@ -753,8 +759,9 @@
   color: var(--incipit-diff-header-text) !important;
 }
 
-[data-incipit-write-diff-modal] {
-  background-color: var(--ink-write-diff-modal-bg-override);
+[data-incipit-write-diff-modal],
+[data-incipit-diff-dialog]::backdrop {
+  background-color: var(--ink-diff-dialog-bg-override);
 }
 
 /* ---------- Input container (pure white card on cream paper)

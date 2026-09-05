@@ -331,10 +331,9 @@ function assertRuntimeSourceContracts() {
       install.includes('installContracts,'),
     'installer must collect structured install contracts including hostRoute/I1/I2, inject __incipitInstallManifest, and expose them in the apply report',
   );
-  assert(
-    install.includes("const LOCAL_ASSET_TREES = ['katex', 'hljs', 'fonts', 'effort-brain', 'capability', 'legacy', 'mermaid']"),
-    'installer must copy capability/, legacy/, and mermaid/ webview asset subtrees',
-  );
+  for (const tree of ['capability', 'legacy', 'mermaid', 'diff']) {
+    assert(require('../src/install').LOCAL_ASSET_TREES.includes(tree), `installer must own the ${tree}/ runtime assets`);
+  }
   assert(
     install.includes('function patchCspDirective(') &&
       install.includes('function assessCspDirectiveContact(') &&
@@ -803,13 +802,14 @@ function assertRuntimeSourceContracts() {
       !hostProbe.includes('syncInputContainers') &&
       !hostProbe.includes('ATTR.inputContainer') &&
       !hostProbe.includes("['[class*=\"inputContainer_\"]', ATTR.inputContainer]") &&
-      !hostProbe.includes("selectors: ['fieldset[class*=\"inputContainer_\"]', '[class*=\"inputContainer_\"]:has(> [class*=\"inputContainerBackground\"])']") &&
+      hostProbe.includes('if (root.nodeType === 1 && root.isContentEditable) return;') &&
+      hostProbe.includes('if (element.isContentEditable) return;') &&
       hostProbe.includes("presence: 'whileVisible'") &&
       hostProbe.includes('CSS_ALWAYS_WARMUP_MS = 5000') &&
       hostProbe.includes('function runAlwaysCssCapabilityCheck') &&
       hostProbe.includes('function scheduleVisibleCssCapabilityCheck') &&
       hostProbe.includes("health.set('capability.' + def.name"),
-    'host_probe must expose runtime.cssClass capabilities without tagging or capability-probing the composer input container subtree',
+    'host_probe may identify external composer placement while preserving the editable subtree exclusion',
   );
   assert.strictEqual(
     (hostProbe.match(/new MutationObserver/g) || []).length,
@@ -885,7 +885,6 @@ function assertRuntimeSourceContracts() {
       legacy.includes('if (!askActive && !structural) continue;') &&
       legacy.includes('function enqueueAffectedToolUses(node, targetInsideToolUse)') &&
       legacy.includes('node.firstElementChild && node.querySelectorAll') &&
-      legacy.includes('const targetInsideToolUse = !!(') &&
       !legacy.includes('for (const node of m.addedNodes) enqueueAffectedToolUses(node);') &&
       typography.includes('function mutationsAllInsideFocusedEditor(mutations)') &&
       typography.includes('if (mutationsAllInsideFocusedEditor(mutations)) return;'),

@@ -10,6 +10,8 @@ import { initLegacyForkRewind } from './legacy/fork_rewind.js';
 import { initLegacyUserBubble } from './legacy/user_bubble.js';
 import { initLegacyDeferredNext } from './legacy/deferred_next.js';
 import { initLegacyAskRefinement } from './legacy/ask_refinement.js';
+import { initToolCards, enhanceToolCard, sweepToolCards } from './tool_cards.js';
+import { showDiffPayload } from './diff/view.js';
 import {
   conversationIsBusy as kernelConversationIsBusy,
   getHostState as kernelGetHostState,
@@ -1874,6 +1876,7 @@ import {
   // state matches current — this is the hot-path during streaming so
   // the no-op branch must stay free of DOM writes.
   function applyButtonBusyState(btn, busy) {
+    if (btn) transcriptActionButtons.add(btn);
     if (!btn) return;
     // Buttons that don't participate at all in the streaming gate (copy
     // / more — both safe during streaming).
@@ -1909,10 +1912,14 @@ import {
     if (busy) {
       try { removeCurrentBusyAssistantTerminalDecorations(); } catch (_) {}
     }
-    const icons = document.querySelectorAll('.incipit-transcript-action-btn');
-    for (const btn of icons) applyButtonBusyState(btn, busy);
-    const saves = document.querySelectorAll('.incipit-inline-edit-save');
-    for (const btn of saves) applyInlineSaveBusyState(btn, busy);
+    for (const btn of transcriptActionButtons) {
+      if (!btn.isConnected) transcriptActionButtons.delete(btn);
+      else applyButtonBusyState(btn, busy);
+    }
+    for (const btn of transcriptSaveButtons) {
+      if (!btn.isConnected) transcriptSaveButtons.delete(btn);
+      else applyInlineSaveBusyState(btn, busy);
+    }
   }
 
   const TRANSCRIPT_ACTION_QUIET_MS = 360;
@@ -1920,6 +1927,13 @@ import {
   let lastTranscriptMutationAt = 0;
   let transcriptActionSettleTimer = null;
   let transcriptActionBurstToken = 0;
+  const transcriptActionButtons = new Set();
+  const transcriptSaveButtons = new Set();
+  const assistantActionScopes = new Set();
+  const assistantActionRetries = new Set();
+  const knownAssistantRoots = new Set();
+  const transcriptIndexes = new WeakMap();
+  let assistantInitialScan = true;
 
   // ---- Turn-handoff serialization (interrupt → edit → rerun safety) ----
   //
@@ -1988,7 +2002,10 @@ import {
     } catch (_) {}
   }
 
-  function noteTranscriptActionMutation() {
+  function noteTranscriptActionMutation(roots = null) {
+    if (roots) for (const root of Array.isArray(roots) ? roots : [roots]) {
+      if (root && root.nodeType === 1) assistantActionScopes.add(root);
+    }
     lastTranscriptMutationAt = nowMs();
     scheduleTranscriptActionSettleScan();
   }
@@ -2035,7 +2052,7 @@ import {
     let frames = 0;
 
     const scanOnce = () => {
-      try { scanAssistantTranscriptActions(document.body); }
+      try { flushAssistantActionScopes(); }
       catch (e) { warn('assistant actions failed:', e); }
     };
 
@@ -2124,6 +2141,9 @@ import {
       scheduleTranscriptActionSettleScan(0);
     });
     subscribeRuntime('sessionChanged', () => {
+      assistantInitialScan = true;
+      assistantActionScopes.clear(); assistantActionRetries.clear(); knownAssistantRoots.clear();
+      transcriptActionBurstToken++;
       noteTranscriptActionMutation();
     });
   }
@@ -3756,14 +3776,20 @@ import {
   function openChangeReviewDiff(file) {
     if (!file || !file.id) return;
     openChangeReviewModalShell(file.displayPath || file.filePath || 'diff', changeReviewText('loading'));
+    const modal = changeReviewModal;
+    const sessionId = getActiveSessionId();
+    modal.controller = new AbortController();
     postChangeReviewRequest('change_review_diff_request', { fileId: file.id }, 12000)
       .then(payload => {
+        if (changeReviewModal !== modal || getActiveSessionId() !== sessionId) return;
         const diff = payload.diff || {};
-        openChangeReviewDiffModal(payload.file || file, diff);
+        return openChangeReviewDiffModal(payload.file || file, diff, modal);
       })
       .catch(error => {
-        openChangeReviewModalShell(file.displayPath || file.filePath || 'diff',
-          changeReviewText('diffFail', { msg: error && error.message ? error.message : String(error) }));
+        if (error.name === 'AbortError' || changeReviewModal !== modal) return;
+        modal.message.textContent = changeReviewText('diffFail', { msg: error && error.message ? error.message : String(error) });
+        const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = 'Retry';
+        retry.addEventListener('click', () => openChangeReviewDiff(file)); modal.message.appendChild(retry);
       });
   }
 
@@ -3771,18 +3797,22 @@ import {
     if (!changeReviewModal) return;
     const modal = changeReviewModal;
     changeReviewModal = null;
+    modal.controller?.abort();
     document.removeEventListener('keydown', modal.onKeyDown, true);
     if (modal.backdrop && modal.backdrop.parentElement) modal.backdrop.remove();
+    if (modal.previousFocus?.isConnected) modal.previousFocus.focus({ preventScroll: true });
   }
 
   function openChangeReviewModalShell(titleText, bodyText) {
     closeChangeReviewModal();
     if (!document.body) return;
+    const previousFocus = document.activeElement;
     const backdrop = document.createElement('div');
     backdrop.setAttribute('data-incipit-change-review-modal', '');
     const content = document.createElement('div');
     content.setAttribute('data-incipit-write-diff-modal-content', '');
     content.setAttribute('data-incipit-change-review-modal-content', '');
+    content.setAttribute('role', 'dialog'); content.setAttribute('aria-label', titleText || 'File diff');
     const header = document.createElement('div');
     header.setAttribute('data-incipit-write-diff-modal-header', '');
     const title = document.createElement('span');
@@ -3817,11 +3847,12 @@ import {
       closeChangeReviewModal();
     };
     document.addEventListener('keydown', onKeyDown, true);
-    changeReviewModal = { backdrop, onKeyDown, content };
+    changeReviewModal = { backdrop, onKeyDown, content, message: body, previousFocus };
     document.body.appendChild(backdrop);
+    close.focus();
   }
 
-  function openChangeReviewDiffModal(file, diff) {
+  function openChangeReviewDiffModal(file, diff, modal) {
     const renderer = changeReviewWriteDiffRenderer;
     const title =
       (file && (file.displayPath || file.filePath)) ||
@@ -3858,9 +3889,11 @@ import {
       input: { file_path: filePath },
     };
     const languageClass = renderer.languageClassForPath(filePath);
-    closeChangeReviewModal();
     try {
-      renderer.openModal(payload, block, stats, languageClass, lineInfo);
+      return renderer.openModal(payload, block, stats, languageClass, lineInfo, {
+        signal: modal?.controller?.signal,
+        beforeOpen: () => closeChangeReviewModal(),
+      });
     } catch (error) {
       openChangeReviewModalShell(title,
         changeReviewText('diffFail', { msg: error && error.message ? error.message : String(error) }));
@@ -4261,6 +4294,7 @@ import {
     setupChangeReviewChannel();
     scheduleChangeReviewIdentityUpdate(0);
     subscribeRuntime('sessionChanged', () => {
+      closeChangeReviewModal();
       changeReviewPayload = null;
       changeReviewStartedTurnKey = '';
       cancelChangeReviewTurnStarted();
@@ -5590,6 +5624,7 @@ import {
   // automatically, and CSS dims it. Title flips between live and
   // streaming-explainer text.
   function applyInlineSaveBusyState(saveBtn, busy) {
+    if (saveBtn) transcriptSaveButtons.add(saveBtn);
     if (!saveBtn) return;
     const want = !!busy;
     const cur = saveBtn.dataset.incipitDisabled === '1';
@@ -6417,17 +6452,7 @@ import {
     if (!Array.isArray(messages)) return true;
     const idx = transcriptRecordIndex(messages, record);
     if (idx < 0) return true;
-    for (let i = idx + 1; i < messages.length; i++) {
-      const next = messages[i];
-      if (!next || typeof next !== 'object') continue;
-      const t = next.type;
-      if (t === 'assistant') return false;
-      if (t === 'user') {
-        if (transcriptHasToolResult(next)) continue;
-        return true;
-      }
-    }
-    return true;
+    return getTranscriptIndex(messages).terminal[idx] === true;
   }
 
   function lastAssistantTextRecordOfTurn() {
@@ -6466,23 +6491,32 @@ import {
     return !!(beta && beta === recordBetaMessageId(b));
   }
 
+  function getTranscriptIndex(messages) {
+    let index = transcriptIndexes.get(messages);
+    if (index && index.length === messages.length && index.stamp === lastTranscriptMutationAt) return index;
+    index = { objects: new Map(), uuids: new Map(), betas: new Map(), terminal: [], length: messages.length, stamp: lastTranscriptMutationAt };
+    let terminal = true;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const record = messages[i];
+      if (!record || typeof record !== 'object') continue;
+      index.objects.set(record, i);
+      const uuid = recordUuid(record), beta = recordBetaMessageId(record);
+      if (uuid && !index.uuids.has(uuid)) index.uuids.set(uuid, i);
+      if (beta && !index.betas.has(beta)) index.betas.set(beta, i);
+      if (record.type === 'assistant') { index.terminal[i] = terminal; terminal = false; }
+      else if (record.type === 'user' && !transcriptHasToolResult(record)) terminal = true;
+    }
+    transcriptIndexes.set(messages, index);
+    return index;
+  }
+
   function transcriptRecordIndex(messages, record) {
     if (!Array.isArray(messages) || !record) return -1;
-    let idx = messages.findIndex(m => m === record);
-    if (idx >= 0) return idx;
-    const uuid = recordUuid(record);
-    if (uuid) {
-      for (let i = messages.length - 1; i >= 0; i--) {
-        if (recordUuid(messages[i]) === uuid) return i;
-      }
-    }
-    const beta = recordBetaMessageId(record);
-    if (beta) {
-      for (let i = messages.length - 1; i >= 0; i--) {
-        if (recordBetaMessageId(messages[i]) === beta) return i;
-      }
-    }
-    return -1;
+    const index = getTranscriptIndex(messages);
+    if (index.objects.has(record)) return index.objects.get(record);
+    const uuid = recordUuid(record), beta = recordBetaMessageId(record);
+    if (uuid && index.uuids.has(uuid)) return index.uuids.get(uuid);
+    return beta && index.betas.has(beta) ? index.betas.get(beta) : -1;
   }
 
   function latestRealUserMessageIndex(messages) {
@@ -6531,7 +6565,10 @@ import {
   }
 
   function lastAssistantMarkdownRoot(record = null) {
-    const roots = Array.from(document.querySelectorAll(SEL.markdownRoot));
+    const roots = Array.from(knownAssistantRoots).filter(root => {
+      if (root.isConnected) return true;
+      knownAssistantRoots.delete(root); return false;
+    }).sort((a, b) => a === b ? 0 : a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
     let fallback = null;
     for (let i = roots.length - 1; i >= 0; i--) {
       const root = roots[i];
@@ -6599,7 +6636,8 @@ import {
   function reconcileAssistantTranscriptActions(markdownRoot, fallbackRecord = null) {
     const host = findAssistantActionHost(markdownRoot);
     if (!host) return;
-    const domRecord = transcriptRecordForElement(host) || transcriptRecordForElement(markdownRoot);
+    knownAssistantRoots.add(markdownRoot);
+    assistantActionRetries.delete(markdownRoot);
     const existingRow = host.querySelector(':scope > .incipit-assistant-action-row');
     // Fast path: row already decorated. Once a record is the last
     // assistant text of its turn, that property is monotone (records
@@ -6613,7 +6651,7 @@ import {
     // and Interrupt. Idle→busy transitions still flip past-turn rows
     // to disabled via the busy-state observer's `cleanupDuringBusy`.
     if (existingRow) {
-      const existingRecord = domRecord || fallbackRecord;
+      const existingRecord = existingRow.__incipitTranscriptRecord || fallbackRecord || transcriptRecordForElement(host);
       if (recordBelongsToCurrentBusyTurn(existingRecord)) {
         existingRow.remove();
         removeCurrentBusyChangeReviewTurnBlocks();
@@ -6624,6 +6662,8 @@ import {
         .forEach(b => applyButtonBusyState(b, conversationIsBusy()));
       return;
     }
+    const domRecord = transcriptRecordForElement(host) || transcriptRecordForElement(markdownRoot);
+    if (!domRecord && !fallbackRecord) { assistantActionRetries.add(markdownRoot); return; }
     const domRecordLooksFinal = !!(
       domRecord &&
       domRecord.type === 'assistant' &&
@@ -6646,6 +6686,7 @@ import {
 
     const row = document.createElement('div');
     row.className = 'incipit-transcript-action-row incipit-assistant-action-row';
+    row.__incipitTranscriptRecord = record;
     const identity = transcriptRecordIdentity(record);
     // Re-resolve the record by uuid at click time — see addUserCopyButton.
     const capturedUuid = record && record.uuid;
@@ -6700,7 +6741,7 @@ import {
     document.querySelectorAll('.incipit-assistant-action-row').forEach(row => {
       const host = row.parentElement;
       if (!host || !host.isConnected) return;
-      const record = transcriptRecordForElement(host);
+      const record = row.__incipitTranscriptRecord || transcriptRecordForElement(host);
       if (!recordBelongsToCurrentBusyTurn(record)) return;
       row.remove();
     });
@@ -6710,6 +6751,7 @@ import {
   function scanAssistantTranscriptActions(root) {
     const scope = root || document.body;
     if (!scope) return;
+    if (conversationIsBusy()) { assistantActionScopes.add(scope); return; }
     if (scope.matches && scope.matches(SEL.markdownRoot)) reconcileAssistantTranscriptActions(scope);
     if (scope.querySelectorAll) {
       const markdownRoots = scope.querySelectorAll(SEL.markdownRoot);
@@ -6727,10 +6769,43 @@ import {
     sweepStreamingDisableState();
   }
 
+  function flushAssistantActionScopes() {
+    if (conversationIsBusy()) return;
+    if (assistantInitialScan) {
+      assistantInitialScan = false;
+      assistantActionScopes.add(document.querySelector(SEL.messagesContainer) || document.body);
+    }
+    const candidates = new Set(assistantActionRetries);
+    for (const scope of assistantActionScopes) {
+      if (!scope.isConnected) continue;
+      const nearest = scope.matches?.(SEL.markdownRoot) ? scope : scope.closest?.(SEL.markdownRoot);
+      if (nearest) candidates.add(nearest);
+      else scope.querySelectorAll?.(SEL.markdownRoot).forEach(root => candidates.add(root));
+    }
+    assistantActionScopes.clear();
+    const deadline = performance.now() + 4;
+    const remaining = Array.from(candidates);
+    for (let i = 0; i < remaining.length; i++) {
+      const root = remaining[i];
+      if (!root.isConnected) { assistantActionRetries.delete(root); knownAssistantRoots.delete(root); continue; }
+      reconcileAssistantTranscriptActions(root);
+      if (performance.now() >= deadline && i + 1 < remaining.length) {
+        for (let j = i + 1; j < remaining.length; j++) assistantActionScopes.add(remaining[j]);
+        requestAnimationFrame(flushAssistantActionScopes);
+        break;
+      }
+    }
+    const fallbackRecord = lastAssistantTextRecordOfTurn();
+    const tail = fallbackRecord && lastAssistantMarkdownRoot(fallbackRecord);
+    if (tail) reconcileAssistantTranscriptActions(tail, fallbackRecord);
+    sweepStreamingDisableState();
+  }
+
   function scanAndAddCopyButtons(root, options = {}) {
     const scope = root || document.body;
     if (!scope) return;
     const assistantActions = options.assistantActions !== false;
+    assistantActionScopes.add(scope);
     const handle = (bubble) => {
       // Interrupted messages are not real user input.
       if (bubble.querySelector(SEL.interruptedMessage)) return;
@@ -6742,7 +6817,7 @@ import {
     const userBubbles = scope.querySelectorAll(SEL.userBubble);
     for (const bubble of userBubbles) handle(bubble);
     if (assistantActions) {
-      scanAssistantTranscriptActions(scope);
+      scheduleTranscriptActionSettleScan();
     } else if (options.sweepBusyState !== false) {
       // Sweep at the end so newly-mounted user-bubble rows (created above
       // by addUserCopyButton) snap to the current busy state in the same
@@ -7818,6 +7893,10 @@ import {
   // half-broken UI — but if this function ever stops decorating anything,
   // the first suspect is a fiber shape drift, not a CSS selector miss.
   function setupToolFold() {
+    initToolCards({
+      getApi: getIncipitVsCodeApi,
+      getIdentity: () => ({ sessionId: getActiveSessionId(), cwd: getActiveSessionCwd() }),
+    });
     // Animated expand / collapse for the tool body. Drives the transition
     // by writing `inline max-height` from `scrollHeight` so the curve runs
     // the full natural distance — a fixed CSS `max-height` cap would let
@@ -7856,6 +7935,7 @@ import {
 
     function clearFoldInline(target) {
       cancelFoldAnimation(target);
+      target.removeAttribute('data-incipit-fold-animating');
       target.style.maxHeight = '';
       target.style.transitionDuration = '';
     }
@@ -7873,6 +7953,7 @@ import {
         }
         target.removeEventListener('transitionend', onEnd);
         target.__incipitFoldEnd = null;
+        target.removeAttribute('data-incipit-fold-animating');
         target.style.maxHeight = '';
         target.style.transitionDuration = '';
       }
@@ -7911,6 +7992,13 @@ import {
 
     function animateExpandTargets(el, targets) {
       targets = targets.filter(Boolean);
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+        targets.forEach(clearFoldInline);
+        el.dataset.incipitToolCollapsed = 'false';
+        globalThis.__incipitTypography?.enqueueCodeHighlight?.(el);
+        scheduleFoldLayoutRefresh(targets);
+        return;
+      }
       if (!targets.length) {
         el.dataset.incipitToolCollapsed = 'false';
         return;
@@ -7920,11 +8008,13 @@ import {
       // row label/chevron state before measuring the open layout.
       targets.forEach(t => {
         cancelFoldAnimation(t);
+        t.setAttribute('data-incipit-fold-animating', '');
         t.style.transitionDuration = '0ms';
         t.style.maxHeight = '0px';
       });
       el.dataset.incipitToolCollapsed = 'false';
       targets.forEach(t => { void t.offsetHeight; });
+      globalThis.__incipitTypography?.enqueueCodeHighlight?.(el);
       scheduleFoldLayoutRefresh(targets);
 
       targets.forEach(t => {
@@ -7946,6 +8036,11 @@ import {
 
     function animateCollapseTargets(el, targets) {
       targets = targets.filter(Boolean);
+      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+        targets.forEach(clearFoldInline);
+        el.dataset.incipitToolCollapsed = 'true';
+        return;
+      }
       if (!targets.length) {
         el.dataset.incipitToolCollapsed = 'true';
         return;
@@ -7954,6 +8049,7 @@ import {
       const starts = targets.map(foldTargetHeight);
       targets.forEach((t, i) => {
         cancelFoldAnimation(t);
+        t.setAttribute('data-incipit-fold-animating', '');
         const start = starts[i];
         if (start > 0) {
           t.style.transitionDuration = foldDuration(start) + 'ms';
@@ -7983,18 +8079,8 @@ import {
       animateCollapseTargets(el, [body]);
     }
 
-    // First-time collapse without the flash. CSS gives toolBody (and
-    // grep expansion) a default `max-height` transition so click
-    // toggles animate. But the very first time we set
-    // `data-incipit-tool-collapsed='true'` (right after stream finishes
-    // filling the body), the body's resting max-height is `none` and
-    // Chromium does interpolate `none → 0` by treating `none` as the
-    // current scrollHeight — visible as the tool flashing fully open
-    // and then snapping shut. Inline `transition: none` + force-reflow
-    // + rAF restore makes the initial snap instant, leaving the click
-    // animation rule untouched. Older comment claimed Chromium does
-    // not interpolate this case; that turned out to be wrong in
-    // practice.
+    // Suppress the initial transition across a paint without forcing one
+    // synchronous layout per mounted tool. User-triggered folds still animate.
     function snapInitialCollapse(el) {
       const targets = [];
       const tb = el.querySelector('[class*="toolBody_"]');
@@ -8007,11 +8093,10 @@ import {
         t.style.transition = 'none';
       });
       el.dataset.incipitToolCollapsed = 'true';
-      // Force a synchronous layout pass so the no-transition collapse
-      // commits before we restore the CSS-driven transition next frame.
-      if (targets.length) void targets[0].offsetHeight;
       requestAnimationFrame(() => {
-        targets.forEach((t, i) => { t.style.transition = prevs[i] || ''; });
+        requestAnimationFrame(() => targets.forEach((t, i) => {
+          if (t.isConnected) t.style.transition = prevs[i] || '';
+        }));
       });
     }
 
@@ -8231,6 +8316,7 @@ import {
       const targetId = useBlock && useBlock.id;
       if (targetId && result.reason === 'shapeMiss' && !_toolResultDiagSeen.has(targetId)) {
         _toolResultDiagSeen.add(targetId);
+        if (_toolResultDiagSeen.size > 128) _toolResultDiagSeen.delete(_toolResultDiagSeen.values().next().value);
         console.warn('[incipit] toolResultSignal not found for', targetId.slice(-8),
                      '— host fiber prop shape may have changed; run __incipitDumpFiber()');
       }
@@ -9031,605 +9117,14 @@ import {
       if (diff) diff.remove();
     }
 
-    const WRITE_DIFF_PREVIEW_LINES = 10;
-    const WRITE_DIFF_FULL_BELOW_LINES = 12;
-    let writeDiffModal = null;
-
-    function writeDiffLines(text) {
-      return text === '' ? [] : String(text).split('\n');
-    }
-
-    function rangesFromChangedIndexes(indexes) {
-      if (!indexes.length) return [];
-      const ranges = [];
-      let start = indexes[0];
-      let prev = indexes[0];
-      for (let i = 1; i < indexes.length; i++) {
-        const cur = indexes[i];
-        if (cur === prev + 1) {
-          prev = cur;
-          continue;
-        }
-        ranges.push([start, prev + 1]);
-        start = prev = cur;
-      }
-      ranges.push([start, prev + 1]);
-      return ranges;
-    }
-
-    function lcsLength(a, b, maxCells) {
-      const m = a.length;
-      const n = b.length;
-      if (!m || !n) return 0;
-      if (maxCells && m * n > maxCells) return null;
-      const prev = new Uint32Array(n + 1);
-      const curr = new Uint32Array(n + 1);
-      for (let i = 1; i <= m; i++) {
-        for (let j = 1; j <= n; j++) {
-          curr[j] = a[i - 1] === b[j - 1]
-            ? prev[j - 1] + 1
-            : Math.max(prev[j], curr[j - 1]);
-        }
-        prev.set(curr);
-      }
-      return prev[n];
-    }
-
-    function diffLineTokens(text) {
-      return String(text || '').match(/[A-Za-z_$][A-Za-z0-9_$]*|\d+(?:\.\d+)?|[^\sA-Za-z0-9_$]/g) || [];
-    }
-
-    function prefixSuffixSimilarity(a, b) {
-      let prefix = 0;
-      while (prefix < a.length && prefix < b.length && a[prefix] === b[prefix]) prefix++;
-      let aEnd = a.length;
-      let bEnd = b.length;
-      while (aEnd > prefix && bEnd > prefix && a[aEnd - 1] === b[bEnd - 1]) {
-        aEnd--;
-        bEnd--;
-      }
-      return (2 * (prefix + (a.length - aEnd))) / (a.length + b.length);
-    }
-
-    function intralinePairScore(oldText, newText) {
-      const oldTrimmed = String(oldText || '').trim();
-      const newTrimmed = String(newText || '').trim();
-      if (!oldTrimmed || !newTrimmed || oldTrimmed === newTrimmed) return 0;
-
-      const oldChars = Array.from(oldTrimmed);
-      const newChars = Array.from(newTrimmed);
-      const lengthRatio = Math.min(oldChars.length, newChars.length) /
-        Math.max(oldChars.length, newChars.length);
-      if (lengthRatio < 0.35) return 0;
-
-      const charLcs = lcsLength(oldChars, newChars, 40000);
-      const charSimilarity = charLcs == null
-        ? prefixSuffixSimilarity(oldChars, newChars)
-        : (2 * charLcs) / (oldChars.length + newChars.length);
-
-      const oldTokens = diffLineTokens(oldTrimmed);
-      const newTokens = diffLineTokens(newTrimmed);
-      const tokenLcs = lcsLength(oldTokens, newTokens, 40000);
-      const tokenSimilarity = tokenLcs == null
-        ? prefixSuffixSimilarity(oldTokens, newTokens)
-        : (oldTokens.length || newTokens.length)
-          ? (2 * tokenLcs) / (oldTokens.length + newTokens.length)
-          : charSimilarity;
-
-      // GitHub-style intraline tint is for local edits within the same logical
-      // line, not for whole-line additions/deletions or block rewrites. Require
-      // both character and token similarity so unrelated comment/code lines do
-      // not get noisy "common letter" highlights. The strong-char escape keeps
-      // punctuation-only edits such as adding a semicolon visible.
-      if (charSimilarity >= 0.62 && tokenSimilarity >= 0.58) {
-        return (charSimilarity * 2) + tokenSimilarity;
-      }
-      if (charSimilarity >= 0.82 && tokenSimilarity >= 0.45) {
-        return charSimilarity + tokenSimilarity;
-      }
-      return 0;
-    }
-
-    function fallbackCharRanges(oldChars, newChars) {
-      let prefix = 0;
-      while (prefix < oldChars.length &&
-             prefix < newChars.length &&
-             oldChars[prefix] === newChars[prefix]) {
-        prefix++;
-      }
-
-      let oldEnd = oldChars.length;
-      let newEnd = newChars.length;
-      while (oldEnd > prefix &&
-             newEnd > prefix &&
-             oldChars[oldEnd - 1] === newChars[newEnd - 1]) {
-        oldEnd--;
-        newEnd--;
-      }
-
-      return {
-        old: prefix < oldEnd ? [[prefix, oldEnd]] : [],
-        new: prefix < newEnd ? [[prefix, newEnd]] : [],
-      };
-    }
-
-    function diffCharRanges(oldText, newText) {
-      if (oldText === newText) return { old: [], new: [] };
-      const oldChars = Array.from(String(oldText || ''));
-      const newChars = Array.from(String(newText || ''));
-      const m = oldChars.length;
-      const n = newChars.length;
-      if (!m || !n) {
-        return {
-          old: m ? [[0, m]] : [],
-          new: n ? [[0, n]] : [],
-        };
-      }
-
-      // Char-level LCS is only for paired replacement lines. Keep a hard cap
-      // so an unusually long minified line cannot spend a frame building a
-      // huge table; the prefix/suffix fallback still gives useful GitHub-like
-      // changed-middle highlighting.
-      if (m * n > 40000) return fallbackCharRanges(oldChars, newChars);
-
-      const dp = Array.from({ length: m + 1 }, () => new Uint32Array(n + 1));
-      for (let i = m - 1; i >= 0; i--) {
-        for (let j = n - 1; j >= 0; j--) {
-          dp[i][j] = oldChars[i] === newChars[j]
-            ? dp[i + 1][j + 1] + 1
-            : Math.max(dp[i + 1][j], dp[i][j + 1]);
-        }
-      }
-
-      const oldChanged = [];
-      const newChanged = [];
-      let i = 0;
-      let j = 0;
-      while (i < m && j < n) {
-        if (oldChars[i] === newChars[j]) {
-          i++;
-          j++;
-        } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-          oldChanged.push(i++);
-        } else {
-          newChanged.push(j++);
-        }
-      }
-      while (i < m) oldChanged.push(i++);
-      while (j < n) newChanged.push(j++);
-
-      return {
-        old: rangesFromChangedIndexes(oldChanged),
-        new: rangesFromChangedIndexes(newChanged),
-      };
-    }
-
-    function annotateIncipitDiffRows(rows) {
-      let i = 0;
-      while (i < rows.length) {
-        if (rows[i].kind === 'ctx' || rows[i].kind === 'gap') {
-          i++;
-          continue;
-        }
-        const start = i;
-        while (i < rows.length && rows[i].kind !== 'ctx' && rows[i].kind !== 'gap') i++;
-        const run = rows.slice(start, i);
-        const dels = run.filter(row => row.kind === 'del');
-        const adds = run.filter(row => row.kind === 'add');
-        if (!dels.length || !adds.length) continue;
-
-        const m = dels.length;
-        const n = adds.length;
-        // Large rewrite hunks are precisely where intraline pairing becomes
-        // least trustworthy: there may be many unrelated deleted/added lines
-        // sharing common words or syntax. Keep those as whole-line shallow
-        // add/del rows instead of spending a frame building another cross
-        // product and risking noisy deep tints.
-        if (m * n > 2500) continue;
-
-        const scores = Array.from({ length: m }, () => new Array(n).fill(0));
-        for (let di = 0; di < m; di++) {
-          for (let aj = 0; aj < n; aj++) {
-            scores[di][aj] = intralinePairScore(dels[di].text, adds[aj].text);
-          }
-        }
-
-        const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-        for (let di = m - 1; di >= 0; di--) {
-          for (let aj = n - 1; aj >= 0; aj--) {
-            const pair = scores[di][aj] > 0 ? scores[di][aj] + dp[di + 1][aj + 1] : 0;
-            dp[di][aj] = Math.max(pair, dp[di + 1][aj], dp[di][aj + 1]);
-          }
-        }
-
-        let di = 0;
-        let aj = 0;
-        while (di < m && aj < n) {
-          const pair = scores[di][aj] > 0 ? scores[di][aj] + dp[di + 1][aj + 1] : -1;
-          if (pair >= dp[di + 1][aj] && pair >= dp[di][aj + 1] && scores[di][aj] > 0) {
-            const ranges = diffCharRanges(dels[di].text, adds[aj].text);
-            dels[di].charRanges = ranges.old;
-            adds[aj].charRanges = ranges.new;
-            di++;
-            aj++;
-          } else if (dp[di + 1][aj] >= dp[di][aj + 1]) {
-            di++;
-          } else {
-            aj++;
-          }
-        }
-      }
-      return rows;
-    }
-
-    function buildIncipitDiffRows(payload) {
-      if (payload && Array.isArray(payload.rows)) {
-        const rows = payload.rows.map(row => {
-          const kind = row && (row.kind === 'add' || row.kind === 'del' || row.kind === 'ctx' || row.kind === 'gap')
-            ? row.kind
-            : 'ctx';
-          return {
-            kind,
-            oldLine: diffPositiveLineNumber(row && row.oldLine) || null,
-            newLine: diffPositiveLineNumber(row && row.newLine) || null,
-            text: typeof (row && row.text) === 'string' ? row.text : '',
-            absoluteLineNumber: true,
-          };
-        });
-        return annotateIncipitDiffRows(rows);
-      }
-      const oldLines = writeDiffLines(payload.oldText);
-      const newLines = writeDiffLines(payload.newText);
-      if (!oldLines.length) {
-        return newLines.map((text, i) => ({
-          kind: 'add',
-          oldLine: null,
-          newLine: i + 1,
-          text,
-        }));
-      }
-
-      const m = oldLines.length;
-      const n = newLines.length;
-      // Keep the LCS exact for normal tool payloads. If the replacement is
-      // huge, degrade to "all old removed, all new added" rather than spending
-      // a frame building a massive DP table.
-      if (m * n > 500000) {
-        const rows = [];
-        for (let i = 0; i < m; i++) rows.push({ kind: 'del', oldLine: i + 1, newLine: null, text: oldLines[i] });
-        for (let j = 0; j < n; j++) rows.push({ kind: 'add', oldLine: null, newLine: j + 1, text: newLines[j] });
-        return annotateIncipitDiffRows(rows);
-      }
-
-      const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-      for (let i = m - 1; i >= 0; i--) {
-        for (let j = n - 1; j >= 0; j--) {
-          dp[i][j] = oldLines[i] === newLines[j]
-            ? dp[i + 1][j + 1] + 1
-            : Math.max(dp[i + 1][j], dp[i][j + 1]);
-        }
-      }
-
-      const rows = [];
-      let i = 0, j = 0;
-      while (i < m && j < n) {
-        if (oldLines[i] === newLines[j]) {
-          rows.push({ kind: 'ctx', oldLine: i + 1, newLine: j + 1, text: newLines[j] });
-          i++; j++;
-        } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-          rows.push({ kind: 'del', oldLine: i + 1, newLine: null, text: oldLines[i] });
-          i++;
-        } else {
-          rows.push({ kind: 'add', oldLine: null, newLine: j + 1, text: newLines[j] });
-          j++;
-        }
-      }
-      while (i < m) rows.push({ kind: 'del', oldLine: i + 1, newLine: null, text: oldLines[i++] });
-      while (j < n) rows.push({ kind: 'add', oldLine: null, newLine: j + 1, text: newLines[j++] });
-      return annotateIncipitDiffRows(rows);
-    }
-
-    function lineInfoBases(lineInfo) {
-      const oldBase = diffPositiveLineNumber(lineInfo && (lineInfo.oldStartLine || lineInfo.startLine)) || 1;
-      const newBase = diffPositiveLineNumber(lineInfo && (lineInfo.newStartLine || lineInfo.startLine)) || 1;
-      return { oldBase, newBase };
-    }
-
-    function fillWriteDiffBody(bodyEl, payload, languageClass, lineInfo) {
-      while (bodyEl.firstChild) bodyEl.removeChild(bodyEl.firstChild);
-
-      const rows = buildIncipitDiffRows(payload);
-      const { oldBase, newBase } = lineInfoBases(lineInfo);
-
-      for (const row of rows) {
-        const rowEl = document.createElement('div');
-        rowEl.setAttribute('data-incipit-diff-island-row', row.kind);
-        rowEl.setAttribute('data-incipit-write-diff-row', row.kind);
-
-        const n = document.createElement('span');
-        n.setAttribute('data-incipit-diff-island-number', '');
-        n.setAttribute('data-incipit-write-diff-number', '');
-        const rawLine = row.kind === 'del'
-          ? row.oldLine
-          : row.kind === 'add'
-            ? row.newLine
-            : (row.newLine || row.oldLine);
-        const base = row.kind === 'del' ? oldBase : newBase;
-        n.textContent = rawLine
-          ? String(row.absoluteLineNumber ? rawLine : base + rawLine - 1)
-          : '';
-
-        const pre = document.createElement('pre');
-        pre.setAttribute('data-incipit-diff-island-pre', '');
-        pre.setAttribute('data-incipit-write-diff-pre', '');
-        const code = document.createElement('code');
-        code.setAttribute('data-incipit-diff-island-code', '');
-        code.setAttribute('data-incipit-write-diff-code', '');
-        if (languageClass && row.kind !== 'gap') code.className = languageClass;
-        code.textContent = row.text;
-        code.__incipitDiffCharKind = row.kind;
-        code.__incipitDiffCharRanges = row.charRanges || [];
-        pre.appendChild(code);
-
-        rowEl.appendChild(n);
-        rowEl.appendChild(pre);
-        bodyEl.appendChild(rowEl);
-      }
-    }
-
-    function incipitCodeUnitOffsetForCodePoint(text, offset) {
-      if (offset <= 0) return 0;
-      let units = 0;
-      let points = 0;
-      for (const ch of String(text || '')) {
-        if (points >= offset) break;
-        units += ch.length;
-        points++;
-      }
-      return units;
-    }
-
-    function wrapIncipitDiffTextNodeRange(node, start, end, kind) {
-      if (!node || !node.parentNode || end <= start) return;
-      const text = node.nodeValue || '';
-      const startOffset = incipitCodeUnitOffsetForCodePoint(text, start);
-      const endOffset = incipitCodeUnitOffsetForCodePoint(text, end);
-      if (endOffset <= startOffset) return;
-
-      let target = node;
-      if (endOffset < text.length) target.splitText(endOffset);
-      if (startOffset > 0) target = target.splitText(startOffset);
-      if (!target.nodeValue) return;
-
-      const span = document.createElement('span');
-      span.setAttribute('data-incipit-diff-island-char', kind);
-      span.setAttribute('data-incipit-write-diff-char', kind);
-      target.parentNode.insertBefore(span, target);
-      span.appendChild(target);
-    }
-
-    function applyIncipitDiffCharRangesToCode(code) {
-      const ranges = Array.isArray(code && code.__incipitDiffCharRanges)
-        ? code.__incipitDiffCharRanges
-        : [];
-      const kind = code && code.__incipitDiffCharKind;
-      if (!code || code.dataset.incipitDiffCharsApplied === '1' || !ranges.length ||
-          (kind !== 'add' && kind !== 'del')) {
-        return;
-      }
-
-      const walker = document.createTreeWalker(code, NodeFilter.SHOW_TEXT, {
-        acceptNode(node) {
-          return node.parentElement && node.parentElement.closest('[data-incipit-diff-island-char]')
-            ? NodeFilter.FILTER_REJECT
-            : NodeFilter.FILTER_ACCEPT;
-        },
+    function openWriteDiffModal(payload, block, stats, languageClass, lineInfo, options = {}) {
+      return showDiffPayload(payload, {
+        ...options,
+        language: String(languageClass || 'language-plaintext').replace(/^language-/, ''),
       });
-      const nodes = [];
-      let pos = 0;
-      while (walker.nextNode()) {
-        const node = walker.currentNode;
-        const length = Array.from(node.nodeValue || '').length;
-        if (length > 0) {
-          nodes.push({ node, start: pos, end: pos + length });
-          pos += length;
-        }
-      }
-
-      for (let r = ranges.length - 1; r >= 0; r--) {
-        const range = ranges[r];
-        if (!range || range.length < 2) continue;
-        const start = range[0];
-        const end = range[1];
-        for (let i = nodes.length - 1; i >= 0; i--) {
-          const item = nodes[i];
-          const a = Math.max(start, item.start);
-          const b = Math.min(end, item.end);
-          if (b <= a) continue;
-          wrapIncipitDiffTextNodeRange(item.node, a - item.start, b - item.start, kind);
-        }
-      }
-      code.dataset.incipitDiffCharsApplied = '1';
-    }
-
-    function highlightDiffIsland(container) {
-      const typography = globalThis.__incipitTypography;
-      if (typography && typeof typography.highlightAllCode === 'function') {
-        typography.highlightAllCode(container);
-      }
-      container.querySelectorAll?.('[data-incipit-diff-island-code], [data-incipit-write-diff-code]')
-        .forEach(code => applyIncipitDiffCharRangesToCode(code));
-    }
-
-    function closeWriteDiffModal() {
-      if (!writeDiffModal) return;
-      const modal = writeDiffModal;
-      writeDiffModal = null;
-      document.removeEventListener('keydown', modal.onKeyDown, true);
-      if (modal.backdrop && modal.backdrop.parentElement) modal.backdrop.remove();
-    }
-
-    function openWriteDiffModal(payload, block, stats, languageClass, lineInfo) {
-      closeWriteDiffModal();
-      if (!document.body) return;
-
-      const backdrop = document.createElement('div');
-      backdrop.setAttribute('data-incipit-write-diff-modal', '');
-
-      const content = document.createElement('div');
-      content.setAttribute('data-incipit-write-diff-modal-content', '');
-      backdrop.appendChild(content);
-
-      const header = document.createElement('div');
-      header.setAttribute('data-incipit-write-diff-modal-header', '');
-
-      const title = document.createElement('span');
-      title.setAttribute('data-incipit-write-diff-modal-title', '');
-      const filePath = firstToolPathForDisplay(block);
-      title.textContent = basenameOfPath(filePath) || filePath || 'diff';
-      if (filePath) title.dataset.incipitToolFullpath = filePath;
-
-      const counts = document.createElement('span');
-      counts.setAttribute('data-incipit-diff-counts', '');
-      const added = document.createElement('span');
-      added.setAttribute('data-incipit-tool-added', '');
-      added.textContent = '+' + (stats ? stats.added : writeDiffLines(payload.newText).length);
-      const removed = document.createElement('span');
-      removed.setAttribute('data-incipit-tool-removed', '');
-      removed.textContent = '\u2212' + (stats ? stats.removed : 0);
-      counts.appendChild(added);
-      counts.appendChild(removed);
-
-      const close = document.createElement('button');
-      close.type = 'button';
-      close.setAttribute('data-incipit-write-diff-modal-close', '');
-      close.setAttribute('aria-label', 'Close diff');
-      close.textContent = '\u00d7';
-      close.addEventListener('click', evt => {
-        evt.preventDefault();
-        evt.stopPropagation();
-        closeWriteDiffModal();
-      });
-
-      header.appendChild(title);
-      header.appendChild(counts);
-      header.appendChild(close);
-      content.appendChild(header);
-
-      const scroll = document.createElement('div');
-      scroll.setAttribute('data-incipit-write-diff-modal-scroll', '');
-      const bodyEl = document.createElement('div');
-      bodyEl.setAttribute('data-incipit-diff-island-body', '');
-      bodyEl.setAttribute('data-incipit-write-diff-body', '');
-      fillWriteDiffBody(bodyEl, payload, languageClass, lineInfo);
-      scroll.appendChild(bodyEl);
-      content.appendChild(scroll);
-
-      backdrop.addEventListener('click', evt => {
-        if (evt.target !== backdrop) return;
-        evt.preventDefault();
-        closeWriteDiffModal();
-      });
-      const onKeyDown = evt => {
-        if (evt.key !== 'Escape') return;
-        evt.preventDefault();
-        closeWriteDiffModal();
-      };
-      document.addEventListener('keydown', onKeyDown, true);
-      writeDiffModal = { backdrop, onKeyDown };
-
-      document.body.appendChild(backdrop);
-      highlightDiffIsland(content);
     }
 
     registerChangeReviewWriteDiffRenderer(openWriteDiffModal, languageClassForFilePath);
-
-    function ensureWriteDiffPreviewControls(diff, payload, block, stats, languageClass, lineInfo) {
-      const clipped = buildIncipitDiffRows(payload).length > WRITE_DIFF_FULL_BELOW_LINES;
-      diff.style.setProperty(
-        '--incipit-write-diff-preview-max-height',
-        (WRITE_DIFF_PREVIEW_LINES * 1.55) + 'em'
-      );
-      if (clipped) diff.dataset.incipitWriteDiffClipped = '1';
-      else delete diff.dataset.incipitWriteDiffClipped;
-
-      let gradient = findDirectChildByAttr(diff, 'data-incipit-write-diff-gradient');
-      let button = findDirectChildByAttr(diff, 'data-incipit-write-diff-expand');
-
-      if (!clipped && gradient) {
-        gradient.remove();
-        gradient = null;
-      }
-
-      if (clipped && !gradient) {
-        gradient = document.createElement('div');
-        gradient.setAttribute('data-incipit-write-diff-gradient', '');
-        diff.appendChild(gradient);
-      }
-
-      if (!button) {
-        button = document.createElement('button');
-        button.type = 'button';
-        button.setAttribute('data-incipit-write-diff-expand', '');
-        button.addEventListener('click', evt => {
-          evt.preventDefault();
-          evt.stopPropagation();
-          const open = button.__incipitOpenWriteDiff;
-          if (typeof open === 'function') open();
-        });
-        diff.appendChild(button);
-      }
-      const buttonText = clipped ? 'Click to expand' : 'Open';
-      if (button.textContent !== buttonText) button.textContent = buttonText;
-      button.__incipitOpenWriteDiff = () => openWriteDiffModal(payload, block, stats, languageClass, lineInfo);
-    }
-
-    function ensureWriteDiffBody(el, body, block, stats) {
-      const payload = incipitDiffPayload(block);
-      if (!payload || !body || !body.querySelector) {
-        cleanupWriteDiffBody(el, body);
-        return;
-      }
-
-      if (el.dataset.incipitToolWriteDiff !== '1') el.dataset.incipitToolWriteDiff = '1';
-      if (el.dataset.incipitToolDiffIsland !== '1') el.dataset.incipitToolDiffIsland = '1';
-
-      let diff = body.querySelector(':scope > [data-incipit-write-diff]');
-      if (!diff) {
-        diff = document.createElement('div');
-        diff.setAttribute('data-incipit-diff-island', '');
-        diff.setAttribute('data-incipit-write-diff', '');
-        body.insertBefore(diff, body.firstChild);
-      }
-
-      updateDiffHeader(diff, block, stats || { added: 0, removed: 0 });
-      const lineInfoKey = ensureDiffLineInfo(diff, block);
-      const lineInfo = lineInfoKey ? diffLineInfoByKey.get(lineInfoKey) : null;
-
-      const languageClass = languageClassForFilePath(payload.filePath);
-      const lineSig = lineInfo
-        ? [lineInfo.status, lineInfo.oldStartLine || '', lineInfo.newStartLine || '', lineInfo.startLine || ''].join(':')
-        : '';
-      const sig = payload.filePath + '\n' + languageClass + '\n' + lineSig + '\n' +
-        payload.oldText + '\n---\n' + payload.newText;
-      if (diff.__incipitWriteDiffSig === sig) {
-        ensureWriteDiffPreviewControls(diff, payload, block, stats || { added: 0, removed: 0 }, languageClass, lineInfo);
-        highlightDiffIsland(diff);
-        return;
-      }
-      diff.__incipitWriteDiffSig = sig;
-
-      let bodyEl = findDirectChildByAttr(diff, 'data-incipit-write-diff-body');
-      if (!bodyEl) {
-        bodyEl = document.createElement('div');
-        bodyEl.setAttribute('data-incipit-diff-island-body', '');
-        bodyEl.setAttribute('data-incipit-write-diff-body', '');
-        diff.appendChild(bodyEl);
-      }
-      fillWriteDiffBody(bodyEl, payload, languageClass, lineInfo);
-      ensureWriteDiffPreviewControls(diff, payload, block, stats || { added: 0, removed: 0 }, languageClass, lineInfo);
-      highlightDiffIsland(diff);
-    }
 
     function normalizePathForMatch(value) {
       return String(value || '').replace(/\\/g, '/');
@@ -10779,6 +10274,28 @@ import {
       // when there's no body to fold. Identification is fiber-based, no
       // dependency on host class names.
       const grepData = readToolUseBlock(el);
+      const result = grepData && (['Edit', 'MultiEdit', 'Write'].includes(grepData.block.name) || !grepData.status || grepData.status === 'error')
+        ? readToolResult(grepData.block, el) : null;
+      const ownsFile = enhanceToolCard(el, grepData && { ...grepData, result }, {
+        summary,
+        onNativeChange: () => { pendingToolUseRoots.add(el); scheduleRescan(); },
+        language: grepData ? languageClassForFilePath(firstToolPathForDisplay(grepData.block)).replace(/^language-/, '') : 'plaintext',
+        openFile: filePath => {
+          const opener = readHostFileOpener(el);
+          if (!opener) throw new Error('The host file opener is unavailable.');
+          opener.open(filePath);
+        },
+        toggle: () => {
+          const targets = [el.querySelector('[class*="toolBody_"]'), el.querySelector('[data-incipit-tool-grep-expansion]')].filter(Boolean);
+          if (el.dataset.incipitToolCollapsed !== 'false') animateExpandTargets(el, targets);
+          else animateCollapseTargets(el, targets);
+        },
+      });
+      if (ownsFile) return;
+      if (grepData && ['Edit', 'MultiEdit', 'Write'].includes(grepData.block.name)) {
+        reportHealth('tool.diff.identity', 'degraded', { reason: 'The host did not expose a stable file-tool identity.' });
+        return;
+      }
       decorateToolFilePaths(el, summary, grepData);
       handleGrepAuxLayout(el, summary, grepData);
       // Grep is fully self-contained inside `handleGrepAuxLayout` — it
@@ -10815,10 +10332,7 @@ import {
       if (!titleWrap) return;
 
       const stats = computeStatsCached(data.block);
-      const useIncipitDiff = !!incipitDiffPayload(data.block);
-      if (useIncipitDiff) {
-        ensureWriteDiffBody(el, body, data.block, stats);
-      } else {
+      {
         cleanupWriteDiffBody(el, body);
         decorateInlineDiffHeader(body, data.block, stats);
         // Generic IN/OUT truncation for tools using the host's
@@ -10991,10 +10505,17 @@ import {
         if (!pendingToolUseRoots.size) return;
         const tools = Array.from(pendingToolUseRoots);
         pendingToolUseRoots.clear();
-        for (const t of tools) {
+        const deadline = performance.now() + 4;
+        for (let i = 0; i < tools.length; i++) {
+          const t = tools[i];
           if (!t.isConnected) continue;
           try { decorateToolUse(t); }
           catch (e) { try { console.warn('[incipit] decorateToolUse failed:', e); } catch (_) {} }
+          if (performance.now() >= deadline) {
+            for (let j = i + 1; j < tools.length; j++) pendingToolUseRoots.add(tools[j]);
+            scheduleRescan();
+            break;
+          }
         }
       });
     }
@@ -11037,18 +10558,25 @@ import {
     // `pendingToolUseRoots` Set keeps the scan amortised per RAF.
     const mo = new MutationObserver(muts => {
       let dirty = false;
+      let removed = false;
       for (let i = 0; i < muts.length; i++) {
         const m = muts[i];
-        if (m.type !== 'childList' || !m.addedNodes.length) continue;
+        if (m.removedNodes && m.removedNodes.length) removed = true;
         if (mutationInsideFocusedEditor(m)) continue;
-        const targetInsideToolUse = !!(
-          m.target &&
-          (m.target.nodeType === 1 ? m.target : m.target.parentElement)?.closest?.('[class*="toolUse_"]')
-        );
-        for (const node of m.addedNodes) {
-          if (enqueueAffectedToolUses(node, targetInsideToolUse)) dirty = true;
+        const target = m.target && (m.target.nodeType === 1 ? m.target : m.target.parentElement);
+        const ancestor = target?.closest?.('[class*="toolUse_"]');
+        if (ancestor) {
+          if (target.closest('[data-incipit-tool-heading], [data-incipit-file-tool-body], [data-incipit-tool-error]')) continue;
+          // A result can replace only a text node or a status class. Queue its
+          // native tool boundary even when no new element was mounted.
+          pendingToolUseRoots.add(ancestor);
+          dirty = true;
+        }
+        for (const node of m.addedNodes || []) {
+          if (enqueueAffectedToolUses(node, !!ancestor)) dirty = true;
         }
       }
+      if (removed) sweepToolCards();
       if (dirty && pendingToolUseRoots.size) scheduleRescan();
     });
     mo.observe(document.body, { childList: true, subtree: true });

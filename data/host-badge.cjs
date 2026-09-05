@@ -6,6 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { fileURLToPath } = require('url');
 const { StringDecoder } = require('string_decoder');
+const { createToolDiffSource } = require('./tool-diff-source.cjs');
 
 const GLOBAL_KEY = '__cceBadge';
 let vscodeApi = null;
@@ -32,7 +33,6 @@ const NOTES_MAX_COUNT = 200;
 const NOTES_MAX_TEXT_BYTES = 8000;
 const CHANGE_REVIEW_DIFF_MAX_BYTES = 768 * 1024;
 const CHANGE_REVIEW_DIFF_CONTEXT_LINES = 3;
-const CHANGE_REVIEW_DIFF_MAX_RENDER_ROWS = 360;
 const CHANGE_REVIEW_DIFF_EXACT_CELL_LIMIT = 600 * 1000;
 const CHANGE_REVIEW_LINE_STATS_VERSION = 2;
 // Change review is a per-turn runtime surface: after the first successful
@@ -76,6 +76,7 @@ function getOrCreateState() {
   const globalRef = globalThis;
   if (globalRef[GLOBAL_KEY]) return globalRef[GLOBAL_KEY];
   const state = createState();
+  state.toolDiffSource = createToolDiffSource({ resolveTargetFromIdentity });
   globalRef[GLOBAL_KEY] = state;
   return state;
 }
@@ -87,6 +88,7 @@ function createState() {
     patchedFs: false,
     ourFile: null,
     commIdentities: new Map(),
+    toolDiffSource: null,
     targetCache: new Map(),
     parsers: new Map(),
     timer: null,
@@ -119,7 +121,10 @@ function wrapShutdown(comm, state) {
       try { comm.__incipitMessageDisposable.dispose(); } catch (_) {}
       comm.__incipitMessageDisposable = null;
     }
-    if (state.comms.size === 0) stopPolling(state);
+    if (state.comms.size === 0) {
+      stopPolling(state);
+      if (state.toolDiffSource) state.toolDiffSource.dispose();
+    }
     return original.apply(this, arguments);
   };
 }
@@ -147,6 +152,10 @@ function handleWebviewMessage(comm, state, message) {
   }
   if (message.type === 'change_review_identity_update') {
     handleChangeReviewIdentityUpdate(comm, state, message);
+    return;
+  }
+  if (message.type === 'tool_diff_request') {
+    handleToolDiffRequest(comm, state, message);
     return;
   }
   if (message.type === 'diff_line_info_request') {
@@ -296,6 +305,27 @@ function handleChangeReviewIdentityUpdate(comm, state, message) {
   sendCurrentChangeReviewPayload(state, comm, target, sessionId);
 }
 
+async function handleToolDiffRequest(comm, state, message) {
+  const requestId = message && message.requestId;
+  const reply = payload => {
+    try { comm.webview.postMessage({ __incipit: true, type: 'tool_diff_response', requestId, payload }); } catch (_) {}
+  };
+  try {
+    if (!state.toolDiffSource) state.toolDiffSource = createToolDiffSource({ resolveTargetFromIdentity });
+    const identity = state.commIdentities.get(comm);
+    if (!identity || identity.sessionId !== message.sessionId || identity.cwd !== message.cwd) {
+      reply({ ok: false, state: 'error', code: 'identity-mismatch', error: 'Request identity does not match the active webview session.', sessionId: message && message.sessionId, toolUseId: message && message.toolUseId, filePath: message && message.filePath });
+      return;
+    }
+    const payload = await state.toolDiffSource.request(message || {});
+    const current = state.commIdentities.get(comm);
+    if (!state.comms.has(comm) || !current || current.sessionId !== message.sessionId || current.cwd !== message.cwd) return;
+    reply(payload);
+  } catch (error) {
+    state.log(`tool diff source error: ${error && error.message ? error.message : error}`);
+    reply({ ok: false, state: 'error', code: 'source-failure', error: String(error && error.message ? error.message : error), sessionId: message && message.sessionId, toolUseId: message && message.toolUseId, filePath: message && message.filePath });
+  }
+}
 function handleDiffLineInfoRequest(comm, state, message) {
   const requestId = message.requestId;
   const reply = payload => {
@@ -4534,16 +4564,7 @@ function compactChangeReviewDiffRows(rows) {
     for (let idx = range[0]; idx < range[1]; idx++) out.push(rows[idx]);
     lastEnd = range[1];
   }
-  return trimChangeReviewDiffRows(out);
-}
-
-function trimChangeReviewDiffRows(rows) {
-  if (!Array.isArray(rows) || rows.length <= CHANGE_REVIEW_DIFF_MAX_RENDER_ROWS) return rows;
-  const head = Math.floor((CHANGE_REVIEW_DIFF_MAX_RENDER_ROWS - 1) / 2);
-  const tail = CHANGE_REVIEW_DIFF_MAX_RENDER_ROWS - 1 - head;
-  return rows.slice(0, head)
-    .concat([changeReviewDiffGapRow()])
-    .concat(rows.slice(rows.length - tail));
+  return out;
 }
 
 function firstChangeReviewLine(rows, key) {

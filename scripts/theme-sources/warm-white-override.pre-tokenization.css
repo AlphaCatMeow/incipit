@@ -459,7 +459,8 @@
   background-color: rgba(0, 0, 0, 0.20) !important;
 }
 
-[data-incipit-write-diff-modal] {
+[data-incipit-write-diff-modal],
+[data-incipit-diff-dialog]::backdrop {
   background-color: rgba(0, 0, 0, 0.20);
 }
 
