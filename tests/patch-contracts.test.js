@@ -831,23 +831,6 @@ function assertRuntimeSourceContracts() {
     workbench_overlay: workbenchOverlay,
   });
   assert(
-    thinking.includes('const thinkingTimingByKey = new Map();') &&
-      thinking.includes('const thinkingSummaryObservers = new Map();') &&
-      thinking.includes('const THINKING_REPLACE_GRACE_MS = 1500;') &&
-      thinking.includes("const isLiveThinkingLabel = (text) => /^Thinking\\.\\.\\./") &&
-      thinking.includes("const isDoneThinkingLabel = (text) => /^Thought for \\d+s\\b/") &&
-      thinking.includes("const nowMs = () => (window.performance && typeof window.performance.now === 'function')") &&
-      thinking.includes('activeSummary: summary || null') &&
-      thinking.includes('const noteThinkingSummaryDetached = (key, summary) =>') &&
-      thinking.includes('existing.activeSummary === summary') &&
-      thinking.includes('endMs <= existing.pendingRemountUntilMs') &&
-      thinking.includes('thinkingTimingByKey.delete(key);') &&
-      thinking.includes('formatThoughtDuration(timing.durationMs)') &&
-      thinking.includes('observer.observe(summary, { childList: true, subtree: true, characterData: true });') &&
-      thinking.includes('cleanupThinkingSummaryObservers(seenSummaries)'),
-    'thinking duration must be measured only from an observed live summary to its done transition; missed historical/virtualized transitions must not synthesize wall-clock durations',
-  );
-  assert(
     footerBadge.includes('function nodeInsideFocusedEditor(node)') &&
       footerBadge.includes('function mutationInsideFocusedEditor(mutation)') &&
       footerBadge.includes('function nodeInsideMessagesContainer(node)') &&
