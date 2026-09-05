@@ -20,7 +20,7 @@ let vscodeApi = null;
 const POLL_INTERVAL_MS = 1500;
 const WRITE_POLL_DEBOUNCE_MS = 120;
 const JSONL_SUFFIX = '.jsonl';
-const USAGE_CACHE_SCHEMA_VERSION = 2;
+const USAGE_CACHE_SCHEMA_VERSION = 3;
 const USAGE_CACHE_INDEX_DIR = path.join(os.homedir(), '.incipit', 'claude-usage-cache-v2');
 const USAGE_CACHE_HASH_BYTES = 4096;
 const EDIT_ACTIVITY_SCHEMA_VERSION = 1;
@@ -2756,6 +2756,11 @@ function processLine(parser, line) {
   processEditActivityEntry(parser, entry);
 }
 
+function usageHasTokens(usage) {
+  return Number(usage.input_tokens) > 0 || Number(usage.cache_creation_input_tokens) > 0 ||
+    Number(usage.cache_read_input_tokens) > 0 || Number(usage.output_tokens) > 0;
+}
+
 function processUsageEntry(parser, entry) {
   if (parser.editOnly) return;
   if (!entry || entry.type !== 'assistant') return;
@@ -2764,6 +2769,9 @@ function processUsageEntry(parser, entry) {
   const usage = entry.message.usage;
   const ts = entry.timestamp || '';
   const old = parser.byRequest.get(requestId);
+  // Compaction can repeat an assistant with placeholder-zero usage. It must
+  // not erase the request's measured tokens (2026-09-05).
+  if (old && usageHasTokens(old.usage) && !usageHasTokens(usage)) return;
   if (old) {
     parser.sums.fresh -= old.usage.input_tokens || 0;
     parser.sums.cw    -= old.usage.cache_creation_input_tokens || 0;
