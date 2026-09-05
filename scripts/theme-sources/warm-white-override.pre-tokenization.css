@@ -1809,20 +1809,23 @@ details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-vi
 [data-incipit-tool-heading] {
   color: #8c897e;
 }
-[data-incipit-tool-toggle]:hover {
+[data-incipit-tool-row]:hover {
   color: #0d0d0d;
 }
 [data-incipit-tool-toggle]:focus-visible {
   color: #0d0d0d;
   outline: 1px solid rgba(191,93,58,0.6);
 }
+[data-incipit-tool-row]:focus-within { color: #0d0d0d; }
+button[data-incipit-tool-file-link] { background-image: radial-gradient(circle, rgba(191,93,58,0.85) 1px, transparent 1.6px); }
+button[data-incipit-tool-file-link]:focus-visible { outline: 1px solid rgba(191,93,58,0.6); }
 [data-incipit-tool-icon] {
   color: #8c897e;
 }
 [data-incipit-activity] [data-incipit-tool-icon] {
   background-color: #f8f8f6;
 }
-[data-incipit-tool-toggle]:hover [data-incipit-tool-icon] {
+[data-incipit-tool-row]:hover [data-incipit-tool-icon] {
   color: #0d0d0d;
 }
 [data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon]::before {

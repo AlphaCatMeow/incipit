@@ -18,7 +18,7 @@
  *   to the user, so it stays a normal message and ends the current run; the
  *   next tool or thinking row starts a new run.
  */
-import { subscribe } from './runtime_kernel.js';
+import { subscribe, getHostState } from './runtime_kernel.js';
 
 const TURN_SELECTOR = '[class*="turn_"]';
 const TOOL_SELECTOR = '[class*="toolUse_"]';
@@ -36,6 +36,11 @@ const FOLD_MS = 220;
 const dirtyTurns = new Set();
 const collapsedGroups = new Map();
 const animatingRows = new Map();
+const pendingRows = new Map();
+const enteringRows = new Map();
+const seenTools = new Set();
+let knownTurns = new WeakSet();
+let scheduleOwner = null;
 let frame = 0;
 let initialized = false;
 
@@ -58,18 +63,55 @@ function rememberCollapsed(key, collapsed) {
 export function initActivityGroups() {
   if (initialized) return;
   initialized = true;
-  subscribe('sessionChanged', () => collapsedGroups.clear());
+  subscribe('sessionChanged', () => { collapsedGroups.clear(); seenTools.clear(); knownTurns = new WeakSet(); clearEntrances(); });
   window.addEventListener('pagehide', () => {
     dirtyTurns.clear();
     if (frame) cancelAnimationFrame(frame);
     frame = 0;
     for (const timer of animatingRows.values()) clearTimeout(timer);
     animatingRows.clear();
+    clearEntrances();
   });
 }
 
 function schedule() {
+  if (scheduleOwner) { scheduleOwner(); return; }
   if (!frame) frame = requestAnimationFrame(flush);
+}
+
+/** Share the tool decorator's frame so headings and rail geometry paint together. */
+export function configureActivityScheduler(scheduleFrame) { scheduleOwner = scheduleFrame; }
+
+function clearEntrances() {
+  for (const [row, pending] of pendingRows) { clearTimeout(pending.timer); row.removeAttribute('data-incipit-activity-preparing'); }
+  for (const [row, timer] of enteringRows) { clearTimeout(timer); row.removeAttribute('data-incipit-activity-entering'); }
+  pendingRows.clear(); enteringRows.clear();
+}
+
+/** Stage a newly mounted live tool; only known turns are eligible for entry motion. */
+export function stageActivityTool(root) {
+  if (root.dataset.incipitToolHeadline === '1') return;
+  const row = root.closest('[class*="timelineMessage"]'), turn = root.closest(TURN_SELECTOR);
+  if (!row || !turn || pendingRows.has(row) || getHostState().busy !== true) return;
+  if (!root.querySelector('[class*="toolSummary"]') || root.querySelector('[role="dialog"], [class*="permission"]')) return;
+  row.setAttribute('data-incipit-activity-preparing', '1');
+  const timer = setTimeout(() => {
+    pendingRows.delete(row); row.removeAttribute('data-incipit-activity-preparing');
+  }, 500);
+  pendingRows.set(row, { timer, knownTurn: knownTurns.has(turn) });
+}
+
+function publishRow(row) {
+  const roots = row.querySelectorAll(TOOL_SELECTOR);
+  const staged = pendingRows.has(row);
+  if (staged && [...roots].some(root => root.dataset.incipitToolHeadline !== '1')) return;
+  const fresh = pendingRows.get(row)?.knownTurn && [...roots].some(root => root.dataset.incipitToolId && !seenTools.has(root.dataset.incipitToolId) && root.dataset.incipitToolState === 'running');
+  for (const root of roots) if (root.dataset.incipitToolId) seenTools.add(root.dataset.incipitToolId);
+  while (seenTools.size > 2000) seenTools.delete(seenTools.values().next().value);
+  if (staged) { clearTimeout(pendingRows.get(row).timer); pendingRows.delete(row); row.removeAttribute('data-incipit-activity-preparing'); }
+  if (!fresh || row.hasAttribute('data-incipit-activity-collapsed') || enteringRows.has(row)) return;
+  row.setAttribute('data-incipit-activity-entering', '1');
+  enteringRows.set(row, setTimeout(() => { enteringRows.delete(row); row.removeAttribute('data-incipit-activity-entering'); }, FOLD_MS + 60));
 }
 
 /** Queue the turn that contains `node` for re-layout on the next frame. */
@@ -88,11 +130,10 @@ export function scanActivityTurns(root) {
   if (dirtyTurns.size) schedule();
 }
 
-function flush() {
+export function flushActivityGroups(deadline = performance.now() + 4) {
   frame = 0;
   const turns = Array.from(dirtyTurns);
   dirtyTurns.clear();
-  const deadline = performance.now() + 4;
   for (let i = 0; i < turns.length; i++) {
     if (turns[i].isConnected) {
       try { layoutTurn(turns[i]); }
@@ -105,6 +146,8 @@ function flush() {
     }
   }
 }
+
+function flush() { flushActivityGroups(); }
 
 function classifyRow(row) {
   const className = typeof row.className === 'string' ? row.className : '';
@@ -172,6 +215,7 @@ function layoutTurn(turn, animate = false) {
     clearRow(row);
   }
   for (const group of groups) applyGroup(group, animate);
+  knownTurns.add(turn);
 }
 
 function isLiveThinking(row) {
@@ -264,5 +308,6 @@ function applyGroup(members, animate) {
     if (index === 0 && showHeader) mountHeader(row, stats.key, label, collapsed);
     else removeHeader(row);
     setCollapsed(row, collapsed, animate);
+    publishRow(row);
   });
 }

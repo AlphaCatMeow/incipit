@@ -2,8 +2,8 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "110cc881b0774d2be26097b139aa7859a9cae6453090c0ef9a1de47af9c68b1c",
-    "warmWhiteSha256": "c07da96a1a35485b1414615aea252808c5a589b8a513ffcd5b18c05e0d6e59c7"
+    "themeSha256": "3763d23289ca56c9c47b629df7083c6d4e87ea1ad7f9f97b75c982317cbfa0db",
+    "warmWhiteSha256": "b9034bddcd247d40c78427f559e0eb80ef26acc3817ee6cfc791fc705c279fa9"
   },
   "themeSequence": [
     "\u0001@font-face#1\u0001font-family\u0001",
@@ -182,7 +182,8 @@
     "\u0001[data-incipit-message][data-incipit-activity]\u0001padding\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]>*\u0001min-width\u0001",
     "\u0001[data-incipit-message][data-incipit-activity]>*\u0001min-height\u0001",
-    "\u0001[data-incipit-message][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"]\u0001padding-top\u0001!",
+    "\u0001[data-incipit-message][data-incipit-activity-edge=\"only\"]\u0001padding-top\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001content\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001display\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001position\u0001!",
@@ -196,12 +197,14 @@
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001background-color\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001pointer-events\u0001",
     "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"]::after\u0001top\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"][data-incipit-activity-has-header=\"1\"]::after\u0001top\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity-edge=\"last\"]::after\u0001bottom\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity-edge=\"only\"]::after\u0001display\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity-collapsed]::after\u0001display\u0001!",
-    "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] details[data-incipit-thinking]::before\u0001top\u0001",
-    "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] [data-incipit-thinking-static]::before\u0001top\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) details[data-incipit-thinking]::before\u0001top\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) [data-incipit-thinking-static]::before\u0001top\u0001",
+    "\u0001[data-incipit-activity-header]\u0001position\u0001",
+    "\u0001[data-incipit-activity-header]\u0001top\u0001",
+    "\u0001[data-incipit-activity-header]\u0001left\u0001",
     "\u0001[data-incipit-activity-header]\u0001display\u0001",
     "\u0001[data-incipit-activity-header]\u0001align-items\u0001",
     "\u0001[data-incipit-activity-header]\u0001gap\u0001",
@@ -249,7 +252,13 @@
     "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001padding-top\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001padding-bottom\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001overflow\u0001",
-    "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]\u0001padding-top\u0001!",
+    "\u0001[data-incipit-activity-preparing]\u0001display\u0001!",
+    "\u0001[data-incipit-activity-entering]\u0001animation\u0001",
+    "@keyframes incipit-activity-enter\u0001from\u0001opacity\u0001",
+    "@keyframes incipit-activity-enter\u0001from\u0001transform\u0001",
+    "@keyframes incipit-activity-enter\u0001to\u0001opacity\u0001",
+    "@keyframes incipit-activity-enter\u0001to\u0001transform\u0001",
     "\u0001[data-incipit-message][data-incipit-activity-collapsed]>:not([data-incipit-activity-header])\u0001visibility\u0001",
     "\u0001[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header=\"1\"])>:nth-child(n+2)\u0001display\u0001",
     "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]>:nth-child(n+3)\u0001display\u0001",
@@ -562,6 +571,14 @@
     "\u0001[data-incipit-markdown-root] a:focus-visible\u0001outline-offset\u0001",
     "\u0001[data-incipit-message] a:focus-visible\u0001border-radius\u0001",
     "\u0001[data-incipit-markdown-root] a:focus-visible\u0001border-radius\u0001",
+    "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001background-image\u0001!",
+    "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001background-image\u0001!",
+    "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001background-color\u0001!",
+    "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001background-color\u0001!",
+    "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001cursor\u0001",
+    "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001cursor\u0001",
+    "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001outline\u0001",
+    "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001outline\u0001",
     "\u0001[data-incipit-message] h1\u0001font-family\u0001!",
     "\u0001[data-incipit-message] h1\u0001font-size\u0001",
     "\u0001[data-incipit-message] h1\u0001font-weight\u0001",
@@ -1095,38 +1112,38 @@
     "\u0001[data-incipit-path-context-menu-item]:focus\u0001background\u0001",
     "\u0001[data-incipit-path-context-menu-item]:hover\u0001outline\u0001",
     "\u0001[data-incipit-path-context-menu-item]:focus\u0001outline\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-surface\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-text\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-muted\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-border\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-divider\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-shadow\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-bg\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-text\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-border\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-gradient-start\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-overlay-hover\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-bg\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-bg-hover\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-text\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-border\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-fg\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-fg\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-line\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-line\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-char\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-char\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-border\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-border\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-bar\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-bar\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-overview\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-size\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-x\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-y\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-hover\u0001",
-    "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-active\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-surface\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-text\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-muted\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-border\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-divider\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-shadow\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-bg\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-text\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-border\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-gradient-start\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-overlay-hover\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-bg\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-bg-hover\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-text\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-border\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-fg\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-fg\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-line\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-line\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-char\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-char\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-border\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-border\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-bar\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-bar\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-overview\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-size\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-x\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-y\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-hover\u0001",
+    "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-active\u0001",
     "\u0001[data-incipit-tool-use] [data-incipit-tool-body]:has([class*=\"diffEditorWrapper\"])\u0001border\u0001!",
     "\u0001[data-incipit-tool-use] [data-incipit-tool-body]:has([data-incipit-write-diff])\u0001border\u0001!",
     "\u0001[data-incipit-tool-use] [data-incipit-tool-body]:has([class*=\"diffEditorWrapper\"])\u0001background\u0001!",
@@ -4673,24 +4690,57 @@
     "\u0001[data-incipit-tool-heading]\u0001font-family\u0001!",
     "\u0001[data-incipit-tool-heading]\u0001font-size\u0001!",
     "\u0001[data-incipit-tool-heading]\u0001line-height\u0001",
+    "\u0001[data-incipit-tool-row]\u0001display\u0001",
+    "\u0001[data-incipit-tool-row]\u0001align-items\u0001",
+    "\u0001[data-incipit-tool-row]\u0001gap\u0001",
+    "\u0001[data-incipit-tool-row]\u0001box-sizing\u0001",
+    "\u0001[data-incipit-tool-row]\u0001max-width\u0001",
+    "\u0001[data-incipit-tool-row]\u0001min-width\u0001",
+    "\u0001[data-incipit-tool-row]\u0001margin\u0001",
+    "\u0001[data-incipit-tool-row]\u0001padding\u0001",
+    "\u0001[data-incipit-tool-row]\u0001border\u0001",
+    "\u0001[data-incipit-tool-row]\u0001background\u0001",
+    "\u0001[data-incipit-tool-row]\u0001color\u0001",
+    "\u0001[data-incipit-tool-row]\u0001font\u0001",
+    "\u0001[data-incipit-tool-row]\u0001text-align\u0001",
+    "\u0001[data-incipit-tool-row]\u0001vertical-align\u0001",
+    "\u0001[data-incipit-tool-row]\u0001cursor\u0001",
+    "\u0001[data-incipit-tool-row]\u0001transition\u0001",
+    "\u0001[data-incipit-tool-row]:hover\u0001color\u0001",
+    "\u0001[data-incipit-tool-row]:focus-within\u0001color\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001display\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001align-items\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001gap\u0001",
-    "\u0001[data-incipit-tool-toggle]\u0001box-sizing\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001flex\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001max-width\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001min-width\u0001",
-    "\u0001[data-incipit-tool-toggle]\u0001margin\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001padding\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001border\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001background\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001color\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001font\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001text-align\u0001",
-    "\u0001[data-incipit-tool-toggle]\u0001vertical-align\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001cursor\u0001",
-    "\u0001[data-incipit-tool-toggle]\u0001transition\u0001",
-    "\u0001[data-incipit-tool-toggle]:hover\u0001color\u0001",
-    "\u0001[data-incipit-tool-toggle]:focus-visible\u0001color\u0001",
+    "\u0001[data-incipit-tool-toggle]:disabled\u0001opacity\u0001",
+    "\u0001[data-incipit-tool-toggle]:disabled\u0001cursor\u0001",
+    "\u0001[data-incipit-tool-toggle] [data-incipit-tool-label]\u0001flex-shrink\u0001",
+    "\u0001[data-incipit-tool-file-link]\u0001display\u0001",
+    "\u0001[data-incipit-tool-file-link]\u0001min-width\u0001",
+    "\u0001[data-incipit-tool-file-link]\u0001flex\u0001",
+    "\u0001[data-incipit-tool-file-link]\u0001padding\u0001",
+    "\u0001[data-incipit-tool-file-link]\u0001margin\u0001",
+    "\u0001[data-incipit-tool-file-link]\u0001border\u0001",
+    "\u0001[data-incipit-tool-file-link]\u0001background\u0001",
+    "\u0001[data-incipit-tool-file-link]\u0001color\u0001",
+    "\u0001[data-incipit-tool-file-link]\u0001font\u0001",
+    "\u0001[data-incipit-tool-file-link]\u0001text-align\u0001",
+    "\u0001button[data-incipit-tool-file-link]\u0001cursor\u0001",
+    "\u0001button[data-incipit-tool-file-link]\u0001background-image\u0001",
+    "\u0001button[data-incipit-tool-file-link]\u0001background-size\u0001",
+    "\u0001button[data-incipit-tool-file-link]\u0001background-repeat\u0001",
+    "\u0001button[data-incipit-tool-file-link]\u0001background-position\u0001",
+    "\u0001button[data-incipit-tool-file-link]:focus-visible\u0001outline\u0001",
+    "\u0001button[data-incipit-tool-file-link]:focus-visible\u0001outline-offset\u0001",
     "\u0001[data-incipit-tool-toggle]:focus-visible\u0001outline\u0001",
     "\u0001[data-incipit-tool-toggle]:focus-visible\u0001outline-offset\u0001",
     "\u0001[data-incipit-tool-use][data-incipit-tool-expandable=\"false\"] [data-incipit-tool-toggle]\u0001cursor\u0001",
@@ -4712,7 +4762,7 @@
     "\u0001[data-incipit-tool-icon] svg\u0001display\u0001",
     "\u0001[data-incipit-tool-icon] svg\u0001width\u0001",
     "\u0001[data-incipit-tool-icon] svg\u0001height\u0001",
-    "\u0001[data-incipit-tool-toggle]:hover [data-incipit-tool-icon]\u0001color\u0001",
+    "\u0001[data-incipit-tool-row]:hover [data-incipit-tool-icon]\u0001color\u0001",
     "\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon] svg\u0001display\u0001",
     "\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001content\u0001",
     "\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001width\u0001",
@@ -4741,9 +4791,9 @@
     "\u0001[data-incipit-tool-subject=\"text\"]>[data-incipit-tool-filename-stem]\u0001display\u0001",
     "\u0001[data-incipit-tool-subject=\"text\"]>[data-incipit-tool-filename-stem]\u0001overflow\u0001",
     "\u0001[data-incipit-tool-subject=\"text\"]>[data-incipit-tool-filename-stem]\u0001white-space\u0001",
-    "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001white-space\u0001",
-    "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow\u0001",
-    "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow-wrap\u0001",
+    "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001white-space\u0001",
+    "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow\u0001",
+    "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow-wrap\u0001",
     "\u0001[data-incipit-tool-filename-stem]\u0001min-width\u0001",
     "\u0001[data-incipit-tool-filename-stem]\u0001overflow\u0001",
     "\u0001[data-incipit-tool-filename-stem]\u0001text-overflow\u0001",
@@ -4770,9 +4820,9 @@
     "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition\u0001",
     "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001-webkit-mask-size\u0001",
     "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001mask-size\u0001",
-    "\u0001[data-incipit-tool-toggle]:hover [data-incipit-tool-chevron]\u0001opacity\u0001",
-    "\u0001[data-incipit-tool-toggle]:focus-visible [data-incipit-tool-chevron]\u0001opacity\u0001",
-    "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-chevron]\u0001opacity\u0001",
+    "\u0001[data-incipit-tool-row]:hover [data-incipit-tool-chevron]\u0001opacity\u0001",
+    "\u0001[data-incipit-tool-row]:focus-within [data-incipit-tool-chevron]\u0001opacity\u0001",
+    "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-chevron]\u0001opacity\u0001",
     "\u0001[data-incipit-tool-use][data-incipit-tool-expandable=\"false\"] [data-incipit-tool-chevron]\u0001display\u0001",
     "@media (hover: none)\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001opacity\u0001",
     "\u0001[data-incipit-tool-counts][hidden]\u0001display\u0001!",
@@ -5960,12 +6010,15 @@
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001color\u0001!",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001outline\u0001",
     "\u0001[data-incipit-tool-heading]\u0001color\u0001",
-    "\u0001[data-incipit-tool-toggle]:hover\u0001color\u0001",
+    "\u0001[data-incipit-tool-row]:hover\u0001color\u0001",
     "\u0001[data-incipit-tool-toggle]:focus-visible\u0001color\u0001",
     "\u0001[data-incipit-tool-toggle]:focus-visible\u0001outline\u0001",
+    "\u0001[data-incipit-tool-row]:focus-within\u0001color\u0001",
+    "\u0001button[data-incipit-tool-file-link]\u0001background-image\u0001",
+    "\u0001button[data-incipit-tool-file-link]:focus-visible\u0001outline\u0001",
     "\u0001[data-incipit-tool-icon]\u0001color\u0001",
     "\u0001[data-incipit-activity] [data-incipit-tool-icon]\u0001background-color\u0001",
-    "\u0001[data-incipit-tool-toggle]:hover [data-incipit-tool-icon]\u0001color\u0001",
+    "\u0001[data-incipit-tool-row]:hover [data-incipit-tool-icon]\u0001color\u0001",
     "\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001background-color\u0001",
     "\u0001[data-incipit-diff-viewport]:focus-visible\u0001outline\u0001"
   ],
@@ -7261,162 +7314,162 @@
       "resolved": "21"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-bar",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-bar",
       "important": false,
       "resolved": "#3fb950"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-border",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-border",
       "important": false,
       "resolved": "rgba(124,178,124,0.35)"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-char",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-char",
       "important": false,
       "resolved": "#2ea04366"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-fg",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-fg",
       "important": false,
       "resolved": "#7cb27c"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-line",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-line",
       "important": false,
       "resolved": "#23863633"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-border",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-border",
       "important": false,
       "resolved": "rgba(248,246,240,0.12)"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-bg",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-bg",
       "important": false,
       "resolved": "#2c2c2a"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-bg-hover",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-bg-hover",
       "important": false,
       "resolved": "#333330"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-border",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-border",
       "important": false,
       "resolved": "rgba(248,246,240,0.14)"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-text",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-text",
       "important": false,
       "resolved": "#f8f8f6"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-bar",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-bar",
       "important": false,
       "resolved": "#f85149"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-border",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-border",
       "important": false,
       "resolved": "rgba(201,106,106,0.35)"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-char",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-char",
       "important": false,
       "resolved": "#f8514966"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-fg",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-fg",
       "important": false,
       "resolved": "#c96a6a"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-line",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-line",
       "important": false,
       "resolved": "#da363333"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-divider",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-divider",
       "important": false,
       "resolved": "rgba(248,246,240,0.10)"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-gradient-start",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-gradient-start",
       "important": false,
       "resolved": "rgba(31,31,30,0)"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-bg",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-bg",
       "important": false,
       "resolved": "#2a2a28"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-border",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-border",
       "important": false,
       "resolved": "rgba(248,246,240,0.08)"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-text",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-text",
       "important": false,
       "resolved": "#d8d6ce"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-muted",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-muted",
       "important": false,
       "resolved": "#9c9c9a"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-overlay-hover",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-overlay-hover",
       "important": false,
       "resolved": "rgba(248,246,240,0.045)"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-overview",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-overview",
       "important": false,
       "resolved": "rgba(248,246,240,0.04)"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-size",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-size",
       "important": false,
       "resolved": "9px"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb",
       "important": false,
       "resolved": "#3c3c3c"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-active",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-active",
       "important": false,
       "resolved": "#6a6a6a"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-hover",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-hover",
       "important": false,
       "resolved": "#5a5a5a"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-x",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-x",
       "important": false,
       "resolved": "#2a2a28"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-y",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-y",
       "important": false,
       "resolved": "#1f1f1e"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-shadow",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-shadow",
       "important": false,
       "resolved": "rgba(0,0,0,0.28)"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-surface",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-surface",
       "important": false,
       "resolved": "#1f1f1e"
     },
     {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-text",
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-text",
       "important": false,
       "resolved": "#f0eee8"
     },
@@ -15236,6 +15289,11 @@
       "resolved": "4000"
     },
     {
+      "key": "\u0001[data-incipit-activity-entering]\u0001animation",
+      "important": false,
+      "resolved": "incipit-activity-enter 220ms cubic-bezier(0.2,0.7,0.2,1) both"
+    },
+    {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001-webkit-mask-image",
       "important": false,
       "resolved": "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E\")"
@@ -15421,6 +15479,11 @@
       "resolved": "28px"
     },
     {
+      "key": "\u0001[data-incipit-activity-header]\u0001left",
+      "important": false,
+      "resolved": "0"
+    },
+    {
       "key": "\u0001[data-incipit-activity-header]\u0001line-height",
       "important": false,
       "resolved": "20px"
@@ -15428,12 +15491,12 @@
     {
       "key": "\u0001[data-incipit-activity-header]\u0001margin",
       "important": false,
-      "resolved": "0 0 4px calc(-1 * 30px)"
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-activity-header]\u0001max-width",
       "important": false,
-      "resolved": "calc(100% + 30px)"
+      "resolved": "100%"
     },
     {
       "key": "\u0001[data-incipit-activity-header]\u0001padding",
@@ -15441,14 +15504,29 @@
       "resolved": "0"
     },
     {
+      "key": "\u0001[data-incipit-activity-header]\u0001position",
+      "important": false,
+      "resolved": "absolute"
+    },
+    {
       "key": "\u0001[data-incipit-activity-header]\u0001text-align",
       "important": false,
       "resolved": "start"
     },
     {
+      "key": "\u0001[data-incipit-activity-header]\u0001top",
+      "important": false,
+      "resolved": "4px"
+    },
+    {
       "key": "\u0001[data-incipit-activity-header]\u0001transition",
       "important": false,
       "resolved": "color 180ms ease"
+    },
+    {
+      "key": "\u0001[data-incipit-activity-preparing]\u0001display",
+      "important": true,
+      "resolved": "none"
     },
     {
       "key": "\u0001[data-incipit-activity] [data-incipit-tool-icon]\u0001background-color",
@@ -15756,12 +15834,12 @@
       "resolved": "relative"
     },
     {
-      "key": "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] [data-incipit-thinking-static]::before\u0001top",
+      "key": "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) [data-incipit-thinking-static]::before\u0001top",
       "important": false,
       "resolved": "36px"
     },
     {
-      "key": "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] details[data-incipit-thinking]::before\u0001top",
+      "key": "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) details[data-incipit-thinking]::before\u0001top",
       "important": false,
       "resolved": "36px"
     },
@@ -21516,6 +21594,26 @@
       "resolved": "background-color 0.15s ease"
     },
     {
+      "key": "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001background-color",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001background-image",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001cursor",
+      "important": false,
+      "resolved": "text"
+    },
+    {
+      "key": "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001outline",
+      "important": false,
+      "resolved": "none"
+    },
+    {
       "key": "\u0001[data-incipit-markdown-root] a\u0001background-color",
       "important": false,
       "resolved": "transparent"
@@ -22691,6 +22789,26 @@
       "resolved": "background-color 0.15s ease"
     },
     {
+      "key": "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001background-color",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001background-image",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001cursor",
+      "important": false,
+      "resolved": "text"
+    },
+    {
+      "key": "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001outline",
+      "important": false,
+      "resolved": "none"
+    },
+    {
       "key": "\u0001[data-incipit-message] a\u0001background-color",
       "important": false,
       "resolved": "transparent"
@@ -23531,9 +23649,9 @@
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows",
-      "important": false,
-      "resolved": "auto 0fr"
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]\u0001padding-top",
+      "important": true,
+      "resolved": "32px"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]>:not([data-incipit-activity-header])\u0001visibility",
@@ -23563,12 +23681,12 @@
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"]::after\u0001top",
       "important": true,
-      "resolved": "18px"
+      "resolved": "calc(18px + 32px)"
     },
     {
-      "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"][data-incipit-activity-has-header=\"1\"]::after\u0001top",
+      "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"]\u0001padding-top",
       "important": true,
-      "resolved": "calc(18px + 32px)"
+      "resolved": "36px"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"last\"]::after\u0001bottom",
@@ -23581,9 +23699,9 @@
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows",
-      "important": false,
-      "resolved": "auto 1fr"
+      "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"only\"]\u0001padding-top",
+      "important": true,
+      "resolved": "36px"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity]::after\u0001background-color",
@@ -26076,6 +26194,56 @@
       "resolved": "pre-wrap"
     },
     {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001display",
+      "important": false,
+      "resolved": "inline-flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001flex",
+      "important": false,
+      "resolved": "0 1 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001margin",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001padding",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001text-align",
+      "important": false,
+      "resolved": "start"
+    },
+    {
       "key": "\u0001[data-incipit-tool-filename-extension]\u0001flex",
       "important": false,
       "resolved": "0 0 auto"
@@ -26891,6 +27059,131 @@
       "resolved": "#c96a6a"
     },
     {
+      "key": "\u0001[data-incipit-tool-row]:focus-within [data-incipit-tool-chevron]\u0001opacity",
+      "important": false,
+      "resolved": "0.9"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]:focus-within\u0001color",
+      "important": false,
+      "resolved": "#f8f8f6"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]:hover [data-incipit-tool-chevron]\u0001opacity",
+      "important": false,
+      "resolved": "0.9"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]:hover [data-incipit-tool-icon]\u0001color",
+      "important": false,
+      "resolved": "#f8f8f6"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]:hover\u0001color",
+      "important": false,
+      "resolved": "#f8f8f6"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-chevron]\u0001opacity",
+      "important": false,
+      "resolved": "0.9"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow",
+      "important": false,
+      "resolved": "visible"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001white-space",
+      "important": false,
+      "resolved": "normal"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001align-items",
+      "important": false,
+      "resolved": "flex-start"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001box-sizing",
+      "important": false,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001display",
+      "important": false,
+      "resolved": "inline-flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001gap",
+      "important": false,
+      "resolved": "0 6px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001margin",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001max-width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001padding",
+      "important": false,
+      "resolved": "4px 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001text-align",
+      "important": false,
+      "resolved": "start"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001vertical-align",
+      "important": false,
+      "resolved": "top"
+    },
+    {
       "key": "\u0001[data-incipit-tool-state][hidden]\u0001display",
       "important": true,
       "resolved": "none"
@@ -27036,14 +27329,19 @@
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
     },
     {
-      "key": "\u0001[data-incipit-tool-toggle]:focus-visible [data-incipit-tool-chevron]\u0001opacity",
+      "key": "\u0001[data-incipit-tool-toggle] [data-incipit-tool-label]\u0001flex-shrink",
       "important": false,
-      "resolved": "0.9"
+      "resolved": "1"
     },
     {
-      "key": "\u0001[data-incipit-tool-toggle]:focus-visible\u0001color",
+      "key": "\u0001[data-incipit-tool-toggle]:disabled\u0001cursor",
       "important": false,
-      "resolved": "#f8f8f6"
+      "resolved": "default"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]:disabled\u0001opacity",
+      "important": false,
+      "resolved": "1"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]:focus-visible\u0001outline",
@@ -27054,41 +27352,6 @@
       "key": "\u0001[data-incipit-tool-toggle]:focus-visible\u0001outline-offset",
       "important": false,
       "resolved": "2px"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]:hover [data-incipit-tool-chevron]\u0001opacity",
-      "important": false,
-      "resolved": "0.9"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]:hover [data-incipit-tool-icon]\u0001color",
-      "important": false,
-      "resolved": "#f8f8f6"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]:hover\u0001color",
-      "important": false,
-      "resolved": "#f8f8f6"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-chevron]\u0001opacity",
-      "important": false,
-      "resolved": "0.9"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow",
-      "important": false,
-      "resolved": "visible"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow-wrap",
-      "important": false,
-      "resolved": "anywhere"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001white-space",
-      "important": false,
-      "resolved": "normal"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001align-items",
@@ -27106,11 +27369,6 @@
       "resolved": "0"
     },
     {
-      "key": "\u0001[data-incipit-tool-toggle]\u0001box-sizing",
-      "important": false,
-      "resolved": "border-box"
-    },
-    {
       "key": "\u0001[data-incipit-tool-toggle]\u0001color",
       "important": false,
       "resolved": "inherit"
@@ -27118,12 +27376,17 @@
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001cursor",
       "important": false,
-      "resolved": "pointer"
+      "resolved": "inherit"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001display",
       "important": false,
       "resolved": "inline-flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001flex",
+      "important": false,
+      "resolved": "0 0 auto"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001font",
@@ -27133,17 +27396,12 @@
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001gap",
       "important": false,
-      "resolved": "0 6px"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]\u0001margin",
-      "important": false,
-      "resolved": "0"
+      "resolved": "6px"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001max-width",
       "important": false,
-      "resolved": "100%"
+      "resolved": "45%"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001min-width",
@@ -27153,22 +27411,12 @@
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001padding",
       "important": false,
-      "resolved": "4px 0"
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001text-align",
       "important": false,
       "resolved": "start"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]\u0001transition",
-      "important": false,
-      "resolved": "color 180ms ease"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]\u0001vertical-align",
-      "important": false,
-      "resolved": "top"
     },
     {
       "key": "\u0001[data-incipit-tool-use] [class*=\"toolBody_\"]:has([class*=\"toolBodyGrid\"])\u0001background",
@@ -30106,6 +30354,26 @@
       "resolved": "0.2"
     },
     {
+      "key": "@keyframes incipit-activity-enter\u0001from\u0001opacity",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "@keyframes incipit-activity-enter\u0001from\u0001transform",
+      "important": false,
+      "resolved": "translateY(3px)"
+    },
+    {
+      "key": "@keyframes incipit-activity-enter\u0001to\u0001opacity",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "@keyframes incipit-activity-enter\u0001to\u0001transform",
+      "important": false,
+      "resolved": "none"
+    },
+    {
       "key": "@keyframes incipit-fold\u0001to\u0001grid-template-rows",
       "important": false,
       "resolved": "0fr"
@@ -30179,6 +30447,41 @@
       "key": "\u0001*:not([class*=\"inputContainer_\"]):not([class*=\"inputContainer_\"] *):not([contenteditable]):not([contenteditable] *)\u0001scrollbar-width",
       "important": true,
       "resolved": "auto"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]:focus-visible\u0001outline",
+      "important": false,
+      "resolved": "1px solid rgba(217,119,87,0.6)"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]:focus-visible\u0001outline-offset",
+      "important": false,
+      "resolved": "2px"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]\u0001background-image",
+      "important": false,
+      "resolved": "radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px)"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]\u0001background-position",
+      "important": false,
+      "resolved": "0 100%"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]\u0001background-repeat",
+      "important": false,
+      "resolved": "repeat-x"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]\u0001background-size",
+      "important": false,
+      "resolved": "7px 2px"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
     },
     {
       "key": "\u0001details[data-incipit-thinking]:not([open])>summary[data-incipit-thinking-summary]::after\u0001transform",
@@ -32153,6 +32456,36 @@
       "resolved": "rgba(60,55,40,0.045)"
     },
     {
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-size",
+      "important": false,
+      "resolved": "9px"
+    },
+    {
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb",
+      "important": false,
+      "resolved": "#b0b0ae"
+    },
+    {
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-active",
+      "important": false,
+      "resolved": "#6f6f6d"
+    },
+    {
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-hover",
+      "important": false,
+      "resolved": "#8a8a88"
+    },
+    {
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-x",
+      "important": false,
+      "resolved": "#e6e4de"
+    },
+    {
+      "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-y",
+      "important": false,
+      "resolved": "#fafaf5"
+    },
+    {
       "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-shadow",
       "important": false,
       "resolved": "rgba(60,55,40,0.10)"
@@ -32166,166 +32499,6 @@
       "key": "\u0001:where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-text",
       "important": false,
       "resolved": "#0d0d0d"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-bar",
-      "important": false,
-      "resolved": "#3fb950"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-border",
-      "important": false,
-      "resolved": "rgba(124,178,124,0.35)"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-char",
-      "important": false,
-      "resolved": "#2ea04366"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-fg",
-      "important": false,
-      "resolved": "#7cb27c"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-add-line",
-      "important": false,
-      "resolved": "#23863633"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-border",
-      "important": false,
-      "resolved": "rgba(248,246,240,0.12)"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-bg",
-      "important": false,
-      "resolved": "#2c2c2a"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-bg-hover",
-      "important": false,
-      "resolved": "#333330"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-border",
-      "important": false,
-      "resolved": "rgba(248,246,240,0.14)"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-button-text",
-      "important": false,
-      "resolved": "#f8f8f6"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-bar",
-      "important": false,
-      "resolved": "#f85149"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-border",
-      "important": false,
-      "resolved": "rgba(201,106,106,0.35)"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-char",
-      "important": false,
-      "resolved": "#f8514966"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-fg",
-      "important": false,
-      "resolved": "#c96a6a"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-del-line",
-      "important": false,
-      "resolved": "#da363333"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-divider",
-      "important": false,
-      "resolved": "rgba(248,246,240,0.10)"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-gradient-start",
-      "important": false,
-      "resolved": "rgba(31,31,30,0)"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-bg",
-      "important": false,
-      "resolved": "#2a2a28"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-border",
-      "important": false,
-      "resolved": "rgba(248,246,240,0.08)"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-header-text",
-      "important": false,
-      "resolved": "#d8d6ce"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-muted",
-      "important": false,
-      "resolved": "#9c9c9a"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-overlay-hover",
-      "important": false,
-      "resolved": "rgba(248,246,240,0.045)"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-overview",
-      "important": false,
-      "resolved": "rgba(248,246,240,0.04)"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-size",
-      "important": false,
-      "resolved": "9px"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb",
-      "important": false,
-      "resolved": "#b0b0ae"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-active",
-      "important": false,
-      "resolved": "#6f6f6d"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-thumb-hover",
-      "important": false,
-      "resolved": "#8a8a88"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-x",
-      "important": false,
-      "resolved": "#2a2a28"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-scrollbar-track-y",
-      "important": false,
-      "resolved": "#1f1f1e"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-shadow",
-      "important": false,
-      "resolved": "rgba(0,0,0,0.28)"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-surface",
-      "important": false,
-      "resolved": "#1f1f1e"
-    },
-    {
-      "key": "\u0001:where([data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*=\"diffEditorWrapper\"],[class*=\"modalContent_\"]:has([class*=\"diffEditorContainer\"]))\u0001--incipit-diff-text",
-      "important": false,
-      "resolved": "#f0eee8"
     },
     {
       "key": "\u0001.cceBadge\u0001-webkit-appearance",
@@ -40343,6 +40516,11 @@
       "resolved": "4000"
     },
     {
+      "key": "\u0001[data-incipit-activity-entering]\u0001animation",
+      "important": false,
+      "resolved": "incipit-activity-enter 220ms cubic-bezier(0.2,0.7,0.2,1) both"
+    },
+    {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001-webkit-mask-image",
       "important": false,
       "resolved": "url(\"data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E\")"
@@ -40528,6 +40706,11 @@
       "resolved": "28px"
     },
     {
+      "key": "\u0001[data-incipit-activity-header]\u0001left",
+      "important": false,
+      "resolved": "0"
+    },
+    {
       "key": "\u0001[data-incipit-activity-header]\u0001line-height",
       "important": false,
       "resolved": "20px"
@@ -40535,12 +40718,12 @@
     {
       "key": "\u0001[data-incipit-activity-header]\u0001margin",
       "important": false,
-      "resolved": "0 0 4px calc(-1 * 30px)"
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-activity-header]\u0001max-width",
       "important": false,
-      "resolved": "calc(100% + 30px)"
+      "resolved": "100%"
     },
     {
       "key": "\u0001[data-incipit-activity-header]\u0001padding",
@@ -40548,14 +40731,29 @@
       "resolved": "0"
     },
     {
+      "key": "\u0001[data-incipit-activity-header]\u0001position",
+      "important": false,
+      "resolved": "absolute"
+    },
+    {
       "key": "\u0001[data-incipit-activity-header]\u0001text-align",
       "important": false,
       "resolved": "start"
     },
     {
+      "key": "\u0001[data-incipit-activity-header]\u0001top",
+      "important": false,
+      "resolved": "4px"
+    },
+    {
       "key": "\u0001[data-incipit-activity-header]\u0001transition",
       "important": false,
       "resolved": "color 180ms ease"
+    },
+    {
+      "key": "\u0001[data-incipit-activity-preparing]\u0001display",
+      "important": true,
+      "resolved": "none"
     },
     {
       "key": "\u0001[data-incipit-activity] [data-incipit-tool-icon]\u0001background-color",
@@ -40863,12 +41061,12 @@
       "resolved": "relative"
     },
     {
-      "key": "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] [data-incipit-thinking-static]::before\u0001top",
+      "key": "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) [data-incipit-thinking-static]::before\u0001top",
       "important": false,
       "resolved": "36px"
     },
     {
-      "key": "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] details[data-incipit-thinking]::before\u0001top",
+      "key": "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) details[data-incipit-thinking]::before\u0001top",
       "important": false,
       "resolved": "36px"
     },
@@ -46693,6 +46891,26 @@
       "resolved": "background-color 0.15s ease"
     },
     {
+      "key": "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001background-color",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001background-image",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001cursor",
+      "important": false,
+      "resolved": "text"
+    },
+    {
+      "key": "\u0001[data-incipit-markdown-root] a[data-incipit-file-reference=\"unavailable\"]\u0001outline",
+      "important": false,
+      "resolved": "none"
+    },
+    {
       "key": "\u0001[data-incipit-markdown-root] a\u0001background-color",
       "important": false,
       "resolved": "transparent"
@@ -47868,6 +48086,26 @@
       "resolved": "background-color 0.15s ease"
     },
     {
+      "key": "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001background-color",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001background-image",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001cursor",
+      "important": false,
+      "resolved": "text"
+    },
+    {
+      "key": "\u0001[data-incipit-message] a[data-incipit-file-reference=\"unavailable\"]\u0001outline",
+      "important": false,
+      "resolved": "none"
+    },
+    {
       "key": "\u0001[data-incipit-message] a\u0001background-color",
       "important": false,
       "resolved": "transparent"
@@ -48713,9 +48951,9 @@
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows",
-      "important": false,
-      "resolved": "auto 0fr"
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]\u0001padding-top",
+      "important": true,
+      "resolved": "32px"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]>:not([data-incipit-activity-header])\u0001visibility",
@@ -48745,12 +48983,12 @@
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"]::after\u0001top",
       "important": true,
-      "resolved": "18px"
+      "resolved": "calc(18px + 32px)"
     },
     {
-      "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"][data-incipit-activity-has-header=\"1\"]::after\u0001top",
+      "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"]\u0001padding-top",
       "important": true,
-      "resolved": "calc(18px + 32px)"
+      "resolved": "36px"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"last\"]::after\u0001bottom",
@@ -48763,9 +49001,9 @@
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows",
-      "important": false,
-      "resolved": "auto 1fr"
+      "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"only\"]\u0001padding-top",
+      "important": true,
+      "resolved": "36px"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity]::after\u0001background-color",
@@ -51273,6 +51511,56 @@
       "resolved": "pre-wrap"
     },
     {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001display",
+      "important": false,
+      "resolved": "inline-flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001flex",
+      "important": false,
+      "resolved": "0 1 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001margin",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001padding",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-file-link]\u0001text-align",
+      "important": false,
+      "resolved": "start"
+    },
+    {
       "key": "\u0001[data-incipit-tool-filename-extension]\u0001flex",
       "important": false,
       "resolved": "0 0 auto"
@@ -52088,6 +52376,131 @@
       "resolved": "#c92626"
     },
     {
+      "key": "\u0001[data-incipit-tool-row]:focus-within [data-incipit-tool-chevron]\u0001opacity",
+      "important": false,
+      "resolved": "0.9"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]:focus-within\u0001color",
+      "important": false,
+      "resolved": "#0d0d0d"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]:hover [data-incipit-tool-chevron]\u0001opacity",
+      "important": false,
+      "resolved": "0.9"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]:hover [data-incipit-tool-icon]\u0001color",
+      "important": false,
+      "resolved": "#0d0d0d"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]:hover\u0001color",
+      "important": false,
+      "resolved": "#0d0d0d"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-chevron]\u0001opacity",
+      "important": false,
+      "resolved": "0.9"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow",
+      "important": false,
+      "resolved": "visible"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow-wrap",
+      "important": false,
+      "resolved": "anywhere"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row][data-incipit-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001white-space",
+      "important": false,
+      "resolved": "normal"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001align-items",
+      "important": false,
+      "resolved": "flex-start"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001box-sizing",
+      "important": false,
+      "resolved": "border-box"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001display",
+      "important": false,
+      "resolved": "inline-flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001gap",
+      "important": false,
+      "resolved": "0 6px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001margin",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001max-width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001padding",
+      "important": false,
+      "resolved": "4px 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001text-align",
+      "important": false,
+      "resolved": "start"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001vertical-align",
+      "important": false,
+      "resolved": "top"
+    },
+    {
       "key": "\u0001[data-incipit-tool-state][hidden]\u0001display",
       "important": true,
       "resolved": "none"
@@ -52233,9 +52646,19 @@
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
     },
     {
-      "key": "\u0001[data-incipit-tool-toggle]:focus-visible [data-incipit-tool-chevron]\u0001opacity",
+      "key": "\u0001[data-incipit-tool-toggle] [data-incipit-tool-label]\u0001flex-shrink",
       "important": false,
-      "resolved": "0.9"
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]:disabled\u0001cursor",
+      "important": false,
+      "resolved": "default"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]:disabled\u0001opacity",
+      "important": false,
+      "resolved": "1"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]:focus-visible\u0001color",
@@ -52253,41 +52676,6 @@
       "resolved": "2px"
     },
     {
-      "key": "\u0001[data-incipit-tool-toggle]:hover [data-incipit-tool-chevron]\u0001opacity",
-      "important": false,
-      "resolved": "0.9"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]:hover [data-incipit-tool-icon]\u0001color",
-      "important": false,
-      "resolved": "#0d0d0d"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]:hover\u0001color",
-      "important": false,
-      "resolved": "#0d0d0d"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-chevron]\u0001opacity",
-      "important": false,
-      "resolved": "0.9"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow",
-      "important": false,
-      "resolved": "visible"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001overflow-wrap",
-      "important": false,
-      "resolved": "anywhere"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle][aria-expanded=\"true\"] [data-incipit-tool-subject=\"text\"]\u0001white-space",
-      "important": false,
-      "resolved": "normal"
-    },
-    {
       "key": "\u0001[data-incipit-tool-toggle]\u0001align-items",
       "important": false,
       "resolved": "flex-start"
@@ -52303,11 +52691,6 @@
       "resolved": "0"
     },
     {
-      "key": "\u0001[data-incipit-tool-toggle]\u0001box-sizing",
-      "important": false,
-      "resolved": "border-box"
-    },
-    {
       "key": "\u0001[data-incipit-tool-toggle]\u0001color",
       "important": false,
       "resolved": "inherit"
@@ -52315,12 +52698,17 @@
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001cursor",
       "important": false,
-      "resolved": "pointer"
+      "resolved": "inherit"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001display",
       "important": false,
       "resolved": "inline-flex"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001flex",
+      "important": false,
+      "resolved": "0 0 auto"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001font",
@@ -52330,17 +52718,12 @@
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001gap",
       "important": false,
-      "resolved": "0 6px"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]\u0001margin",
-      "important": false,
-      "resolved": "0"
+      "resolved": "6px"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001max-width",
       "important": false,
-      "resolved": "100%"
+      "resolved": "45%"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001min-width",
@@ -52350,22 +52733,12 @@
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001padding",
       "important": false,
-      "resolved": "4px 0"
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001text-align",
       "important": false,
       "resolved": "start"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]\u0001transition",
-      "important": false,
-      "resolved": "color 180ms ease"
-    },
-    {
-      "key": "\u0001[data-incipit-tool-toggle]\u0001vertical-align",
-      "important": false,
-      "resolved": "top"
     },
     {
       "key": "\u0001[data-incipit-tool-use] [class*=\"toolBody_\"] pre code\u0001background",
@@ -55383,6 +55756,26 @@
       "resolved": "0.2"
     },
     {
+      "key": "@keyframes incipit-activity-enter\u0001from\u0001opacity",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "@keyframes incipit-activity-enter\u0001from\u0001transform",
+      "important": false,
+      "resolved": "translateY(3px)"
+    },
+    {
+      "key": "@keyframes incipit-activity-enter\u0001to\u0001opacity",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "@keyframes incipit-activity-enter\u0001to\u0001transform",
+      "important": false,
+      "resolved": "none"
+    },
+    {
       "key": "@keyframes incipit-fold\u0001to\u0001grid-template-rows",
       "important": false,
       "resolved": "0fr"
@@ -55456,6 +55849,41 @@
       "key": "\u0001*:not([class*=\"inputContainer_\"]):not([class*=\"inputContainer_\"] *):not([contenteditable]):not([contenteditable] *)\u0001scrollbar-width",
       "important": true,
       "resolved": "auto"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]:focus-visible\u0001outline",
+      "important": false,
+      "resolved": "1px solid rgba(191,93,58,0.6)"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]:focus-visible\u0001outline-offset",
+      "important": false,
+      "resolved": "2px"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]\u0001background-image",
+      "important": false,
+      "resolved": "radial-gradient(circle,rgba(191,93,58,0.85) 1px,transparent 1.6px)"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]\u0001background-position",
+      "important": false,
+      "resolved": "0 100%"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]\u0001background-repeat",
+      "important": false,
+      "resolved": "repeat-x"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]\u0001background-size",
+      "important": false,
+      "resolved": "7px 2px"
+    },
+    {
+      "key": "\u0001button[data-incipit-tool-file-link]\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
     },
     {
       "key": "\u0001details[data-incipit-thinking]:not([open])>summary[data-incipit-thinking-summary]::after\u0001transform",

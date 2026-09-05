@@ -11,8 +11,9 @@ import { initLegacyUserBubble } from './legacy/user_bubble.js';
 import { initLegacyDeferredNext } from './legacy/deferred_next.js';
 import { initLegacyAskRefinement } from './legacy/ask_refinement.js';
 import { initToolCards, enhanceToolCard, sweepToolCards } from './tool_cards.js';
-import { initActivityGroups, markActivityDirty, scanActivityTurns } from './activity_groups.js';
+import { initActivityGroups, markActivityDirty, scanActivityTurns, configureActivityScheduler, flushActivityGroups, stageActivityTool } from './activity_groups.js';
 import { showDiffPayload } from './diff/view.js';
+import { resolveFileReference, isExternalReference } from './file_reference.js';
 import { getFileLanguage } from './syntax_highlight.js';
 import {
   conversationIsBusy as kernelConversationIsBusy,
@@ -8702,6 +8703,7 @@ import {
       shapeValidate: opener => opener && typeof opener.open === 'function',
       probe(el) {
         if (!el) return { ok: false, value: null, reason: 'notMounted' };
+        for (let depth = 0; el && depth < 12 && !reactFiberKeyForElement(el); depth++) el = el.parentElement;
         const fk = reactFiberKeyForElement(el);
         if (!fk) return { ok: false, value: null, reason: 'noFiber' };
         let f = el[fk];
@@ -9555,75 +9557,13 @@ import {
       tipPendingProbe = null;
     }
 
-    function safeDecodeURIComponent(value) {
-      try { return decodeURIComponent(value); } catch (_) { return value; }
-    }
-
-    function fileHrefToLocalPath(rawHref) {
-      try {
-        const url = new URL(rawHref);
-        const host = safeDecodeURIComponent(url.hostname || '');
-        let pathname = safeDecodeURIComponent(url.pathname || '');
-        if (/^\/[A-Za-z]:\//.test(pathname)) {
-          return pathname.slice(1).replace(/\//g, '\\');
-        }
-        if (host && host.toLowerCase() !== 'localhost') {
-          const body = pathname.replace(/^\/+/, '');
-          return '//' + host + (body ? '/' + body : '');
-        }
-        return pathname;
-      } catch (_) {
-        return null;
-      }
-    }
-
     function eventTargetElement(node) {
       if (!node) return null;
       return node.nodeType === 1 ? node : (node.parentElement || null);
     }
 
-    function isExternalHref(raw) {
-      if (!raw) return false;
-      // Windows `C:\x` / `C:/x` is a filesystem path, not a URL scheme.
-      if (/^[A-Za-z]:[\\/]/.test(raw)) return false;
-      return /^[a-z][a-z0-9+.-]*:/i.test(raw) && !/^file:/i.test(raw);
-    }
-
-    function parseHrefLineLocation(hash) {
-      const m = String(hash || '').match(/^#L?(\d+)(?:-L?(\d+))?$/i);
-      if (!m) return undefined;
-      const startLine = validLineNumber(m[1]);
-      if (!startLine) return undefined;
-      const endLine = validLineNumber(m[2]) || startLine;
-      return { startLine, endLine };
-    }
-
     function splitFileHref(rawHref) {
-      let raw = String(rawHref || '').trim();
-      if (!raw || raw === '#' || /^javascript:/i.test(raw)) return null;
-      if (raw.charAt(0) === '#') return null;
-      if (isExternalHref(raw)) return null;
-
-      let hash = '';
-      const hashIndex = raw.indexOf('#');
-      if (hashIndex !== -1) {
-        hash = raw.slice(hashIndex);
-        raw = raw.slice(0, hashIndex);
-      }
-      const queryIndex = raw.indexOf('?');
-      if (queryIndex !== -1) raw = raw.slice(0, queryIndex);
-      let decoded = false;
-      if (/^file:/i.test(raw)) {
-        raw = fileHrefToLocalPath(raw);
-        if (!raw) return null;
-        decoded = true;
-      }
-      raw = (decoded ? String(raw) : safeDecodeURIComponent(raw)).trim();
-      if (!raw) return null;
-      return {
-        filePath: raw,
-        location: parseHrefLineLocation(hash),
-      };
+      return resolveFileReference(rawHref, { cwd: cwdForFileAction() });
     }
 
     function fileInfoFromToolEl(toolEl, pathText) {
@@ -9631,8 +9571,10 @@ import {
       if (!filePath) return null;
       const spec = toolPathOpenSpecs.get(toolEl);
       const line = validLineNumber(toolEl.dataset && toolEl.dataset.incipitToolGrepLine);
+      const info = resolveFileReference(spec?.path || toolEl.dataset.incipitToolSourcepath || filePath, { cwd: cwdForFileAction(), literal: true });
+      if (!info) return null;
       return {
-        filePath: spec && spec.path ? spec.path : filePath,
+        ...info,
         location: spec && spec.location ? spec.location : (line ? { startLine: line, endLine: line } : undefined),
       };
     }
@@ -9653,13 +9595,16 @@ import {
       // back on click, or, for true external links, the full URL.
       const raw = link.getAttribute('href') || '';
       if (!raw || raw === '#' || /^javascript:/i.test(raw)) return null;
-      return { target: link, path: raw, fileInfo: splitFileHref(raw) };
+      const fileInfo = splitFileHref(raw);
+      return fileInfo || isExternalReference(raw) ? { target: link, path: fileInfo?.filePath || raw, fileInfo } : null;
     }
 
     function cwdForFileAction() {
       try {
         const state = kernelGetHostState({ refresh: true, reason: 'link-file-action' });
-        return state && typeof state.cwd === 'string' ? state.cwd : '';
+        if (state && typeof state.cwd === 'string' && state.cwd) return state.cwd;
+        const session = locateActiveSessionState();
+        return session?.cwd?.value || (typeof session?.cwd === 'string' ? session.cwd : '');
       } catch (_) {
         // Keep file actions useful when the semantic bridge is degraded:
         // the legacy surface already owns a SessionState fiber fallback.
@@ -9709,8 +9654,8 @@ import {
         __incipit: true,
         type: 'file_reveal_request',
         requestId,
-        filePath: info.filePath,
-        cwd: cwdForFileAction(),
+        filePath: info.revealPath || info.filePath,
+        cwd: info.cwd || cwdForFileAction(),
         sessionId: sessionIdForFileAction(),
       };
       return new Promise((resolve, reject) => {
@@ -10026,6 +9971,8 @@ import {
     }
 
     function handleTipHover(evt) {
+      const link = closestBodyLink(evt.target);
+      if (link?.dataset.incipitFileReference === 'unavailable') queueFileLinks(link);
       const hit = resolveTipFast(evt.target, evt);
       if (hit) {
         // Already shown for this exact anchor, or a reveal is already
@@ -10116,17 +10063,31 @@ import {
         const link = closestBodyLink(evt.target) || bodyLinkFromPoint(evt.target, evt);
         if (!link) return;
         const info = splitFileHref(link.getAttribute('href') || '');
-        if (!info || !info.filePath) return;
+        if (!info || !info.filePath) {
+          if (!isExternalReference(link.getAttribute('href'))) { evt.preventDefault(); evt.stopPropagation(); }
+          return;
+        }
         const opener = readHostFileOpener(link);
         if (!opener) return;
         evt.preventDefault();
         evt.stopPropagation();
-        try {
-          opener.open(info.filePath, info.location || undefined);
-        } catch (error) {
-          try { console.warn('[incipit] failed to open markdown file link:', error); } catch (_) {}
-        }
+        openFileReference(opener, info);
       }, true);
+    }
+
+    function openFileReference(opener, info) {
+      try { Promise.resolve(opener.open(info.filePath, info.location)).catch(() => {}); }
+      catch (_) { /* The host decides which file types it can open (2026-09-05). */ }
+    }
+
+    function toolFileAction(path, root) {
+      const info = resolveFileReference(path, { cwd: cwdForFileAction(), literal: true });
+      if (!info || !readHostFileOpener(root)) return null;
+      return { ...info, open() {
+        const current = resolveFileReference(path, { cwd: cwdForFileAction(), literal: true });
+        const opener = readHostFileOpener(root);
+        if (current && opener) openFileReference(opener, current);
+      } };
     }
 
     function handleTipContextMenu(evt) {
@@ -10212,6 +10173,7 @@ import {
       const ownsFile = enhanceToolCard(el, grepData && { ...grepData, result }, {
         summary,
         estimateStats: estimateToolStats,
+        fileAction: path => toolFileAction(path, el),
         onNativeChange: () => { pendingToolUseRoots.add(el); scheduleRescan(); },
         language: grepData ? languageClassForFilePath(firstToolPathForDisplay(grepData.block)).replace(/^language-/, '') : 'plaintext',
         toggle: () => {
@@ -10462,13 +10424,49 @@ import {
     // document body every animation frame, which scaled poorly with long
     // sessions.
     const pendingToolUseRoots = new Set();
+    configureActivityScheduler(scheduleRescan);
+    const pendingFileLinks = new Set();
+    let fileLinksFrame = 0;
+    let fileLinksRoot = null;
+    const fileHrefObserver = new MutationObserver(records => { for (const record of records) queueFileLinks(record.target); });
+    function observeFileHrefs(root) {
+      if (!root || root === document.body || root === fileLinksRoot) return;
+      fileHrefObserver.disconnect(); fileLinksRoot = root;
+      fileHrefObserver.observe(root, { attributes: true, attributeFilter: ['href'], subtree: true });
+    }
+    function queueFileLinks(scope) {
+      if (!scope || scope.nodeType !== 1) return;
+      if (scope.matches('a[href]')) pendingFileLinks.add(scope);
+      else if (scope.firstElementChild) for (const link of scope.querySelectorAll('a[href]')) pendingFileLinks.add(link);
+      if (!fileLinksFrame && pendingFileLinks.size) fileLinksFrame = requestAnimationFrame(refreshFileLinks);
+    }
+    function refreshFileLinks() {
+      fileLinksFrame = 0;
+      const deadline = performance.now() + 4;
+      for (const link of pendingFileLinks) {
+        pendingFileLinks.delete(link);
+        if (link.isConnected && bodyLinkScopeFor(link)) {
+          const href = link.getAttribute('href');
+          if (isExternalReference(href)) {
+            if (link.hasAttribute('data-incipit-file-reference')) { link.removeAttribute('data-incipit-file-reference'); link.removeAttribute('aria-disabled'); link.removeAttribute('tabindex'); }
+          } else {
+            const valid = !!splitFileHref(href) && !!readHostFileOpener(link);
+            const state = valid ? 'ready' : 'unavailable';
+            if (link.getAttribute('data-incipit-file-reference') !== state) link.setAttribute('data-incipit-file-reference', state);
+            if (valid) { link.removeAttribute('aria-disabled'); link.removeAttribute('tabindex'); }
+            else { link.setAttribute('aria-disabled', 'true'); link.tabIndex = -1; }
+          }
+        }
+        if (performance.now() >= deadline) break;
+      }
+      if (pendingFileLinks.size) fileLinksFrame = requestAnimationFrame(refreshFileLinks);
+    }
     let rescanScheduled = false;
     function scheduleRescan() {
       if (rescanScheduled) return;
       rescanScheduled = true;
       requestAnimationFrame(() => {
         rescanScheduled = false;
-        if (!pendingToolUseRoots.size) return;
         const tools = Array.from(pendingToolUseRoots);
         pendingToolUseRoots.clear();
         const deadline = performance.now() + 4;
@@ -10483,6 +10481,7 @@ import {
             break;
           }
         }
+        flushActivityGroups(deadline);
       });
     }
 
@@ -10501,6 +10500,7 @@ import {
         }
       }
       if (elementClassText(node).indexOf('toolUse_') !== -1) {
+        stageActivityTool(node);
         pendingToolUseRoots.add(node);
         queued = true;
       }
@@ -10509,6 +10509,7 @@ import {
       if (node.firstElementChild && node.querySelectorAll) {
         const inners = node.querySelectorAll('[class*="toolUse_"]');
         for (const t of inners) {
+          stageActivityTool(t);
           pendingToolUseRoots.add(t);
           queued = true;
         }
@@ -10556,6 +10557,8 @@ import {
         }
         enqueueActivityChange(m, target);
         for (const node of m.addedNodes || []) {
+          if (node.nodeType === 1 && node.matches('[class*="messagesContainer_"]')) observeFileHrefs(node);
+          if (!ancestor) queueFileLinks(node);
           if (enqueueAffectedToolUses(node, !!ancestor)) dirty = true;
         }
       }
@@ -10570,6 +10573,8 @@ import {
       document.querySelector('[class*="messagesContainer_"]') ||
       document.body;
     if (initialRoot) {
+      observeFileHrefs(initialRoot);
+      queueFileLinks(initialRoot);
       const initial = initialRoot.querySelectorAll('[class*="toolUse_"]');
       for (const t of initial) pendingToolUseRoots.add(t);
       scheduleRescan();

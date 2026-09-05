@@ -34,6 +34,7 @@ let initialized = false;
 let identityProvider = null;
 let visibilityObserver = null;
 let activeSession = '';
+let activeCwd = '';
 let sweepTimer = null;
 
 function setAttribute(node, name, value) {
@@ -103,9 +104,15 @@ function observeNativeState(root, onChange) {
   return observer;
 }
 
-function resetSession(sessionId) {
-  if (sessionId === activeSession) return;
+function resetSession(sessionId, cwd = '') {
+  if (sessionId === activeSession && cwd === activeCwd) return;
+  if (sessionId === activeSession && !activeCwd && cwd) {
+    activeCwd = cwd;
+    for (const controller of controllers.values()) controller.identityReady?.();
+    return;
+  }
   activeSession = sessionId || '';
+  activeCwd = cwd;
   for (const controller of [...controllers.values()]) controller.dispose();
   controllers.clear(); foldChoices.clear(); clearDiffSource(); clearDiffModels(); closeFullDiff();
 }
@@ -116,6 +123,7 @@ export function initToolCards(options) {
   if (initialized) return;
   initialized = true;
   activeSession = identity().sessionId || '';
+  activeCwd = identity().cwd || '';
   if (typeof IntersectionObserver === 'function') {
     visibilityObserver = new IntersectionObserver(entries => {
       for (const entry of entries) {
@@ -127,7 +135,7 @@ export function initToolCards(options) {
       }
     }, { rootMargin: '240px' });
   }
-  subscribe('sessionChanged', state => resetSession(state.sessionId || ''));
+  subscribe('sessionChanged', state => resetSession(state.sessionId || '', state.cwd || ''));
   window.addEventListener('pagehide', () => resetSession(''));
 }
 
@@ -145,6 +153,7 @@ function clearRootMarks(root) {
  */
 function buildHeadline(root, options) {
   const header = node('div', 'data-incipit-tool-heading');
+  const row = node('div', 'data-incipit-tool-row');
   const toggle = node('button', 'data-incipit-tool-toggle'); toggle.type = 'button';
   const glyph = node('span', 'data-incipit-tool-icon');
   const label = node('span', 'data-incipit-tool-label');
@@ -156,17 +165,20 @@ function buildHeadline(root, options) {
   const fingerprint = node('span', 'data-incipit-tool-fingerprint-text'); fingerprint.hidden = true;
   const state = node('span', 'data-incipit-tool-state'); state.hidden = true;
   const chevron = node('span', 'data-incipit-tool-chevron');
-  toggle.append(glyph, label, subject, counts, fingerprint, state, chevron);
-  header.append(toggle);
+  toggle.append(glyph, label);
+  row.append(toggle, subject, counts, fingerprint, state, chevron);
+  header.append(row);
   root.insertBefore(header, root.firstChild);
   root.dataset.incipitToolHeadline = '1';
-  let lastName = '', lastStatus = '', lastSubject = '';
+  let lastName = '', lastStatus = '', lastSubject = '', lastPaths = '', missingAction = false;
   let isOpen = false, expandable = true;
 
   function sync() {
     setAttribute(root, 'data-incipit-tool-expandable', String(expandable));
     if (expandable) setAttribute(toggle, 'aria-expanded', String(isOpen));
     else toggle.removeAttribute('aria-expanded');
+    toggle.disabled = !expandable;
+    setAttribute(row, 'data-incipit-expanded', String(isOpen));
   }
 
   function update(next, canExpand) {
@@ -179,35 +191,47 @@ function buildHeadline(root, options) {
     const description = isFile ? paths.map(fileName).join(', ') : String(input.description || input.query || input.pattern ||
       (block.name === 'Bash' ? input.command || '' : '') || '').replace(/\s+/g, ' ').trim();
     const status = publicState(next);
-    const labels = LABELS[block.name];
+    const labels = Object.prototype.hasOwnProperty.call(LABELS, block.name) ? LABELS[block.name] : null;
     if (lastName !== block.name) {
       lastName = block.name;
       glyph.innerHTML = iconFor(block.name);
-      root.dataset.incipitToolKind = KINDS[block.name] || 'other';
+      root.dataset.incipitToolKind = Object.prototype.hasOwnProperty.call(KINDS, block.name) ? KINDS[block.name] : 'other';
       root.dataset.incipitToolName = block.name;
       label.title = labels ? '' : block.name;
     }
     if (root.dataset.incipitToolId !== block.id) root.dataset.incipitToolId = block.id;
     const labelText = labels ? labels[status === 'running' ? 1 : status === 'error' ? 2 : 0] : block.name;
     if (label.textContent !== labelText) label.textContent = labelText;
-    if (lastSubject !== description) {
+    const pathKey = paths.join('\u0000') + '\u0000' + (identity().cwd || '');
+    if (isFile && (missingAction || lastPaths !== pathKey || lastSubject !== description)) {
+      missingAction = false;
+      const focusedPath = subject.contains(document.activeElement) ? document.activeElement.dataset.incipitToolSourcepath : null;
+      subject.replaceChildren();
+      paths.forEach((path, index) => {
+        if (index) subject.append(node('span', '', ', '));
+        const action = options.fileAction?.(path);
+        const file = node(action ? 'button' : 'span', 'data-incipit-tool-file-link');
+        const name = fileName(path), dot = name.lastIndexOf('.');
+        file.append(node('span', 'data-incipit-tool-filename-stem', dot > 0 ? name.slice(0, dot) : name),
+          node('span', 'data-incipit-tool-filename-extension', dot > 0 ? name.slice(dot) : ''));
+        if (action) {
+          file.type = 'button'; file.dataset.incipitToolFullpath = action.filePath;
+          file.dataset.incipitToolSourcepath = path;
+          file.setAttribute('aria-label', 'Open ' + action.filePath);
+          file.addEventListener('click', event => { event.stopPropagation(); action.open(); });
+        } else { file.title = path; missingAction = true; }
+        subject.append(file);
+      });
+      lastPaths = pathKey; lastSubject = description; subject.hidden = false;
+      if (focusedPath) [...subject.querySelectorAll('button')].find(file => file.dataset.incipitToolSourcepath === focusedPath)?.focus({ preventScroll: true });
+    } else if (!isFile && lastSubject !== description) {
       lastSubject = description;
-      const dot = paths.length === 1 ? description.lastIndexOf('.') : -1;
-      stem.textContent = dot > 0 ? description.slice(0, dot) : description;
-      extension.textContent = dot > 0 ? description.slice(dot) : '';
+      lastPaths = ''; subject.replaceChildren(stem, extension);
+      stem.textContent = description; extension.textContent = '';
       subject.hidden = !description;
     }
     setAttribute(subject, 'data-incipit-tool-subject', isFile ? 'file' : 'text');
-    // Single files use the shared path tooltip; everything else falls back to a
-    // native title so truncated text stays reachable.
-    if (paths.length === 1) {
-      if (subject.dataset.incipitToolFullpath !== filePath) subject.dataset.incipitToolFullpath = filePath;
-      if (subject.title) subject.title = '';
-    } else {
-      if (subject.dataset.incipitToolFullpath) delete subject.dataset.incipitToolFullpath;
-      const hover = isFile ? paths.join('\n') : description;
-      if (subject.title !== hover) subject.title = hover;
-    }
+    subject.title = isFile ? '' : description;
     setAttribute(toggle, 'aria-label', labelText + (description ? ': ' + description : ''));
     setAttribute(root, 'data-incipit-tool-state', status);
     const statusText = status === 'error' ? 'Failed' : '';
@@ -222,10 +246,12 @@ function buildHeadline(root, options) {
   }
 
   toggle.addEventListener('click', event => { event.stopPropagation(); if (expandable) options.toggle(); });
-  header.addEventListener('click', event => event.stopPropagation());
+  header.addEventListener('click', event => { event.stopPropagation(); if (expandable) options.toggle(); });
+  header.addEventListener('pointerover', () => { if (missingAction) options.onRetryPaths?.(); });
   return {
     header, toggle,
     update,
+    invalidatePaths() { lastPaths = ''; },
     setOpen(value) { isOpen = value; sync(); },
     setCounts(stats) {
       counts.replaceChildren(); counts.hidden = !stats;
@@ -254,7 +280,7 @@ function createFileCard(root, initial, options) {
   inner.appendChild(diff); body.appendChild(inner); body.hidden = !open; body.inert = !open;
   root.dataset.incipitFileTool = '1';
   root.dataset.incipitToolCollapsed = String(!open);
-  const headline = buildHeadline(root, { toggle: () => setOpen(!open) });
+  const headline = buildHeadline(root, { fileAction: options.fileAction, onRetryPaths: options.onNativeChange, toggle: () => setOpen(!open) });
   const nativeStateObserver = observeNativeState(root, options.onNativeChange);
   const toolError = node('div', 'data-incipit-tool-error'); toolError.hidden = true;
   root.appendChild(toolError);
@@ -322,7 +348,7 @@ function createFileCard(root, initial, options) {
 
   function ensureView() {
     if (view) return;
-    view = createDiffPreview(diff, { filePath: data.block.input.file_path, loadModel, language: options.language,
+    view = createDiffPreview(diff, { filePath: data.block.input.file_path, loadModel,
       onStats: stats => headline.setCounts(stats || provisional) });
   }
 
@@ -350,6 +376,11 @@ function createFileCard(root, initial, options) {
 
   const controller = {
     kind: 'file',
+    identityReady() {
+      revision++; sourceKnown = false; sourcePayload = null; sourceController?.abort(); sourcePromise = null;
+      clearTimeout(pendingTimer); pendingTimer = null; pendingAttempts = 0;
+      headline.invalidatePaths(); view?.invalidate(); options.onNativeChange?.();
+    },
     toolId: data.block.id,
     intersecting: !visibilityObserver,
     releaseSource() { if (!open) sourcePayload = null; },
@@ -434,13 +465,14 @@ export function enhanceToolCard(root, data, options) {
   }
   if (!controller) {
     if (!root.dataset.incipitToolCollapsed) root.dataset.incipitToolCollapsed = 'true';
-    const headline = buildHeadline(root, { toggle: () => {
+    const headline = buildHeadline(root, { fileAction: options.fileAction, onRetryPaths: options.onNativeChange, toggle: () => {
       options.toggle?.();
       headline.setOpen(root.dataset.incipitToolCollapsed !== 'true');
     } });
     const nativeStateObserver = observeNativeState(root, options.onNativeChange);
     controller = {
       kind: 'generic',
+      identityReady() { headline.invalidatePaths(); options.onNativeChange?.(); },
       toolId: data.block.id,
       prefetch() {},
       update(next) {

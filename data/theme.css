@@ -442,6 +442,8 @@
   --ink-title-group-shadow: inset 0 -1px 0 rgba(0,0,0,0.55);
   --ink-tool-added-fg-override: #2f8c3a;
   --ink-tool-added-hover-fg-override: #1c9c1c;
+  --ink-tool-file-link-focus-visible-outline: 1px solid rgba(217,119,87,0.6);
+  --ink-tool-file-link-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
   --ink-tool-filepath-hover-bg: rgba(217,119,87,0.22);
   --ink-tool-filepath-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
   --ink-tool-fingerprint-aux-fg: #bc8c75;
@@ -455,6 +457,7 @@
   --ink-tool-removed-hover-fg-override: #c92626;
   --ink-tool-summary-fg: #9c9c9a;
   --ink-tool-summary-hover-fg-override: inherit;
+  --ink-tool-toggle-focus-visible-fg-override: #0d0d0d;
   --ink-tool-toggle-focus-visible-outline: 1px solid rgba(217,119,87,0.6);
   --ink-tool-use-border: 1px solid rgba(255,255,255,0.16);
   --ink-tool-use-border-override: rgba(0,0,0,0.16);
@@ -774,8 +777,9 @@
   min-width: 0;
   min-height: 0;
 }
-[data-incipit-message][data-incipit-activity-has-header="1"] {
-  grid-template-rows: auto 1fr;
+[data-incipit-message][data-incipit-activity-edge="first"],
+[data-incipit-message][data-incipit-activity-edge="only"] {
+  padding-top: 36px !important;
 }
 /* The connector paints below the glyph slots (z 1) and glyphs (z 2), so every
    icon interrupts the line instead of being crossed by it. */
@@ -794,9 +798,6 @@
   pointer-events: none;
 }
 [data-incipit-message][data-incipit-activity-edge="first"]::after {
-  top: var(--incipit-activity-glyph-top) !important;
-}
-[data-incipit-message][data-incipit-activity-edge="first"][data-incipit-activity-has-header="1"]::after {
   top: calc(var(--incipit-activity-glyph-top) + 32px) !important;
 }
 [data-incipit-message][data-incipit-activity-edge="last"]::after {
@@ -807,23 +808,26 @@
   display: none !important;
 }
 
-/* A group header above the first row pushes its glyph down by the header
-   height plus its gap (28px + 4px). */
-[data-incipit-activity="thinking"][data-incipit-activity-has-header="1"] details[data-incipit-thinking]::before,
-[data-incipit-activity="thinking"][data-incipit-activity-has-header="1"] [data-incipit-thinking-static]::before {
+/* Reserve the section heading before it exists, so adding a tool cannot move
+   the thinking or tool row the user is already reading (2026-09-05). */
+[data-incipit-activity="thinking"]:is([data-incipit-activity-edge="first"], [data-incipit-activity-edge="only"]) details[data-incipit-thinking]::before,
+[data-incipit-activity="thinking"]:is([data-incipit-activity-edge="first"], [data-incipit-activity-edge="only"]) [data-incipit-thinking-static]::before {
   top: 36px;
 }
 
 /* Group summary: mounted as the first child of the run's first row and pulled
    back to the rail edge like the reference header pill. */
 [data-incipit-activity-header] {
+  position: absolute;
+  top: 4px;
+  left: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   box-sizing: border-box;
-  max-width: calc(100% + var(--incipit-activity-rail));
+  max-width: 100%;
   height: 28px;
-  margin: 0 0 4px calc(-1 * var(--incipit-activity-rail));
+  margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -886,7 +890,13 @@
   overflow: hidden;
 }
 [data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header="1"] {
-  grid-template-rows: auto 0fr;
+  padding-top: 32px !important;
+}
+[data-incipit-activity-preparing] { display: none !important; }
+[data-incipit-activity-entering] { animation: incipit-activity-enter var(--incipit-fold-duration) var(--incipit-fold-easing) both; }
+@keyframes incipit-activity-enter {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
 }
 [data-incipit-message][data-incipit-activity-collapsed] > :not([data-incipit-activity-header]) {
   visibility: hidden;
@@ -1217,6 +1227,13 @@ details[data-incipit-thinking][data-incipit-thinking-closing="1"] > [data-incipi
   outline: var(--ink-markdown-root-focus-visible-outline);
   outline-offset: 2px;
   border-radius: 2px;
+}
+[data-incipit-message] a[data-incipit-file-reference="unavailable"],
+[data-incipit-markdown-root] a[data-incipit-file-reference="unavailable"] {
+  background-image: none !important;
+  background-color: transparent !important;
+  cursor: text;
+  outline: none;
 }
 
 /* ============================================================
@@ -2265,6 +2282,7 @@ pre.incipit-mermaid-source {
    prevents non-diff modals (settings dialog etc.) from picking up
    diff-flavoured colours. */
 :where(
+  [data-incipit-diff-island],
   [data-incipit-write-diff],
   [data-incipit-write-diff-modal-content],
   [class*="diffEditorWrapper"],
@@ -7110,7 +7128,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   font-size: var(--incipit-body-size, 13px) !important;
   line-height: 1.55;
 }
-[data-incipit-tool-toggle] {
+[data-incipit-tool-row] {
   display: inline-flex;
   align-items: flex-start;
   gap: 0 6px;
@@ -7128,8 +7146,14 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   cursor: pointer;
   transition: color 180ms ease;
 }
-[data-incipit-tool-toggle]:hover,
-[data-incipit-tool-toggle]:focus-visible { color: var(--ink-text-primary); }
+[data-incipit-tool-row]:hover,
+[data-incipit-tool-row]:focus-within { color: var(--ink-text-primary); }
+[data-incipit-tool-toggle] { display: inline-flex; align-items: flex-start; gap: 6px; flex: 0 0 auto; max-width: 45%; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: start; cursor: inherit; }
+[data-incipit-tool-toggle]:disabled { opacity: 1; cursor: default; }
+[data-incipit-tool-toggle] [data-incipit-tool-label] { flex-shrink: 1; }
+[data-incipit-tool-file-link] { display: inline-flex; min-width: 0; flex: 0 1 auto; padding: 0; margin: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: start; }
+button[data-incipit-tool-file-link] { cursor: pointer; background-image: var(--ink-tool-file-link-image); background-size: 7px 2px; background-repeat: repeat-x; background-position: 0 100%; }
+button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file-link-focus-visible-outline); outline-offset: 2px; }
 [data-incipit-tool-toggle]:focus-visible { outline: var(--ink-tool-toggle-focus-visible-outline); outline-offset: 2px; }
 [data-incipit-tool-use][data-incipit-tool-expandable="false"] [data-incipit-tool-toggle] { cursor: default; }
 [data-incipit-tool-use][data-incipit-tool-expandable="false"] [data-incipit-tool-toggle]:hover { color: inherit; }
@@ -7155,7 +7179,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   background-color: var(--ink-surface-message-canvas);
 }
 [data-incipit-tool-icon] svg { display: block; width: 16px; height: 16px; }
-[data-incipit-tool-toggle]:hover [data-incipit-tool-icon] { color: var(--ink-text-primary); }
+[data-incipit-tool-row]:hover [data-incipit-tool-icon] { color: var(--ink-text-primary); }
 [data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon] svg { display: none; }
 [data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon]::before {
   content: "";
@@ -7178,7 +7202,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-tool-subject="text"] { display: block; text-overflow: ellipsis; }
 [data-incipit-tool-subject="text"] > [data-incipit-tool-filename-stem] { display: inline; overflow: visible; white-space: inherit; }
 /* An open row shows its whole description in place instead of a second copy. */
-[data-incipit-tool-toggle][aria-expanded="true"] [data-incipit-tool-subject="text"] { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+[data-incipit-tool-row][data-incipit-expanded="true"] [data-incipit-tool-subject="text"] { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
 [data-incipit-tool-filename-stem] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 [data-incipit-tool-filename-extension] { flex: 0 0 auto; }
 [data-incipit-tool-counts] { display: inline-flex; flex: 0 0 auto; gap: 5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -7193,9 +7217,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   -webkit-mask-size: 14px 14px;
   mask-size: 14px 14px;
 }
-[data-incipit-tool-toggle]:hover [data-incipit-tool-chevron],
-[data-incipit-tool-toggle]:focus-visible [data-incipit-tool-chevron],
-[data-incipit-tool-toggle][aria-expanded="true"] [data-incipit-tool-chevron] { opacity: 0.9; }
+[data-incipit-tool-row]:hover [data-incipit-tool-chevron],
+[data-incipit-tool-row]:focus-within [data-incipit-tool-chevron],
+[data-incipit-tool-row][data-incipit-expanded="true"] [data-incipit-tool-chevron] { opacity: 0.9; }
 [data-incipit-tool-use][data-incipit-tool-expandable="false"] [data-incipit-tool-chevron] { display: none; }
 @media (hover: none) {
   [data-incipit-tool-heading] [data-incipit-tool-chevron] { opacity: 0.9; }

@@ -443,6 +443,8 @@
   --ink-title-group-shadow: inset 0 -1px 0 rgba(0,0,0,0.55);
   --ink-tool-added-fg-override: #2f8c3a;
   --ink-tool-added-hover-fg-override: #1c9c1c;
+  --ink-tool-file-link-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
+  --ink-tool-file-link-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-tool-filepath-hover-bg: rgba(194,196,199,0.22);
   --ink-tool-filepath-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-tool-fingerprint-aux-fg: #93959a;
@@ -456,6 +458,7 @@
   --ink-tool-removed-hover-fg-override: #c92626;
   --ink-tool-summary-fg: #aaaaab;
   --ink-tool-summary-hover-fg-override: inherit;
+  --ink-tool-toggle-focus-visible-fg-override: #0d0d0d;
   --ink-tool-toggle-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
   --ink-tool-use-border: 1px solid rgba(255,255,255,0.16);
   --ink-tool-use-border-override: rgba(0,0,0,0.16);

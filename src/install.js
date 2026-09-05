@@ -55,6 +55,7 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'enhance_thinking.js'),    'enhance_thinking.js'],
   [path.join('data', 'enhance_typography.js'),  'enhance_typography.js'],
   [path.join('data', 'syntax_highlight.js'),     'syntax_highlight.js'],
+  [path.join('data', 'file_reference.js'),       'file_reference.js'],
   [path.join('data', 'mermaid_render.js'),      'mermaid_render.js'],
   [path.join('data', 'enhance_legacy.js'),      'enhance_legacy.js'],
   [path.join('data', 'host_probe.js'),           'host_probe.js'],

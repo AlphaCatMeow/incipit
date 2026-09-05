@@ -959,7 +959,6 @@ function assertRuntimeSourceContracts() {
       !legacy.includes("data-incipit-path-tooltip-copy") &&
       !legacy.includes("data-incipit-path-tooltip-more") &&
       legacy.includes('file links in assistant markdown should') &&
-      legacy.includes('opener.open(info.filePath, info.location || undefined)') &&
       legacy.includes("document.body.addEventListener('contextmenu', handleTipContextMenu, true)") &&
       legacy.includes('function openTipContextMenu(hit, evt)') &&
       legacy.includes('function requestResolvedFilePaths(info)') &&
