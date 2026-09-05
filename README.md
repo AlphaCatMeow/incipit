@@ -121,7 +121,9 @@ These statistics also read local transcript files only. They do not upload proje
 
 ## diff
 
-Edit / MultiEdit / Write previews start collapsed behind a compact action and filename. Expand a tool to see its historical patch with surrounding context, line numbers, and separate change sections in one scrollable preview. `Full diff` opens a searchable view with access to every changed line. Colors follow the selected theme, and long filenames shorten to fit without hiding their identity.
+Tool calls read as an activity list in the manner of claude.ai: a glyph column with a connector line, tense-aware rows such as `Edited tool_cards.js +3 −2` or `Ran command`, interim notes as dots, and a group summary (`Read 7 files, edited 5 files · 2 notes`) that collapses a whole run. Carets appear on hover, a running tool blinks in the glyph column, and a failed one turns red.
+
+Edit / MultiEdit / Write previews start collapsed on their row. Expand a tool to see its historical patch with surrounding context, line numbers, whole-line change tints, and separate change sections in one scrollable viewport; a footer line carries notices, paging, and `Full diff`, which opens a searchable view with access to every changed line. Colors follow the selected theme, and long filenames shorten to fit without hiding their identity.
 
 Historical context comes from the saved tool result. When it is unavailable, the preview identifies the known replacement fragments or requested contents instead of guessing from today's file. Large views render in pages and reuse bounded diff caches. The conversation, compact markers, change review, and composer share a reading column that adapts from a narrow sidebar to a wide editor panel.
 

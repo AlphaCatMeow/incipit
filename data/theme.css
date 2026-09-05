@@ -12,6 +12,10 @@
   --ink-action-dropdown-separator-bg: rgba(245,242,232,0.10);
   --ink-action-dropdown-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
   --ink-active-border-bottom: #d97757;
+  --ink-activity-after-bg: rgba(245,242,232,0.16);
+  --ink-activity-before-bg: #9c9c9a;
+  --ink-activity-before-border: 3px solid #1e1e1e;
+  --ink-activity-header-focus-visible-outline: 1px solid rgba(217,119,87,0.6);
   --ink-add-bar: #3fb950;
   --ink-add-char-bg: #2ea04366;
   --ink-add-fg: #7cb27c;
@@ -227,6 +231,7 @@
   --ink-diff-shadow: rgba(0, 0, 0, 0.28);
   --ink-diff-surface: #1f1f1e;
   --ink-diff-text: #f0eee8;
+  --ink-diff-viewport-focus-visible-outline: 1px solid rgba(217,119,87,0.6);
   --ink-disabled-fg: rgba(255,255,255,0.45);
   --ink-disabled-hover-fg: rgba(255,255,255,0.45);
   --ink-disabled-hover-fg-2: rgba(217,119,87,0.92);
@@ -442,11 +447,13 @@
   --ink-tool-grep-expansion-border: 1px solid rgba(255,255,255,0.16);
   --ink-tool-grep-filename-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
   --ink-tool-grep-more-fg: #9c9c9a;
+  --ink-tool-icon-before-bg: #f8f8f6;
   --ink-tool-out-more-fg: #9c9c9a;
   --ink-tool-removed-fg-override: #b24740;
   --ink-tool-removed-hover-fg-override: #c92626;
   --ink-tool-summary-fg: #9c9c9a;
   --ink-tool-summary-hover-fg-override: inherit;
+  --ink-tool-toggle-focus-visible-outline: 1px solid rgba(217,119,87,0.6);
   --ink-tool-use-border: 1px solid rgba(255,255,255,0.16);
   --ink-tool-use-border-override: rgba(0,0,0,0.16);
   --ink-tool-use-border-top: 1px solid rgba(255,255,255,0.10);
@@ -647,8 +654,15 @@
   --incipit-code-font: 'Rec Mono Linear', 'Noto Sans SC',
                'Microsoft YaHei UI', 'Microsoft YaHei',
                Consolas, Monaco, 'Courier New', monospace;
-  --incipit-conversation-column-width: 780px;
+  /* 46 body-size ems: the reading measure of claude.ai's transcript column
+     (48rem minus its 1rem side insets), so the line length stays constant
+     when the configured body size changes. */
+  --incipit-conversation-column-width: calc(var(--incipit-body-size, 13px) * 46);
   --incipit-conversation-gutter: clamp(12px, 3vw, 32px);
+  /* Activity rows: 20px glyph column plus 10px gap; glyph centre sits one
+     row padding (4px) plus half a 1.55 line (10px) below the 4px row inset. */
+  --incipit-activity-rail: 30px;
+  --incipit-activity-glyph-top: 18px;
 }
 
 /* ============================================================
@@ -710,14 +724,161 @@
   padding-inline: 0 !important;
   overflow-wrap: anywhere;
 }
-[data-incipit-message]::before,
-[data-incipit-message]::after {
+/* The host timeline dot and connector are replaced by the activity rail
+   below; prose rows carry neither. */
+[data-incipit-message]:not([data-incipit-activity])::before,
+[data-incipit-message]:not([data-incipit-activity])::after,
+[data-incipit-message][data-incipit-activity="tool"]::before,
+[data-incipit-message][data-incipit-activity="thinking"]::before {
   display: none !important;
   content: none !important;
 }
 [data-incipit-user-message-container] > [data-incipit-user-bubble] {
   margin-inline-start: auto !important;
   margin-inline-end: 0 !important;
+}
+
+/* ============================================================
+   Activity rail.
+
+   Turns are host flex columns of message rows. `activity_groups.js` stamps
+   `data-incipit-activity` (tool | thinking | note) and an edge position on
+   consecutive rows; CSS draws the reference activity list: a 20px glyph
+   column inside a 30px inset, a 1px connector between glyphs, a dot for
+   interim notes, and a summary header inside the first row of a run. No
+   host node moves; every mark is an attribute or a pseudo-element.
+   ============================================================ */
+[data-incipit-message][data-incipit-activity] {
+  position: relative !important;
+  padding: 4px 0 4px var(--incipit-activity-rail) !important;
+}
+[data-incipit-message][data-incipit-activity]::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 9.5px !important;
+  width: 1px !important;
+  height: auto !important;
+  opacity: 1 !important;
+  background-color: var(--ink-activity-after-bg) !important;
+  pointer-events: none;
+}
+[data-incipit-message][data-incipit-activity-edge="first"]::after {
+  top: var(--incipit-activity-glyph-top) !important;
+}
+[data-incipit-message][data-incipit-activity-edge="first"][data-incipit-activity-has-header="1"]::after {
+  top: calc(var(--incipit-activity-glyph-top) + 32px) !important;
+}
+[data-incipit-message][data-incipit-activity-edge="last"]::after {
+  bottom: 4px !important;
+}
+[data-incipit-message][data-incipit-activity-edge="only"]::after,
+[data-incipit-message][data-incipit-activity-collapsed]::after {
+  display: none !important;
+}
+
+/* Interim notes: assistant prose between tools, shown as a dot and muted text.
+   The host dot pseudo-element is reused, so its status colors and blink are
+   overridden here. */
+[data-incipit-message][data-incipit-activity="note"]::before {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  box-sizing: content-box !important;
+  left: 3px !important;
+  top: 8px !important;
+  width: 8px !important;
+  height: 8px !important;
+  border: var(--ink-activity-before-border);
+  border-radius: 50% !important;
+  background-color: var(--ink-activity-before-bg) !important;
+  animation: none !important;
+  z-index: 1;
+}
+/* A group header above the first row pushes its glyph down by the header
+   height plus its gap (28px + 4px). */
+[data-incipit-message][data-incipit-activity="note"][data-incipit-activity-has-header="1"]::before {
+  top: 40px !important;
+}
+[data-incipit-activity="thinking"][data-incipit-activity-has-header="1"] details[data-incipit-thinking]::before {
+  top: 36px;
+}
+[data-incipit-message][data-incipit-activity="note"] [data-incipit-markdown-root] {
+  color: var(--ink-text-secondary);
+}
+[data-incipit-message][data-incipit-activity="note"] [data-incipit-markdown-root] > p {
+  margin: 0.35em 0 !important;
+}
+
+/* Group summary: mounted as the first child of the run's first row and pulled
+   back to the rail edge like the reference header pill. */
+[data-incipit-activity-header] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  max-width: calc(100% + var(--incipit-activity-rail));
+  height: 28px;
+  margin: 0 0 4px calc(-1 * var(--incipit-activity-rail));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink-text-tool-secondary);
+  font-family: var(--incipit-body-font);
+  font-size: calc(var(--incipit-body-size, 13px) - 1px);
+  line-height: 20px;
+  text-align: start;
+  cursor: pointer;
+}
+[data-incipit-activity-header]:hover,
+[data-incipit-activity-header]:focus-visible {
+  color: var(--ink-text-primary);
+}
+[data-incipit-activity-header]:focus-visible {
+  outline: var(--ink-activity-header-focus-visible-outline);
+  outline-offset: 2px;
+}
+[data-incipit-activity-header-text] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-incipit-activity-header-caret] {
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  background-color: currentColor;
+  opacity: 0;
+  transform: rotate(90deg);
+  transition: opacity 150ms ease, transform 150ms ease;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 12px 12px;
+  mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: 12px 12px;
+}
+[data-incipit-activity-header]:hover [data-incipit-activity-header-caret],
+[data-incipit-activity-header]:focus-visible [data-incipit-activity-header-caret] {
+  opacity: 0.9;
+}
+[data-incipit-activity-header][aria-expanded="false"] [data-incipit-activity-header-caret] {
+  transform: none;
+}
+/* Collapsed run: the header row keeps only its header; the other rows hide. */
+[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header="1"]) {
+  display: none !important;
+}
+[data-incipit-message][data-incipit-activity-collapsed] > :not([data-incipit-activity-header]) {
+  display: none !important;
+}
+@media (hover: none) {
+  [data-incipit-activity-header-caret] { opacity: 0.9; }
 }
 
 /* ============================================================
@@ -743,34 +904,86 @@
 
 /* The host's thinking SVG is re-rendered during streaming and can drift out
    of sync with the frozen `<details>` state, so hide it and render our own
-   arrow from a stable pseudo-element instead. */
+   caret from a stable pseudo-element instead. The row follows the activity
+   vocabulary: glyph in the rail, 12px caret only on hover, focus or open. */
 details[data-incipit-thinking] > summary[data-incipit-thinking-summary] svg[data-incipit-thinking-toggle] {
   display: none !important;
 }
-details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after {
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary] {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 4px 0;
+  line-height: 1.55;
+}
+[data-incipit-activity="thinking"] details[data-incipit-thinking] {
+  position: relative;
+}
+/* Canvas-colored patch behind the glyph so the rail line stops around it. */
+[data-incipit-activity="thinking"] details[data-incipit-thinking]::before {
   content: "";
-  display: inline-block;
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
+  position: absolute;
+  left: calc(-1 * var(--incipit-activity-rail));
+  top: 4px;
+  width: 20px;
+  height: 20px;
+  background-color: var(--ink-surface-message-canvas);
+  pointer-events: none;
+}
+[data-incipit-activity="thinking"] details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::before {
+  content: "";
+  display: block;
+  position: relative;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 1.55em;
+  margin-left: calc(-1 * var(--incipit-activity-rail));
+  margin-right: 4px;
   background-color: currentColor;
-  opacity: 0.92;
-  transform-origin: 50% 50%;
-  transition: transform 0.15s ease;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  opacity: 0.9;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z' fill='black'/%3E%3Cpath d='M18.5 14.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z' fill='black'/%3E%3C/svg%3E");
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: 16px 16px;
-  mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z' fill='black'/%3E%3Cpath d='M18.5 14.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z' fill='black'/%3E%3C/svg%3E");
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: 16px 16px;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after {
+  content: "";
+  display: block;
+  flex: 0 0 12px;
+  width: 12px;
+  height: 12px;
+  background-color: currentColor;
+  opacity: 0;
+  transform-origin: 50% 50%;
+  transition: opacity 150ms ease, transform 0.15s ease;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 12px 12px;
+  mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: 12px 12px;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:hover::after,
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible::after,
+details[data-incipit-thinking][open] > summary[data-incipit-thinking-summary]::after {
+  opacity: 0.9;
 }
 details[data-incipit-thinking][open] > summary[data-incipit-thinking-summary]::after {
   transform: rotate(90deg);
 }
 details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summary]::after {
   transform: none;
+}
+@media (hover: none) {
+  details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after { opacity: 0.9; }
 }
 
 
@@ -6795,9 +7008,19 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   stroke: none !important;
 }
 
-/* Tool headings are owned only after a validated host record is available. */
+/* ============================================================
+   Tool rows (incipit heading).
+
+   Owned only after a validated host record is available. The host summary,
+   and for file tools the host body and its "Modified" secondary line, hide
+   behind incipit's own row. The row follows the reference activity list:
+   glyph in the rail column, body face, tense-aware label plus basename or
+   description, counts, a caret only on hover or focus, expansion below.
+   ============================================================ */
 [data-incipit-tool-headline="1"] [class*="toolSummary"],
-[data-incipit-file-tool="1"] [class*="toolBody_"] {
+[data-incipit-file-tool="1"] [class*="toolBody_"],
+[data-incipit-tool-headline="1"] > [class*="secondaryLine_"],
+[data-incipit-tool-headline="1"] > :not([class*="toolBody_"]) > [class*="secondaryLine_"] {
   display: none !important;
 }
 [data-incipit-tool-headline="1"] {
@@ -6808,104 +7031,191 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-tool-heading] {
   min-width: 0;
   width: 100%;
-  color: var(--app-secondary-foreground);
+  color: var(--ink-text-tool-secondary);
+  font-family: var(--incipit-body-font) !important;
+  font-size: var(--incipit-body-size, 13px) !important;
+  line-height: 1.55;
 }
 [data-incipit-tool-toggle] {
-  display: grid;
-  grid-template-columns: 16px auto minmax(0, 1fr) auto auto 14px;
-  align-items: center;
-  gap: 7px;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0 6px;
   box-sizing: border-box;
-  width: 100%;
+  max-width: 100%;
   min-width: 0;
-  padding: 5px 0;
+  margin: 0;
+  padding: 4px 0;
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
   text-align: start;
+  vertical-align: top;
   cursor: pointer;
 }
-[data-incipit-tool-toggle]:hover { color: var(--app-primary-foreground); }
-[data-incipit-tool-label] {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 12em;
-  white-space: nowrap;
+[data-incipit-tool-toggle]:hover,
+[data-incipit-tool-toggle]:focus-visible { color: var(--ink-text-primary); }
+[data-incipit-tool-toggle]:focus-visible { outline: var(--ink-tool-toggle-focus-visible-outline); outline-offset: 2px; }
+[data-incipit-tool-use][data-incipit-tool-expandable="false"] [data-incipit-tool-toggle] { cursor: default; }
+[data-incipit-tool-use][data-incipit-tool-expandable="false"] [data-incipit-tool-toggle]:hover { color: inherit; }
+
+/* Glyph slot. Inside an activity row it moves into the rail column and paints
+   the canvas color behind itself so the connector stops around the icon. */
+[data-incipit-tool-icon] {
+  position: relative;
+  display: flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 1.55em;
+  color: var(--ink-text-tool-secondary);
+  opacity: 0.9;
 }
-[data-incipit-tool-subject] { display: flex; min-width: 0; overflow: hidden; }
+[data-incipit-activity] [data-incipit-tool-icon] {
+  margin-left: calc(-1 * var(--incipit-activity-rail));
+  margin-right: 4px;
+  background-color: var(--ink-surface-message-canvas);
+}
+[data-incipit-tool-icon] svg { display: block; width: 16px; height: 16px; }
+[data-incipit-tool-toggle]:hover [data-incipit-tool-icon] { color: var(--ink-text-primary); }
+[data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon] svg { display: none; }
+[data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--ink-tool-icon-before-bg);
+  animation: incipit-activity-blink 1s linear infinite;
+}
+@keyframes incipit-activity-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+[data-incipit-tool-use][data-incipit-tool-state="error"] [data-incipit-tool-icon],
+[data-incipit-tool-use][data-incipit-tool-state="error"] [data-incipit-tool-state] { color: var(--app-error-foreground); }
+
+[data-incipit-tool-label] { flex: 0 0 auto; max-width: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-incipit-tool-subject] { display: flex; flex: 0 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; }
+[data-incipit-tool-subject][hidden] { display: none; }
+[data-incipit-tool-subject="text"] { display: block; text-overflow: ellipsis; }
+[data-incipit-tool-subject="text"] > [data-incipit-tool-filename-stem] { display: inline; overflow: visible; white-space: inherit; }
+/* An open row shows its whole description in place instead of a second copy. */
+[data-incipit-tool-toggle][aria-expanded="true"] [data-incipit-tool-subject="text"] { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
 [data-incipit-tool-filename-stem] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 [data-incipit-tool-filename-extension] { flex: 0 0 auto; }
-[data-incipit-tool-icon], [data-incipit-tool-icon] svg { display: block; width: 16px; height: 16px; }
-[data-incipit-tool-heading] [data-incipit-tool-chevron] { display: flex; grid-column: 6; grid-row: 1; transition: transform 180ms ease; }
-[data-incipit-tool-toggle][aria-expanded="true"] [data-incipit-tool-chevron] { transform: rotate(90deg); }
-[data-incipit-tool-counts] { display: inline-flex; gap: 5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-[data-incipit-tool-state] { white-space: nowrap; font-size: .85em; }
-[data-incipit-tool-counts][hidden], [data-incipit-tool-state][hidden],
-[data-incipit-tool-readable-detail][hidden], [data-incipit-tool-error][hidden] { display: none !important; }
-[data-incipit-tool-readable-detail] {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 4px 0 8px 23px;
-  font-family: var(--incipit-code-font);
-  font-size: .9em;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
+[data-incipit-tool-counts] { display: inline-flex; flex: 0 0 auto; gap: 5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+[data-incipit-tool-fingerprint-text] { flex: 0 1 auto; min-width: 0; max-width: 22em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.8; }
+[data-incipit-tool-state] { flex: 0 0 auto; white-space: nowrap; }
+[data-incipit-tool-heading] [data-incipit-tool-chevron] {
+  flex: 0 0 12px;
+  width: 12px;
+  height: 1.55em;
+  opacity: 0;
+  transition: opacity 150ms ease, transform 0.15s ease;
+  -webkit-mask-size: 12px 12px;
+  mask-size: 12px 12px;
 }
-[data-incipit-tool-full-text] { min-width: 0; flex: 1; }
-[data-incipit-tool-original-name] { color: var(--app-secondary-foreground); font-size: .9em; }
-[data-incipit-tool-detail-row] { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; width: 100%; min-width: 0; }
-[data-incipit-tool-open-file] {
-  border: 0; padding: 2px 0; background: transparent; color: inherit; font: inherit; cursor: pointer;
+[data-incipit-tool-toggle]:hover [data-incipit-tool-chevron],
+[data-incipit-tool-toggle]:focus-visible [data-incipit-tool-chevron],
+[data-incipit-tool-toggle][aria-expanded="true"] [data-incipit-tool-chevron] { opacity: 0.9; }
+[data-incipit-tool-use][data-incipit-tool-expandable="false"] [data-incipit-tool-chevron] { display: none; }
+@media (hover: none) {
+  [data-incipit-tool-heading] [data-incipit-tool-chevron] { opacity: 0.9; }
 }
-[data-incipit-tool-error] { color: var(--app-error-foreground); white-space: pre-wrap; overflow-wrap: anywhere; padding: 5px 0; }
-[data-incipit-tool-state="error"] [data-incipit-tool-state] { color: var(--app-error-foreground); }
+[data-incipit-tool-counts][hidden], [data-incipit-tool-state][hidden], [data-incipit-tool-fingerprint-text][hidden],
+[data-incipit-tool-error][hidden] { display: none !important; }
+[data-incipit-tool-error] {
+  color: var(--app-error-foreground); white-space: pre-wrap; overflow-wrap: anywhere; padding: 2px 0 6px;
+  font-size: calc(var(--incipit-body-size, 13px) - 1px);
+}
 [data-incipit-file-tool-body] { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 220ms ease; }
 [data-incipit-file-tool-body][data-incipit-expanded="1"] { grid-template-rows: 1fr; }
 [data-incipit-file-tool-body][hidden] { display: none !important; }
 [data-incipit-file-tool-inner] { min-height: 0; min-width: 0; overflow: hidden; }
-[data-incipit-file-tool-inner] > [data-incipit-diff-view] { margin: 5px 0 10px; }
+[data-incipit-file-tool-inner] > [data-incipit-diff-view] { margin: 2px 0 8px; }
 
-/* Diff viewport geometry is shared by previews and the complete view. */
-[data-incipit-diff-view], [data-incipit-diff-dialog] { border: 1px solid var(--incipit-diff-border); }
-[data-incipit-diff-view] [data-incipit-diff-header],
-[data-incipit-diff-dialog] [data-incipit-diff-header] { height: auto; min-height: 32px; pointer-events: auto; padding: 5px 9px; }
-[data-incipit-diff-view] button, [data-incipit-diff-dialog] button {
-  color: inherit; font: inherit; font-size: 12px; cursor: pointer;
-  background: transparent; border: 0; padding: 3px 5px; border-radius: 3px;
+/* ============================================================
+   Diff preview.
+
+   The tool row already names the file and carries the counts, so the preview
+   is one bordered code viewport plus a single footer line for the notice,
+   paging and the complete view. Rows keep the island vocabulary: whole-line
+   green/red backgrounds, a 3px edge bar, restrained line numbers, and
+   character-level tints on paired replacements.
+   ============================================================ */
+[data-incipit-diff-view] {
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  background-color: transparent;
+  box-shadow: none;
 }
-[data-incipit-diff-view] button:hover, [data-incipit-diff-dialog] button:hover { background: var(--incipit-diff-button-bg-hover); }
-[data-incipit-diff-view] button:disabled, [data-incipit-diff-dialog] button:disabled { opacity: .5; cursor: default; }
-[data-incipit-diff-view] [data-incipit-diff-title],
-[data-incipit-diff-dialog] [data-incipit-diff-title] { flex: 1 1 auto; min-width: 0; text-align: start; }
-[data-incipit-diff-full], [data-incipit-diff-close] { flex: 0 0 auto; white-space: nowrap; }
-[data-incipit-diff-counts][hidden] { display: none !important; }
 [data-incipit-diff-viewport] {
   box-sizing: border-box;
   max-height: min(20em, 50vh);
   overflow: auto;
+  border: 1px solid var(--incipit-diff-border);
+  border-radius: 6px;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: var(--incipit-diff-scrollbar-thumb) var(--incipit-diff-scrollbar-track-y);
   background: var(--incipit-diff-surface);
 }
 [data-incipit-diff-viewport]:hover { scrollbar-color: var(--incipit-diff-scrollbar-thumb-hover) var(--incipit-diff-scrollbar-track-y); }
-[data-incipit-diff-viewport] [data-incipit-diff-island-body] { width: max-content; min-width: 100%; overflow: visible; }
-[data-incipit-diff-viewport] [data-incipit-diff-island-row] { grid-template-columns: 42px 16px minmax(0, 1fr); min-height: 1.55em; }
+[data-incipit-diff-viewport]:focus-visible { outline: var(--ink-diff-viewport-focus-visible-outline); outline-offset: 1px; }
+[data-incipit-diff-viewport] [data-incipit-diff-island-body] { width: max-content; min-width: 100%; overflow: visible; padding: 3px 0; }
+[data-incipit-diff-viewport] [data-incipit-diff-island-row] { grid-template-columns: 40px 14px minmax(0, 1fr); min-height: 1.55em; }
+[data-incipit-diff-viewport] [data-incipit-diff-island-row="add"] { background: var(--incipit-diff-add-line) !important; box-shadow: inset 3px 0 0 var(--incipit-diff-add-bar); }
+[data-incipit-diff-viewport] [data-incipit-diff-island-row="del"] { background: var(--incipit-diff-del-line) !important; box-shadow: inset 3px 0 0 var(--incipit-diff-del-bar); }
 [data-incipit-diff-viewport] [data-incipit-diff-island-pre] { grid-column: 3; min-height: 1.55em; }
-[data-incipit-diff-sign] { user-select: none; color: var(--incipit-diff-muted); }
-[data-incipit-diff-gap] { grid-column: 1 / -1; padding: 6px 10px; border-block: 1px solid var(--incipit-diff-divider); font: .9em/1.6 var(--incipit-code-font); }
-[data-incipit-diff-eof] { display: block; color: var(--incipit-diff-muted); font-size: .9em; }
+[data-incipit-diff-sign] { user-select: none; text-align: center; color: var(--incipit-diff-muted); }
+[data-incipit-diff-island-row="add"] [data-incipit-diff-sign] { color: var(--incipit-diff-add-fg); }
+[data-incipit-diff-island-row="del"] [data-incipit-diff-sign] { color: var(--incipit-diff-del-fg); }
+[data-incipit-diff-gap] { grid-column: 1 / -1; padding: 3px 10px; color: var(--incipit-diff-muted); font: 11px/1.6 var(--incipit-code-font); }
+[data-incipit-diff-eof] { display: inline-block; margin-left: 8px; color: var(--incipit-diff-muted); font-size: .85em; user-select: none; }
 [data-incipit-diff-match] { outline: 1px solid var(--incipit-diff-header-text); outline-offset: -1px; }
-[data-incipit-diff-pages] { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 5px 8px; border-top: 1px solid var(--incipit-diff-divider); color: var(--incipit-diff-muted); font-size: 11px; }
-[data-incipit-diff-pages][hidden], [data-incipit-diff-notice][hidden], [data-incipit-diff-retry][hidden] { display: none !important; }
-[data-incipit-diff-notice], [data-incipit-diff-empty] { padding: 10px; color: var(--incipit-diff-muted); font: 12px/1.5 var(--incipit-body-font); overflow-wrap: anywhere; }
-[data-incipit-diff-retry] { margin: 0 8px 8px; }
-[data-incipit-diff-state="loading"] [data-incipit-diff-preview-content] { min-height: 64px; }
+[data-incipit-diff-footer] {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 3px 2px 0;
+  color: var(--incipit-diff-muted);
+  font: 11px/1.6 var(--incipit-body-font);
+}
+[data-incipit-diff-footer] [data-incipit-diff-notice] { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-incipit-diff-pages] { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+[data-incipit-diff-full] { margin-left: auto; }
+[data-incipit-diff-view] [data-incipit-diff-footer] button {
+  flex: 0 0 auto; margin: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer;
+  text-decoration: underline dotted; text-underline-offset: 3px; white-space: nowrap;
+}
+[data-incipit-diff-view] [data-incipit-diff-footer] [data-incipit-diff-full] { margin-left: auto; }
+[data-incipit-diff-view] [data-incipit-diff-footer] button:hover { color: var(--incipit-diff-header-text); }
+[data-incipit-diff-view] [data-incipit-diff-footer] button:disabled { opacity: .5; cursor: default; text-decoration: none; }
+[data-incipit-diff-pages][hidden], [data-incipit-diff-notice][hidden], [data-incipit-diff-retry][hidden],
+[data-incipit-diff-full][hidden], [data-incipit-diff-counts][hidden] { display: none !important; }
+[data-incipit-diff-empty] { padding: 6px 10px; border: 1px solid var(--incipit-diff-border); border-radius: 6px; color: var(--incipit-diff-muted); font: 12px/1.5 var(--incipit-body-font); }
 [data-incipit-diff-state="error"] [data-incipit-diff-notice],
 [data-incipit-diff-state="permission"] [data-incipit-diff-notice] { color: var(--incipit-diff-del-fg); }
+
+/* Complete view: a modal with its own header, path, search toolbar and footer. */
+[data-incipit-diff-dialog] { border: 1px solid var(--incipit-diff-border); }
+[data-incipit-diff-dialog] [data-incipit-diff-header] { height: auto; min-height: 32px; pointer-events: auto; padding: 5px 9px; }
+[data-incipit-diff-dialog] button {
+  color: inherit; font: inherit; font-size: 12px; cursor: pointer;
+  background: transparent; border: 0; padding: 3px 5px; border-radius: 3px;
+}
+[data-incipit-diff-dialog] button:hover { background: var(--incipit-diff-button-bg-hover); }
+[data-incipit-diff-dialog] button:disabled { opacity: .5; cursor: default; }
+[data-incipit-diff-dialog] [data-incipit-diff-title] { flex: 1 1 auto; min-width: 0; text-align: start; }
+[data-incipit-diff-close] { flex: 0 0 auto; white-space: nowrap; }
+[data-incipit-diff-dialog] [data-incipit-diff-viewport] { border: 0; border-radius: 0; }
+[data-incipit-diff-dialog] [data-incipit-diff-notice] { padding: 6px 10px; color: var(--incipit-diff-muted); font: 12px/1.5 var(--incipit-body-font); overflow-wrap: anywhere; }
+[data-incipit-diff-dialog] [data-incipit-diff-footer] { padding: 5px 10px; border-top: 1px solid var(--incipit-diff-divider); }
+[data-incipit-diff-dialog] [data-incipit-diff-footer]:empty { display: none; }
 [data-incipit-diff-dialog] {
   box-sizing: border-box;
   position: fixed;
@@ -6932,11 +7242,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-diff-search-status] { font-size: 11px; }
 
 @media (max-width: 380px) {
-  [data-incipit-tool-state] { grid-column: 2 / 6; grid-row: 2; }
   [data-incipit-tool-label] { max-width: 8em; }
   [data-incipit-diff-dialog] { width: calc(100vw - 16px); max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
 }
 @media (prefers-reduced-motion: reduce) {
   [data-incipit-file-tool-body], [data-incipit-tool-body], [data-incipit-tool-grep-expansion],
-  [data-incipit-tool-heading] [data-incipit-tool-chevron] { transition: none; }
+  [data-incipit-tool-heading] [data-incipit-tool-chevron], [data-incipit-activity-header-caret],
+  details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after { transition: none; }
+  [data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon]::before { animation: none; opacity: 0.7; }
 }

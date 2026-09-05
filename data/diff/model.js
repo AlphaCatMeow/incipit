@@ -330,7 +330,9 @@ export async function buildDiffModel(payload, options = {}) {
       if (!edit || typeof edit.oldText !== 'string' || typeof edit.newText !== 'string') throw new TypeError('Invalid independent edit.');
       if (i) rows.push({ ...makeRow('gap', 'Separate replacement', null, null), separate: true });
       const part = await retainContext(await snapshotRows(edit.oldText, edit.newText, work), context, work);
-      for (const row of part) { rows.push({ ...row, oldLine: null, newLine: null }); if (work.due()) await work.yield(); }
+      // Replacement fragments are not files, so a missing trailing newline is
+      // not an end-of-file fact worth marking.
+      for (const row of part) { rows.push({ ...row, oldLine: null, newLine: null, noNewline: false }); if (work.due()) await work.yield(); }
     }
   } else {
     if (typeof payload.oldText !== 'string' || typeof payload.newText !== 'string') throw new TypeError('A verified text pair or structured patch is required.');

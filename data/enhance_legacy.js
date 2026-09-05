@@ -11,6 +11,7 @@ import { initLegacyUserBubble } from './legacy/user_bubble.js';
 import { initLegacyDeferredNext } from './legacy/deferred_next.js';
 import { initLegacyAskRefinement } from './legacy/ask_refinement.js';
 import { initToolCards, enhanceToolCard, sweepToolCards } from './tool_cards.js';
+import { initActivityGroups, markActivityDirty, scanActivityTurns } from './activity_groups.js';
 import { showDiffPayload } from './diff/view.js';
 import {
   conversationIsBusy as kernelConversationIsBusy,
@@ -7897,6 +7898,7 @@ import {
       getApi: getIncipitVsCodeApi,
       getIdentity: () => ({ sessionId: getActiveSessionId(), cwd: getActiveSessionCwd() }),
     });
+    initActivityGroups();
     // Animated expand / collapse for the tool body. Drives the transition
     // by writing `inline max-height` from `scrollHeight` so the curve runs
     // the full natural distance — a fixed CSS `max-height` cap would let
@@ -10258,9 +10260,11 @@ import {
     // chevron) toggles the fold.
     function decorateToolUse(el) {
       // Path truncation runs regardless of fiber/status — it is a pure
-      // display concern and should apply to failed / pending calls too.
+      // display concern and should apply to failed / pending calls too. Once
+      // the incipit heading owns the row the host summary is hidden, so its
+      // spans are left alone.
       const summary = el.querySelector('[class*="toolSummary"]');
-      if (summary) {
+      if (summary && el.dataset.incipitToolHeadline !== '1') {
         summary
           .querySelectorAll('[class*="toolNameTextSecondary"], [class*="filePath"]')
           .forEach(truncatePathSpan);
@@ -10278,17 +10282,20 @@ import {
         ? readToolResult(grepData.block, el) : null;
       const ownsFile = enhanceToolCard(el, grepData && { ...grepData, result }, {
         summary,
+        estimateStats: estimateToolStats,
         onNativeChange: () => { pendingToolUseRoots.add(el); scheduleRescan(); },
         language: grepData ? languageClassForFilePath(firstToolPathForDisplay(grepData.block)).replace(/^language-/, '') : 'plaintext',
-        openFile: filePath => {
-          const opener = readHostFileOpener(el);
-          if (!opener) throw new Error('The host file opener is unavailable.');
-          opener.open(filePath);
-        },
         toggle: () => {
           const targets = [el.querySelector('[class*="toolBody_"]'), el.querySelector('[data-incipit-tool-grep-expansion]')].filter(Boolean);
           if (el.dataset.incipitToolCollapsed !== 'false') animateExpandTargets(el, targets);
           else animateCollapseTargets(el, targets);
+        },
+        expandable: next => {
+          const toolBody = el.querySelector('[class*="toolBody_"]');
+          if (toolBody && toolBody.children.length) return true;
+          if (el.querySelector('[data-incipit-tool-grep-expansion]')) return true;
+          const input = next.block.input || {};
+          return next.block.name === 'Grep' && typeof input.pattern === 'string' && !!input.pattern;
         },
       });
       if (ownsFile) return;
@@ -10296,7 +10303,8 @@ import {
         reportHealth('tool.diff.identity', 'degraded', { reason: 'The host did not expose a stable file-tool identity.' });
         return;
       }
-      decorateToolFilePaths(el, summary, grepData);
+      const headlineOwned = el.dataset.incipitToolHeadline === '1';
+      if (!headlineOwned) decorateToolFilePaths(el, summary, grepData);
       handleGrepAuxLayout(el, summary, grepData);
       // Grep is fully self-contained inside `handleGrepAuxLayout` — it
       // owns chevron, click handler, expansion div, and animation. The
@@ -10343,6 +10351,10 @@ import {
         const grid = body.querySelector('[class*="toolBodyGrid"]');
         if (grid) applyToolBodyTruncation(grid, data.block.name);
       }
+      // The incipit heading is the row's only fold affordance and the host
+      // summary it replaces is hidden, so the stats, fingerprint and root
+      // click binding below would be dead work.
+      if (headlineOwned) return;
 
       if (el.dataset.incipitToolBound !== '1') {
         el.addEventListener('click', evt => {
@@ -10489,6 +10501,30 @@ import {
       return stats;
     }
 
+    // Line counts that follow exactly from the tool input: Edit and MultiEdit
+    // without replace_all. They show on the row immediately while the
+    // historical patch is fetched; Write counts need the saved original.
+    const estimateCache = new WeakMap();
+    function estimateToolStats(block) {
+      if (!block || !block.input) return null;
+      if (estimateCache.has(block)) return estimateCache.get(block);
+      const input = block.input;
+      let stats = null;
+      if (block.name === 'Edit' && !input.replace_all &&
+          typeof input.old_string === 'string' && typeof input.new_string === 'string') {
+        stats = lineDiffStats(input.old_string, input.new_string);
+      } else if (block.name === 'MultiEdit' && Array.isArray(input.edits) && input.edits.length) {
+        stats = { added: 0, removed: 0 };
+        for (const edit of input.edits) {
+          if (!edit || edit.replace_all || typeof edit.old_string !== 'string' || typeof edit.new_string !== 'string') { stats = null; break; }
+          const part = lineDiffStats(edit.old_string, edit.new_string);
+          stats.added += part.added; stats.removed += part.removed;
+        }
+      }
+      estimateCache.set(block, stats);
+      return stats;
+    }
+
     // `pendingToolUseRoots` stores the actual toolUse elements that need
     // (re)decoration this frame, not arbitrary mutation roots. The mutation
     // handler walks each added subtree to figure out which toolUse(s) are
@@ -10556,6 +10592,22 @@ import {
     // streaming token — a much higher per-mutation cost than this loop,
     // which only walks `addedNodes` and does a single `closest`. The
     // `pendingToolUseRoots` Set keeps the scan amortised per RAF.
+    // Activity groups re-layout a turn only when its row list or a row's set
+    // of blocks changes; streaming text inside a paragraph never qualifies.
+    const ACTIVITY_BLOCKS = '[class*="toolUse_"], details[class*="thinking"], [class*="root_"]';
+    function enqueueActivityChange(mutation, target) {
+      if (!target || !target.matches) return;
+      if (target.matches('[class*="turn_"], [class*="messagesContainer_"]')) {
+        if (mutation.removedNodes && mutation.removedNodes.length) markActivityDirty(target);
+        for (const node of mutation.addedNodes || []) if (node.nodeType === 1) markActivityDirty(node);
+        return;
+      }
+      for (const node of mutation.addedNodes || []) {
+        if (node.nodeType !== 1) continue;
+        if (node.matches(ACTIVITY_BLOCKS) || (node.firstElementChild && node.querySelector(ACTIVITY_BLOCKS))) markActivityDirty(node);
+      }
+    }
+
     const mo = new MutationObserver(muts => {
       let dirty = false;
       let removed = false;
@@ -10572,6 +10624,7 @@ import {
           pendingToolUseRoots.add(ancestor);
           dirty = true;
         }
+        enqueueActivityChange(m, target);
         for (const node of m.addedNodes || []) {
           if (enqueueAffectedToolUses(node, !!ancestor)) dirty = true;
         }
@@ -10590,6 +10643,7 @@ import {
       const initial = initialRoot.querySelectorAll('[class*="toolUse_"]');
       for (const t of initial) pendingToolUseRoots.add(t);
       scheduleRescan();
+      scanActivityTurns(initialRoot);
     }
   }
 

@@ -60,6 +60,7 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'host-badge.cjs'),          'host-badge.cjs'],
   [path.join('data', 'tool-diff-source.cjs'),    'tool-diff-source.cjs'],
   [path.join('data', 'tool_cards.js'),           'tool_cards.js'],
+  [path.join('data', 'activity_groups.js'),      'activity_groups.js'],
   [path.join('data', 'transcript_layout.js'),    'transcript_layout.js'],
   [path.join('data', 'markdown_preprocess.js'),  'markdown_preprocess.js'],
   [path.join('data', 'math_tokens.js'),         'math_tokens.js'],

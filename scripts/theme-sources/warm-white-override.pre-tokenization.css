@@ -1777,3 +1777,55 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   border-color: rgba(191, 93, 58, 0.65) !important;
   color: rgba(191, 93, 58, 0.95) !important;
 }
+
+/* ---------- Activity rail, tool rows and group headers ----------
+   Same selectors as theme.css; paper canvas behind glyphs, ash text, the
+   light accent for focus rings. */
+[data-incipit-message][data-incipit-activity]::after {
+  background-color: rgba(60,55,40,0.16) !important;
+}
+[data-incipit-message][data-incipit-activity="note"]::before {
+  border: 3px solid #f8f8f6;
+  background-color: #8c897e !important;
+}
+[data-incipit-message][data-incipit-activity="note"] [data-incipit-markdown-root] {
+  color: #797569;
+}
+[data-incipit-activity-header] {
+  color: #8c897e;
+}
+[data-incipit-activity-header]:hover {
+  color: #0d0d0d;
+}
+[data-incipit-activity-header]:focus-visible {
+  color: #0d0d0d;
+  outline: 1px solid rgba(191,93,58,0.6);
+}
+[data-incipit-activity="thinking"] details[data-incipit-thinking]::before {
+  background-color: #f8f8f6;
+}
+[data-incipit-tool-heading] {
+  color: #8c897e;
+}
+[data-incipit-tool-toggle]:hover {
+  color: #0d0d0d;
+}
+[data-incipit-tool-toggle]:focus-visible {
+  color: #0d0d0d;
+  outline: 1px solid rgba(191,93,58,0.6);
+}
+[data-incipit-tool-icon] {
+  color: #8c897e;
+}
+[data-incipit-activity] [data-incipit-tool-icon] {
+  background-color: #f8f8f6;
+}
+[data-incipit-tool-toggle]:hover [data-incipit-tool-icon] {
+  color: #0d0d0d;
+}
+[data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon]::before {
+  background-color: #0d0d0d;
+}
+[data-incipit-diff-viewport]:focus-visible {
+  outline: 1px solid rgba(191,93,58,0.6);
+}

@@ -26,7 +26,7 @@ function updateCounts(node, model) {
   if (!model || model.statsScope !== 'complete' || model.quality === 'coarse') { node.hidden = true; return; }
   node.hidden = false;
   node.append(element('span', 'data-incipit-tool-added', '+' + model.stats.added),
-    element('span', 'data-incipit-tool-removed', '\u2212' + model.stats.removed));
+    element('span', 'data-incipit-tool-removed', '−' + model.stats.removed));
 }
 
 function annotateCharacters(code, row) {
@@ -62,13 +62,13 @@ function renderRow(row, index, language, highlight) {
   line.dataset.incipitDiffRowIndex = String(index);
   if (row.kind === 'gap') {
     const count = row.newSkipped ?? row.oldSkipped;
-    const label = row.text || (Number.isFinite(count) ? count + ' unchanged lines omitted' : 'Unchanged context omitted');
-    line.append(element('span', 'data-incipit-diff-gap', '\u22ef  ' + label));
+    const label = row.text || (Number.isFinite(count) ? count + ' unchanged lines' : 'Unchanged lines');
+    line.append(element('span', 'data-incipit-diff-gap', '⋯ ' + label));
     return line;
   }
   const number = element('span', 'data-incipit-diff-island-number', String((row.kind === 'del' ? row.oldLine : row.newLine) || ''));
   number.setAttribute('aria-hidden', 'true');
-  const sign = element('span', 'data-incipit-diff-sign', row.kind === 'add' ? '+' : row.kind === 'del' ? '\u2212' : '');
+  const sign = element('span', 'data-incipit-diff-sign', row.kind === 'add' ? '+' : row.kind === 'del' ? '−' : '');
   sign.setAttribute('aria-label', row.kind === 'add' ? 'Added' : row.kind === 'del' ? 'Removed' : 'Context');
   const pre = element('pre', 'data-incipit-diff-island-pre');
   const code = element('code', 'data-incipit-diff-island-code');
@@ -80,17 +80,27 @@ function renderRow(row, index, language, highlight) {
   }
   annotateCharacters(code, row);
   pre.appendChild(code);
-  if (row.noNewline) pre.appendChild(element('span', 'data-incipit-diff-eof', ' No newline at end of file'));
+  if (row.noNewline) {
+    const marker = element('span', 'data-incipit-diff-eof', '⏎');
+    marker.title = 'No newline at end of file';
+    marker.setAttribute('aria-label', 'No newline at end of file');
+    pre.appendChild(marker);
+  }
   line.append(number, sign, pre);
   return line;
 }
 
+/**
+ * Rows in one shared vertical/horizontal viewport plus a pager. The pager is
+ * appended to `options.pagerHost` when given, so previews and the complete
+ * view can place it in their own footer line.
+ */
 function createRowViewport(parent, model, options = {}) {
   const viewport = element('div', 'data-incipit-diff-viewport');
   viewport.setAttribute('role', 'region'); viewport.setAttribute('aria-label', 'File diff'); viewport.tabIndex = 0;
   const body = element('div', 'data-incipit-diff-island-body');
   viewport.appendChild(body);
-  const pager = element('div', 'data-incipit-diff-pages');
+  const pager = element('span', 'data-incipit-diff-pages');
   const label = element('span', 'data-incipit-diff-page-label');
   let page = 0;
   let renderGeneration = 0;
@@ -98,7 +108,8 @@ function createRowViewport(parent, model, options = {}) {
   const previous = button('Previous', () => setPage(page - 1), 'data-incipit-diff-page-previous');
   const next = button('Next', () => setPage(page + 1), 'data-incipit-diff-page-next');
   pager.append(previous, label, next);
-  parent.append(viewport, pager);
+  parent.appendChild(viewport);
+  (options.pagerHost || parent).appendChild(pager);
 
   async function setPage(value, targetRow = null) {
     if (disposed) return;
@@ -107,7 +118,7 @@ function createRowViewport(parent, model, options = {}) {
     const token = ++renderGeneration;
     const start = page * PAGE_ROWS, end = Math.min(model.rows.length, start + PAGE_ROWS);
     previous.disabled = page === 0; next.disabled = page === last; pager.hidden = last === 0;
-    label.textContent = (start + 1) + '\u2013' + end + ' of ' + model.rows.length + ' rows';
+    label.textContent = (start + 1) + '–' + end + ' of ' + model.rows.length;
     body.replaceChildren();
     viewport.scrollTop = 0;
     let deadline = performance.now() + 4;
@@ -141,7 +152,7 @@ function createRowViewport(parent, model, options = {}) {
     ready,
     snapshot() { return { page, top: viewport.scrollTop, left: viewport.scrollLeft }; },
     goToRow(index) { return setPage(Math.floor(index / PAGE_ROWS), index); },
-    dispose() { disposed = true; renderGeneration++; },
+    dispose() { disposed = true; renderGeneration++; pager.remove(); },
   };
 }
 
@@ -178,7 +189,6 @@ export function openFullDiff(model, options = {}) {
   const dialog = element('dialog', 'data-incipit-diff-dialog');
   dialog.setAttribute('aria-label', 'File diff: ' + model.filePath);
   dialog.setAttribute('data-incipit-diff-island', '');
-  dialog.setAttribute('data-incipit-write-diff-modal-content', '');
   const header = element('div', 'data-incipit-diff-header');
   header.appendChild(element('span', 'data-incipit-diff-title', basename(model.filePath)));
   const counts = element('span', 'data-incipit-diff-counts'); updateCounts(counts, model); header.appendChild(counts);
@@ -190,14 +200,15 @@ export function openFullDiff(model, options = {}) {
   const searchStatus = element('span', 'data-incipit-diff-search-status'); searchStatus.setAttribute('aria-live', 'polite');
   const notice = element('div', 'data-incipit-diff-notice', model.notice || ''); notice.hidden = !model.notice; notice.setAttribute('aria-live', 'polite');
   const content = element('div', 'data-incipit-diff-full-content');
-  dialog.append(header, fullPath, tools, notice, content);
-  const rows = createRowViewport(content, model, options);
+  const footer = element('div', 'data-incipit-diff-footer');
+  dialog.append(header, fullPath, tools, notice, content, footer);
+  const rows = createRowViewport(content, model, { ...options, pagerHost: footer });
   let searchGeneration = 0, timer = null, matches = [], match = -1, closed = false;
   async function search() {
     const token = ++searchGeneration;
     const needle = find.value.toLowerCase(); matches = []; match = -1;
     if (!needle) { searchStatus.textContent = ''; return; }
-    searchStatus.textContent = 'Searching\u2026';
+    searchStatus.textContent = 'Searching…';
     let deadline = performance.now() + 4;
     for (let i = 0; i < model.rows.length; i++) {
       if (model.rows[i].kind !== 'gap' && model.rows[i].text.toLowerCase().includes(needle)) matches.push(i);
@@ -245,48 +256,50 @@ export function openFullDiff(model, options = {}) {
   return { close };
 }
 
-/** Attach a lazy preview to an incipit-owned body without changing host message state. */
+/**
+ * Attach a lazy preview to an incipit-owned body without changing host message
+ * state. The tool row already names the file and carries the counts, so the
+ * preview is one code viewport plus a footer line for notices, paging and the
+ * complete view.
+ */
 export function createDiffPreview(container, options) {
   container.setAttribute('data-incipit-diff-view', '');
   container.setAttribute('data-incipit-diff-island', '');
-  container.setAttribute('data-incipit-write-diff', '');
-  const header = element('div', 'data-incipit-diff-header');
-  const title = button(basename(options.filePath), () => {
-    try { options.openFile?.(options.filePath); }
-    catch (error) { notice.hidden = false; notice.textContent = error.message || 'The file could not be opened.'; }
-  }, 'data-incipit-diff-title');
-  title.disabled = !options.openFile;
-  title.dataset.incipitToolFullpath = options.filePath;
-  const counts = element('span', 'data-incipit-diff-counts'); counts.hidden = true;
-  let model = null, rowView = null, controller = null, visible = false, disposed = false, generation = 0, savedPosition = null, positionCaptured = false;
-  const complete = button('Full diff', () => { if (model) openFullDiff(model, options); }, 'data-incipit-diff-full'); complete.disabled = true;
-  header.append(title, counts, complete);
-  const notice = element('div', 'data-incipit-diff-notice'); notice.setAttribute('aria-live', 'polite');
-  const retry = button('Retry', () => load(true), 'data-incipit-diff-retry'); retry.hidden = true;
   const content = element('div', 'data-incipit-diff-preview-content');
-  container.replaceChildren(header, notice, retry, content);
+  const footer = element('div', 'data-incipit-diff-footer');
+  const notice = element('span', 'data-incipit-diff-notice'); notice.setAttribute('aria-live', 'polite'); notice.hidden = true;
+  const retry = button('Retry', () => load(true), 'data-incipit-diff-retry'); retry.hidden = true;
+  const complete = button('Full diff', () => { if (model) openFullDiff(model, options); }, 'data-incipit-diff-full'); complete.hidden = true;
+  footer.append(notice, retry, complete);
+  container.replaceChildren(content, footer);
+  let model = null, rowView = null, controller = null, visible = false, disposed = false, generation = 0, savedPosition = null, positionCaptured = false;
+  function setNotice(text) {
+    notice.textContent = text || '';
+    notice.title = text || '';
+    notice.hidden = !text;
+  }
   function showRows() {
     if (!model || rowView) return;
     content.replaceChildren();
-    if (model.rows.length) rowView = createRowViewport(content, model, { ...options, initialState: savedPosition });
+    if (model.rows.length) rowView = createRowViewport(content, model, { ...options, initialState: savedPosition, pagerHost: footer });
     else content.appendChild(element('div', 'data-incipit-diff-empty', 'No text changes.'));
   }
   async function load(refresh = false) {
     if (!visible || disposed || (model && !refresh)) return;
     controller?.abort(); controller = new AbortController();
     const token = ++generation;
-    container.dataset.incipitDiffState = 'loading'; notice.hidden = false; notice.textContent = 'Loading historical diff\u2026'; retry.hidden = true;
+    container.dataset.incipitDiffState = 'loading'; setNotice('Loading…'); retry.hidden = true; complete.hidden = true;
     try {
       const next = await options.loadModel({ signal: controller.signal, refresh });
       if (disposed || !visible || generation !== token) return;
       model = next; rowView?.dispose(); rowView = null; showRows();
-      updateCounts(counts, model); options.onStats?.(model.statsScope === 'complete' && model.quality !== 'coarse' ? model.stats : null);
-      notice.textContent = model.notice || ''; notice.hidden = !model.notice;
-      container.dataset.incipitDiffState = 'ready'; complete.disabled = false;
+      options.onStats?.(model.statsScope === 'complete' && model.quality !== 'coarse' ? model.stats : null);
+      setNotice(model.notice || '');
+      container.dataset.incipitDiffState = 'ready'; complete.hidden = false;
     } catch (error) {
       if (error.name === 'AbortError' || disposed || generation !== token) return;
       container.dataset.incipitDiffState = error.code === 'permission-denied' ? 'permission' : 'error';
-      notice.textContent = error.message || 'The historical diff could not be loaded.'; notice.hidden = false; retry.hidden = false;
+      setNotice(error.message || 'The historical diff could not be loaded.'); retry.hidden = false;
     }
   }
   return {
@@ -299,10 +312,10 @@ export function createDiffPreview(container, options) {
         if (rowView && !positionCaptured) savedPosition = rowView.snapshot();
         positionCaptured = false;
         rowView?.dispose(); rowView = null; content.replaceChildren();
-        model = null; complete.disabled = true;
+        model = null; complete.hidden = true;
       }
     },
-    invalidate() { model = null; savedPosition = null; complete.disabled = true; updateCounts(counts, null); controller?.abort(); generation++; rowView?.dispose(); rowView = null; content.replaceChildren(); if (visible) load(); },
+    invalidate() { model = null; savedPosition = null; complete.hidden = true; controller?.abort(); generation++; rowView?.dispose(); rowView = null; content.replaceChildren(); if (visible) load(); },
     dispose() { disposed = true; generation++; controller?.abort(); rowView?.dispose(); },
   };
 }

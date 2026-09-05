@@ -13,6 +13,10 @@
   --ink-action-dropdown-separator-bg: rgba(251,251,252,0.10);
   --ink-action-dropdown-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
   --ink-active-border-bottom: #c2c4c7;
+  --ink-activity-after-bg: rgba(251,251,252,0.16);
+  --ink-activity-before-bg: #aaaaab;
+  --ink-activity-before-border: 3px solid #0a0b0b;
+  --ink-activity-header-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
   --ink-add-bar: #3fb950;
   --ink-add-char-bg: #2ea04366;
   --ink-add-fg: #7cb27c;
@@ -228,6 +232,7 @@
   --ink-diff-shadow: rgba(0, 0, 0, 0.28);
   --ink-diff-surface: #0a0b0b;
   --ink-diff-text: #fbfbfc;
+  --ink-diff-viewport-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
   --ink-disabled-fg: rgba(255,255,255,0.45);
   --ink-disabled-hover-fg: rgba(255,255,255,0.45);
   --ink-disabled-hover-fg-2: rgba(194,196,199,0.92);
@@ -443,11 +448,13 @@
   --ink-tool-grep-expansion-border: 1px solid rgba(255,255,255,0.16);
   --ink-tool-grep-filename-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-tool-grep-more-fg: #aaaaab;
+  --ink-tool-icon-before-bg: #fbfbfc;
   --ink-tool-out-more-fg: #aaaaab;
   --ink-tool-removed-fg-override: #b24740;
   --ink-tool-removed-hover-fg-override: #c92626;
   --ink-tool-summary-fg: #aaaaab;
   --ink-tool-summary-hover-fg-override: inherit;
+  --ink-tool-toggle-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
   --ink-tool-use-border: 1px solid rgba(255,255,255,0.16);
   --ink-tool-use-border-override: rgba(0,0,0,0.16);
   --ink-tool-use-border-top: 1px solid rgba(255,255,255,0.10);

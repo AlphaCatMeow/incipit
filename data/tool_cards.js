@@ -2,12 +2,27 @@ import { configureDiffSource, fetchToolDiff, clearDiffSource } from './diff/sour
 import { getDiffModel, clearDiffModels } from './diff/client.js';
 import { createDiffPreview, closeFullDiff } from './diff/view.js';
 import { subscribe } from './runtime_kernel.js';
+import { markActivityDirty } from './activity_groups.js';
 
 const controllers = new Map();
 const foldChoices = new Map();
 const FILE_CHANGES = new Set(['Edit', 'MultiEdit', 'Write']);
-const LABELS = { Edit: 'Edit file', MultiEdit: 'Edit file', Write: 'Write file', Read: 'Read file',
-  ReadCoalesced: 'Read files', Bash: 'Run command', Grep: 'Search', Glob: 'Find files', TodoWrite: 'Update tasks' };
+/** Row label per tool as [settled, running, failed]; unknown tools keep their raw name. */
+const LABELS = {
+  Edit: ['Edited', 'Editing', 'Edit'], MultiEdit: ['Edited', 'Editing', 'Edit'], Write: ['Wrote', 'Writing', 'Write'],
+  Read: ['Read', 'Reading', 'Read'], ReadCoalesced: ['Read', 'Reading', 'Read'],
+  Bash: ['Ran command', 'Running command', 'Command'],
+  Grep: ['Searched', 'Searching', 'Search'], Glob: ['Found files', 'Finding files', 'Find files'],
+  WebSearch: ['Searched the web', 'Searching the web', 'Web search'], WebFetch: ['Fetched', 'Fetching', 'Fetch'],
+  TodoWrite: ['Updated tasks', 'Updating tasks', 'Update tasks'],
+  Task: ['Ran agent', 'Running agent', 'Agent'], Agent: ['Ran agent', 'Running agent', 'Agent'],
+  AskUserQuestion: ['Asked a question', 'Asking a question', 'Question'],
+};
+/** Category that activity group summaries count; anything else is "other". */
+const KINDS = {
+  Edit: 'edit', MultiEdit: 'edit', Write: 'edit', Read: 'read', ReadCoalesced: 'read',
+  Bash: 'command', Grep: 'search', Glob: 'search', WebSearch: 'search',
+};
 const ICONS = {
   file: '<path d="M9 2H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V8z"/><path d="M9 2v6h6M6 11h6M6 13h4"/>',
   edit: '<path d="M10 3H4a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-5"/><path d="m9 11-3 1 1-3 7-7 2 2z"/>',
@@ -34,7 +49,7 @@ function node(tag, attr, text) {
 
 function iconFor(name) {
   const icon = FILE_CHANGES.has(name) ? 'edit' : name === 'Bash' ? 'terminal' :
-    ['Read', 'ReadCoalesced'].includes(name) ? 'file' : ['Grep', 'Glob'].includes(name) ? 'search' : 'tool';
+    ['Read', 'ReadCoalesced'].includes(name) ? 'file' : ['Grep', 'Glob', 'WebSearch'].includes(name) ? 'search' : 'tool';
   return '<svg viewBox="0 0 18 18" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICONS[icon] + '</svg>';
 }
 
@@ -51,6 +66,20 @@ function publicState(data) {
   if (['pending', 'running', 'in_progress'].includes(data.status)) return 'running';
   if (data.result || ['success', 'succeeded', 'completed', 'complete', 'ok'].includes(data.status)) return 'complete';
   return 'unknown';
+}
+
+/**
+ * The host writes result fingerprints such as "Found 3 lines" into a
+ * secondaryLine block beside the summary. The row mirrors that text instead of
+ * letting it render as a second line under the heading.
+ */
+function hostFingerprint(root) {
+  for (const candidate of root.querySelectorAll('[class*="secondaryLine_"]')) {
+    if (candidate.closest('[class*="toolBody_"], [data-incipit-tool-heading]')) continue;
+    if (candidate.closest('[class*="toolUse_"]') !== root) continue;
+    return (candidate.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+  return '';
 }
 
 function inputVersion(block) {
@@ -102,77 +131,107 @@ export function initToolCards(options) {
   window.addEventListener('pagehide', () => resetSession(''));
 }
 
-function buildHeadline(root, data, options) {
+function clearRootMarks(root) {
+  delete root.dataset.incipitToolHeadline; delete root.dataset.incipitToolCollapsed; delete root.dataset.incipitToolKind;
+  delete root.dataset.incipitToolName; delete root.dataset.incipitToolId; delete root.dataset.incipitToolExpandable;
+  root.removeAttribute('data-incipit-tool-state');
+}
+
+/**
+ * One activity row: glyph in the rail column, tense-aware action label, basename
+ * or command description, counts, host fingerprint, failure text and a caret
+ * that only shows on hover or focus. Nothing else hangs under the row; the full
+ * path of a single file is reachable through the shared path tooltip.
+ */
+function buildHeadline(root, options) {
   const header = node('div', 'data-incipit-tool-heading');
   const toggle = node('button', 'data-incipit-tool-toggle'); toggle.type = 'button';
   const glyph = node('span', 'data-incipit-tool-icon');
   const label = node('span', 'data-incipit-tool-label');
   const subject = node('span', 'data-incipit-tool-subject');
   const stem = node('span', 'data-incipit-tool-filename-stem');
-  const extension = node('span', 'data-incipit-tool-filename-extension'); subject.append(stem, extension);
+  const extension = node('span', 'data-incipit-tool-filename-extension');
+  subject.append(stem, extension);
   const counts = node('span', 'data-incipit-tool-counts'); counts.hidden = true;
-  const state = node('span', 'data-incipit-tool-state');
+  const fingerprint = node('span', 'data-incipit-tool-fingerprint-text'); fingerprint.hidden = true;
+  const state = node('span', 'data-incipit-tool-state'); state.hidden = true;
   const chevron = node('span', 'data-incipit-tool-chevron');
-  chevron.innerHTML = '<svg viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="m7 4 5 5-5 5"/></svg>';
-  toggle.append(glyph, label, subject, counts, state, chevron); header.appendChild(toggle);
-  const details = node('div', 'data-incipit-tool-readable-detail'); details.hidden = true;
-  header.appendChild(details);
+  toggle.append(glyph, label, subject, counts, fingerprint, state, chevron);
+  header.append(toggle);
   root.insertBefore(header, root.firstChild);
   root.dataset.incipitToolHeadline = '1';
-  let lastName = '', lastSubject = '', lastDetail = '';
-  function update(next) {
+  let lastName = '', lastStatus = '', lastSubject = '';
+  let isOpen = false, expandable = true;
+
+  function sync() {
+    setAttribute(root, 'data-incipit-tool-expandable', String(expandable));
+    if (expandable) setAttribute(toggle, 'aria-expanded', String(isOpen));
+    else toggle.removeAttribute('aria-expanded');
+  }
+
+  function update(next, canExpand) {
     const block = next.block, input = block.input || {};
-    const filePath = input.file_path || input.path || '';
+    const filePath = typeof input.file_path === 'string' ? input.file_path : '';
     const readPaths = block.name === 'ReadCoalesced' && Array.isArray(input.fileReads)
-      ? input.fileReads.map(read => read.file_path || read.path).filter(value => typeof value === 'string') : [];
-    const isFile = typeof filePath === 'string' && !!filePath;
-    const description = isFile ? fileName(filePath) : readPaths.length ? readPaths.map(fileName).join(', ') : String(input.description || input.query || input.pattern ||
+      ? input.fileReads.map(read => read.file_path || read.path).filter(value => typeof value === 'string' && value) : [];
+    const paths = filePath ? [filePath] : readPaths;
+    const isFile = paths.length > 0;
+    const description = isFile ? paths.map(fileName).join(', ') : String(input.description || input.query || input.pattern ||
       (block.name === 'Bash' ? input.command || '' : '') || '').replace(/\s+/g, ' ').trim();
+    const status = publicState(next);
+    const labels = LABELS[block.name];
     if (lastName !== block.name) {
-      lastName = block.name; glyph.innerHTML = iconFor(block.name); label.textContent = LABELS[block.name] || block.name;
+      lastName = block.name;
+      glyph.innerHTML = iconFor(block.name);
+      root.dataset.incipitToolKind = KINDS[block.name] || 'other';
+      root.dataset.incipitToolName = block.name;
+      label.title = labels ? '' : block.name;
     }
+    if (root.dataset.incipitToolId !== block.id) root.dataset.incipitToolId = block.id;
+    const labelText = labels ? labels[status === 'running' ? 1 : status === 'error' ? 2 : 0] : block.name;
+    if (label.textContent !== labelText) label.textContent = labelText;
     if (lastSubject !== description) {
       lastSubject = description;
-      const dot = isFile ? description.lastIndexOf('.') : -1;
+      const dot = paths.length === 1 ? description.lastIndexOf('.') : -1;
       stem.textContent = dot > 0 ? description.slice(0, dot) : description;
       extension.textContent = dot > 0 ? description.slice(dot) : '';
+      subject.hidden = !description;
     }
-    const full = isFile ? filePath : readPaths.length ? readPaths.join('\n') : String(input.command || input.description || input.query || input.pattern || block.name);
-    if (lastDetail !== full) {
-      lastDetail = full;
-      details.replaceChildren();
-      details.appendChild(node('span', 'data-incipit-tool-original-name', block.name));
-      function appendPath(value, canOpen) {
-        const row = node('div', 'data-incipit-tool-detail-row');
-        row.appendChild(node('span', 'data-incipit-tool-full-text', value));
-        details.appendChild(row);
-        if (!canOpen || !options.openFile) return;
-        const open = node('button', 'data-incipit-tool-open-file', 'Open file'); open.type = 'button';
-        open.setAttribute('aria-label', 'Open file: ' + value);
-        open.addEventListener('click', event => {
-          event.stopPropagation();
-          try { options.openFile(value); }
-          catch (error) { row.appendChild(node('span', 'data-incipit-tool-error', error.message || 'The file could not be opened.')); }
-        });
-        row.appendChild(open);
-      }
-      if (readPaths.length) readPaths.forEach(value => appendPath(value, true));
-      else appendPath(full, isFile);
+    setAttribute(subject, 'data-incipit-tool-subject', isFile ? 'file' : 'text');
+    // Single files use the shared path tooltip; everything else falls back to a
+    // native title so truncated text stays reachable.
+    if (paths.length === 1) {
+      if (subject.dataset.incipitToolFullpath !== filePath) subject.dataset.incipitToolFullpath = filePath;
+      if (subject.title) subject.title = '';
+    } else {
+      if (subject.dataset.incipitToolFullpath) delete subject.dataset.incipitToolFullpath;
+      const hover = isFile ? paths.join('\n') : description;
+      if (subject.title !== hover) subject.title = hover;
     }
-    setAttribute(toggle, 'aria-label', (LABELS[block.name] || block.name) + (description ? ': ' + description : ''));
-    const status = publicState(next);
+    setAttribute(toggle, 'aria-label', labelText + (description ? ': ' + description : ''));
     setAttribute(root, 'data-incipit-tool-state', status);
-    const statusText = status === 'running' ? 'Running' : status === 'error' ? 'Failed' : status === 'unknown' ? 'Status unavailable' : '';
+    const statusText = status === 'error' ? 'Failed' : '';
     if (state.textContent !== statusText) state.textContent = statusText;
-    state.hidden = status === 'complete';
+    state.hidden = !statusText;
+    const print = FILE_CHANGES.has(block.name) ? '' : hostFingerprint(root);
+    if (fingerprint.textContent !== print) fingerprint.textContent = print;
+    fingerprint.hidden = !print;
+    expandable = canExpand !== false;
+    sync();
+    if (lastStatus !== status) { lastStatus = status; markActivityDirty(root); }
   }
-  toggle.addEventListener('click', event => { event.stopPropagation(); options.toggle(); });
+
+  toggle.addEventListener('click', event => { event.stopPropagation(); if (expandable) options.toggle(); });
   header.addEventListener('click', event => event.stopPropagation());
-  update(data);
-  return { header, toggle, chevron, details, update, setCounts(stats) {
-    counts.replaceChildren(); counts.hidden = !stats;
-    if (stats) counts.append(node('span', 'data-incipit-tool-added', '+' + stats.added), node('span', 'data-incipit-tool-removed', '\u2212' + stats.removed));
-  } };
+  return {
+    header, toggle,
+    update,
+    setOpen(value) { isOpen = value; sync(); },
+    setCounts(stats) {
+      counts.replaceChildren(); counts.hidden = !stats;
+      if (stats) counts.append(node('span', 'data-incipit-tool-added', '+' + stats.added), node('span', 'data-incipit-tool-removed', '−' + stats.removed));
+    },
+  };
 }
 
 function createFileCard(root, initial, options) {
@@ -183,21 +242,33 @@ function createFileCard(root, initial, options) {
   let open = foldChoices.get(key) === true;
   let disposed = false, closeTimer = null, transitionGeneration = 0, revision = 0;
   let sourcePayload = null, sourcePromise = null, sourceController = null, view = null, sourceKnown = false;
+  // Exact input-derived counts show at once; the historical patch replaces
+  // them when it arrives, and a result that has not been saved yet is polled
+  // with backoff instead of waiting for an unrelated mutation.
+  let provisional = options.estimateStats?.(data.block) || null;
+  let pendingTimer = null, pendingAttempts = 0;
+  const PENDING_RETRY_MS = [400, 800, 1600, 3200, 6400, 12800];
   const body = node('div', 'data-incipit-file-tool-body');
   const inner = node('div', 'data-incipit-file-tool-inner');
   const diff = node('div');
   inner.appendChild(diff); body.appendChild(inner); body.hidden = !open; body.inert = !open;
   root.dataset.incipitFileTool = '1';
   root.dataset.incipitToolCollapsed = String(!open);
-  const headline = buildHeadline(root, data, { toggle: () => setOpen(!open), openFile: options.openFile });
+  const headline = buildHeadline(root, { toggle: () => setOpen(!open) });
   const nativeStateObserver = observeNativeState(root, options.onNativeChange);
   const toolError = node('div', 'data-incipit-tool-error'); toolError.hidden = true;
   root.appendChild(toolError);
   root.appendChild(body);
   const bodyId = 'incipit-tool-preview-' + Math.random().toString(36).slice(2);
   body.id = bodyId; headline.toggle.setAttribute('aria-controls', bodyId);
-  headline.toggle.setAttribute('aria-expanded', String(open));
+  headline.setOpen(open);
+  headline.setCounts(provisional);
   body.addEventListener('click', event => event.stopPropagation());
+
+  function schedulePendingRetry() {
+    if (disposed || pendingTimer || pendingAttempts >= PENDING_RETRY_MS.length) return;
+    pendingTimer = setTimeout(() => { pendingTimer = null; controller.prefetch(); }, PENDING_RETRY_MS[pendingAttempts++]);
+  }
 
   async function loadSource(signal, refresh = false) {
     if (sourcePayload && !refresh) return sourcePayload;
@@ -216,8 +287,8 @@ function createFileCard(root, initial, options) {
         if (payload.state === 'ready') {
           sourceKnown = true;
           if (open) sourcePayload = payload;
-          headline.setCounts(payload.quality === 'coarse' ? null : payload.stats);
-        }
+          headline.setCounts(payload.quality === 'coarse' ? provisional : payload.stats);
+        } else if (payload.state === 'pending') schedulePendingRetry();
         return payload;
       }).finally(() => {
         signal?.removeEventListener('abort', abort);
@@ -228,32 +299,31 @@ function createFileCard(root, initial, options) {
   }
 
   async function loadModel({ signal, refresh }) {
-    if (publicState(data) === 'error') throw new Error('This tool failed; no completed file change is available.');
+    if (publicState(data) === 'error') throw new Error('This tool failed; there is no completed file change.');
     const payload = await loadSource(signal, refresh);
-    if (!payload.ok) throw Object.assign(new Error(payload.error || payload.notice || 'Historical diff unavailable.'), { code: payload.code });
-    if (payload.state === 'pending') throw new Error('The tool result is still being saved. Retry in a moment.');
+    if (!payload.ok) throw Object.assign(new Error(payload.error || payload.notice || 'The historical diff is unavailable.'), { code: payload.code });
+    if (payload.state === 'pending') throw new Error('The result is still being saved. Retry in a moment.');
     if (payload.state !== 'ready') {
       const input = data.block.input;
       const edits = Array.isArray(input.edits) ? input.edits.map(edit => ({ oldText: edit.old_string, newText: edit.new_string })) :
         [{ oldText: input.old_string, newText: input.new_string }];
       if (edits.every(edit => typeof edit.oldText === 'string' && typeof edit.newText === 'string')) {
         return getDiffModel({ source: 'tool-input', filePath: input.file_path, edits, lineNumbers: 'relative',
-          notice: (payload.notice || 'Historical context is unavailable.') + ' Showing the supplied replacement fragments only.' }, { signal });
+          notice: 'No saved context; showing the replacement only.' }, { signal });
       }
       if (data.block.name === 'Write' && typeof input.content === 'string') {
         return getDiffModel({ source: 'tool-input', filePath: input.file_path, proposedText: input.content,
-          notice: (payload.notice || 'The previous contents are unavailable.') + ' Showing the requested contents only; added and removed lines cannot be verified.' }, { signal });
+          notice: 'No saved original; showing the requested contents, so line counts are unverified.' }, { signal });
       }
-      throw new Error(payload.notice || 'The original file snapshot is unavailable. Open the current file to inspect it.');
+      throw new Error('No saved file snapshot. Open the current file to inspect it.');
     }
     return getDiffModel(payload, { key, signal });
   }
 
   function ensureView() {
     if (view) return;
-    view = createDiffPreview(diff, { filePath: data.block.input.file_path, loadModel,
-      openFile: path => options.openFile?.(path), language: options.language,
-      onStats: stats => headline.setCounts(stats) });
+    view = createDiffPreview(diff, { filePath: data.block.input.file_path, loadModel, language: options.language,
+      onStats: stats => headline.setCounts(stats || provisional) });
   }
 
   function setOpen(value) {
@@ -263,10 +333,9 @@ function createFileCard(root, initial, options) {
     clearTimeout(closeTimer);
     if (!value) {
       view?.rememberPosition();
-      if (body.contains(document.activeElement) || headline.details.contains(document.activeElement)) headline.toggle.focus({ preventScroll: true });
+      if (body.contains(document.activeElement)) headline.toggle.focus({ preventScroll: true });
     }
-    headline.toggle.setAttribute('aria-expanded', String(value));
-    headline.details.hidden = !value;
+    headline.setOpen(value);
     root.dataset.incipitToolCollapsed = String(!value);
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (value) {
@@ -298,11 +367,13 @@ function createFileCard(root, initial, options) {
       const nextVersion = inputVersion(next.block);
       if (!sameVersion(version, nextVersion)) {
         version = nextVersion; revision++; sourcePayload = null; sourceKnown = false; sourceController?.abort(); sourcePromise = null;
-        headline.setCounts(null);
+        clearTimeout(pendingTimer); pendingTimer = null; pendingAttempts = 0;
+        provisional = options.estimateStats?.(next.block) || null;
+        headline.setCounts(provisional);
         if (previousPath !== next.block.input.file_path) { view?.dispose(); view = null; diff.replaceChildren(); }
         else view?.invalidate();
       }
-      headline.update(next);
+      headline.update(next, true);
       const failed = publicState(next) === 'error';
       const content = next.result && next.result.content;
       const message = typeof content === 'string' ? content : Array.isArray(content)
@@ -326,12 +397,13 @@ function createFileCard(root, initial, options) {
     },
     dispose() {
       if (disposed) return;
-      disposed = true; revision++; transitionGeneration++; clearTimeout(closeTimer);
+      disposed = true; revision++; transitionGeneration++; clearTimeout(closeTimer); clearTimeout(pendingTimer);
       sourceController?.abort(); view?.dispose(); visibilityObserver?.unobserve(root);
       nativeStateObserver.disconnect();
-      headline.header.remove(); body.remove(); toolError.remove(); delete root.dataset.incipitFileTool; delete root.dataset.incipitToolHeadline;
-      delete root.dataset.incipitToolCollapsed;
+      headline.header.remove(); body.remove(); toolError.remove(); delete root.dataset.incipitFileTool;
+      clearRootMarks(root);
       controllers.delete(root);
+      markActivityDirty(root);
     },
   };
   if (open) setOpen(true);
@@ -339,7 +411,11 @@ function createFileCard(root, initial, options) {
   return controller;
 }
 
-/** Return true only when the recognized file-tool island is completely owned here. */
+/**
+ * Return true only when the recognized file-tool island is completely owned here.
+ * `options.expandable(data)` tells generic rows whether the host body or a grep
+ * expansion gives them anything to open; rows with a file detail always can.
+ */
 export function enhanceToolCard(root, data, options) {
   if (!data?.block || data.block.type !== 'tool_use' || typeof data.block.name !== 'string' || !data.block.name ||
       !data.block.input || typeof data.block.input !== 'object' || Array.isArray(data.block.input) || !options.summary) {
@@ -359,22 +435,27 @@ export function enhanceToolCard(root, data, options) {
   }
   if (!controller) {
     if (!root.dataset.incipitToolCollapsed) root.dataset.incipitToolCollapsed = 'true';
-    const headline = buildHeadline(root, data, { openFile: options.openFile, toggle: () => {
+    const headline = buildHeadline(root, { toggle: () => {
       options.toggle?.();
-      const open = root.dataset.incipitToolCollapsed !== 'true';
-      headline.toggle.setAttribute('aria-expanded', String(open)); headline.details.hidden = !open;
+      headline.setOpen(root.dataset.incipitToolCollapsed !== 'true');
     } });
     const nativeStateObserver = observeNativeState(root, options.onNativeChange);
     controller = {
       kind: 'generic',
       toolId: data.block.id,
       prefetch() {},
-      update(next) { headline.update(next); headline.toggle.setAttribute('aria-expanded', String(root.dataset.incipitToolCollapsed === 'false')); },
-      dispose() { nativeStateObserver.disconnect(); headline.header.remove(); delete root.dataset.incipitToolHeadline; delete root.dataset.incipitToolCollapsed; controllers.delete(root); },
+      update(next) {
+        headline.update(next, options.expandable ? options.expandable(next) : true);
+        headline.setOpen(root.dataset.incipitToolCollapsed === 'false');
+      },
+      dispose() {
+        nativeStateObserver.disconnect(); headline.header.remove(); clearRootMarks(root);
+        controllers.delete(root); markActivityDirty(root);
+      },
     };
     controllers.set(root, controller);
-    headline.toggle.setAttribute('aria-expanded', 'false');
-  } else controller.update(data);
+  }
+  controller.update(data);
   return false;
 }
 
