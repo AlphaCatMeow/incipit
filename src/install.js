@@ -16,6 +16,7 @@ const crypto = require('crypto');
 const vm = require('vm');
 
 const { atomicWrite } = require('./fs-atomic');
+const { patchTranscriptFollow } = require('./webview-scroll');
 const { HOST_BADGE_COMM_ATTACH } = require('./badge-iife');
 const {
   buildInstallManifestPreamble,
@@ -64,6 +65,7 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'tool_cards.js'),           'tool_cards.js'],
   [path.join('data', 'activity_groups.js'),      'activity_groups.js'],
   [path.join('data', 'transcript_layout.js'),    'transcript_layout.js'],
+  [path.join('data', 'transcript_scroll.js'),    'transcript_scroll.js'],
   [path.join('data', 'markdown_preprocess.js'),  'markdown_preprocess.js'],
   [path.join('data', 'math_tokens.js'),         'math_tokens.js'],
   [path.join('data', 'math_rewriter.js'),       'math_rewriter.js'],
@@ -3179,6 +3181,10 @@ function patchWebviewIndex(content, features, theme, language, installContracts 
   const contracts = Array.isArray(installContracts) ? installContracts.slice() : [];
   const record = (name, line, detail = null) =>
     pushInstallContract(contracts, name, line, detail);
+
+  let scrollIntentStatus;
+  [updated, scrollIntentStatus] = patchTranscriptFollow(updated);
+  statusLines.push(record('install.transcriptFollow', scrollIntentStatus));
 
   let markdownStatus;
   [updated, markdownStatus] = patchMarkdownChildren(updated);

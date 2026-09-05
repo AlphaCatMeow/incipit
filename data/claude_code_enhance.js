@@ -1,6 +1,7 @@
 import { preprocessMarkdown } from './markdown_preprocess.js';
 import { startHostProbe } from './host_probe.js';
 import { ensureHighlighter, normalizeLanguage } from './syntax_highlight.js';
+import { initTranscriptScroll } from './transcript_scroll.js';
 import {
   CFG,
   applyAppVarOverrides,
@@ -232,6 +233,7 @@ import {
     reportHealth('bootstrap', 'starting');
     log('Initializing bootstrap (theme, host attrs, app vars)...');
     initRuntimeKernel();
+    initTranscriptScroll();
     ensureDomFreeze();
     applyAppVarOverrides();
     setupAppVarObserver();
