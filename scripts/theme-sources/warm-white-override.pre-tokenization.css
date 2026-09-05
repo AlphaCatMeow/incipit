@@ -244,9 +244,10 @@
    the user's expected "hovered tool row reads as body text" affordance
    went silent. Mirror the dark-palette behaviour by force-lifting both
    the row and every descendant span (tool-name, fingerprint, stats,
-   chevron — anything riding `currentColor`) to ink on hover. Thinking
-   summary intentionally stays at the resting tone because it's not a
-   click target. */
+   chevron — anything riding `currentColor`) to ink on hover. The
+   disclosure-style thinking summary gets the same lift in the activity
+   rail block below; the static thinking block is not a click target and
+   stays at the resting tone. */
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover,
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover * {
   color: #0d0d0d !important;
@@ -1784,13 +1785,6 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 [data-incipit-message][data-incipit-activity]::after {
   background-color: rgba(60,55,40,0.16) !important;
 }
-[data-incipit-message][data-incipit-activity="note"]::before {
-  border: 3px solid #f8f8f6;
-  background-color: #8c897e !important;
-}
-[data-incipit-message][data-incipit-activity="note"] [data-incipit-markdown-root] {
-  color: #797569;
-}
 [data-incipit-activity-header] {
   color: #8c897e;
 }
@@ -1801,8 +1795,16 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   color: #0d0d0d;
   outline: 1px solid rgba(191,93,58,0.6);
 }
-[data-incipit-activity="thinking"] details[data-incipit-thinking]::before {
+[data-incipit-activity="thinking"] details[data-incipit-thinking]::before,
+[data-incipit-activity="thinking"] [data-incipit-thinking-static]::before {
   background-color: #f8f8f6;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:hover,
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
+  color: #0d0d0d !important;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
+  outline: 1px solid rgba(191,93,58,0.6);
 }
 [data-incipit-tool-heading] {
   color: #8c897e;

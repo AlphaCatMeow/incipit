@@ -119,7 +119,7 @@ incipit 会把本地 Claude Code 转录里的编辑活动汇总成项目视角�
 
 ## diff
 
-工具调用按 claude.ai 的活动列表呈现：左侧字形栏与连接线，按时态写的行如 `Edited tool_cards.js +3 −2`、`Ran command`，中间的短评是圆点加灰字，组标题（`Read 7 files, edited 5 files · 2 notes`）可以整组收起。箭头悬浮才出现，进行中的工具在字形位置闪点，失败的变红。
+工具调用按 claude.ai 的活动列表呈现：左侧字形栏与连接线，按时态写的行如 `Edited tool_cards.js +3 −2`、`Ran command`，组标题（`Read 7 files, edited 5 files · 1 failed`）可以把整组连同 thinking 一起收起。Claude 在工具之间说的话保持普通正文，并从那里开始新的一组。箭头悬浮时渐显，进行中的工具在字形位置闪点，失败的变红。
 
 Edit / MultiEdit / Write 的预览默认折叠在各自的行上。点击展开后，可在同一个滚动区域阅读当次历史补丁、上下文、行号、整行的增删底色和多个修改段；脚注一行承载提示、分页与 `Full diff`，后者打开可搜索的完整视图，所有修改行都能到达。颜色沿用所选主题，长文件名按可用空间省略，完整路径通过文件名的悬浮提示取得。
 

@@ -2,8 +2,8 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "8ce52e939966a5747afd917763c87114a0451029ff6b24620aebdd2376372d0d",
-    "warmWhiteSha256": "9e58fc7b32e054428eb80abe7cec8a8927d55f41cd24021994d3295677f2e1b9"
+    "themeSha256": "83b4c1eb5fd4f10b24fd20c42e0ad1da7f5356599c071be5ad5392fab8bb9ebb",
+    "warmWhiteSha256": "c07da96a1a35485b1414615aea252808c5a589b8a513ffcd5b18c05e0d6e59c7"
   },
   "themeSequence": [
     "\u0001@font-face#1\u0001font-family\u0001",
@@ -103,6 +103,8 @@
     "\u0001:root\u0001--incipit-conversation-gutter\u0001",
     "\u0001:root\u0001--incipit-activity-rail\u0001",
     "\u0001:root\u0001--incipit-activity-glyph-top\u0001",
+    "\u0001:root\u0001--incipit-fold-duration\u0001",
+    "\u0001:root\u0001--incipit-fold-easing\u0001",
     "\u0001[data-incipit-messages-container]\u0001position\u0001!",
     "\u0001[data-incipit-messages-container]\u0001background\u0001!",
     "\u0001[data-incipit-messages-container]\u0001background-color\u0001!",
@@ -166,21 +168,25 @@
     "\u0001[data-incipit-message]\u0001overflow-wrap\u0001",
     "\u0001[data-incipit-compact-message]\u0001overflow-wrap\u0001",
     "\u0001[data-incipit-system-message]\u0001overflow-wrap\u0001",
-    "\u0001[data-incipit-message]:not([data-incipit-activity])::before\u0001display\u0001!",
+    "\u0001[data-incipit-message]::before\u0001display\u0001!",
     "\u0001[data-incipit-message]:not([data-incipit-activity])::after\u0001display\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"tool\"]::before\u0001display\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"thinking\"]::before\u0001display\u0001!",
-    "\u0001[data-incipit-message]:not([data-incipit-activity])::before\u0001content\u0001!",
+    "\u0001[data-incipit-message]::before\u0001content\u0001!",
     "\u0001[data-incipit-message]:not([data-incipit-activity])::after\u0001content\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"tool\"]::before\u0001content\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"thinking\"]::before\u0001content\u0001!",
     "\u0001[data-incipit-user-message-container]>[data-incipit-user-bubble]\u0001margin-inline-start\u0001!",
     "\u0001[data-incipit-user-message-container]>[data-incipit-user-bubble]\u0001margin-inline-end\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]\u0001position\u0001!",
+    "\u0001[data-incipit-message][data-incipit-activity]\u0001display\u0001!",
+    "\u0001[data-incipit-message][data-incipit-activity]\u0001grid-template-columns\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity]\u0001grid-template-rows\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity]\u0001justify-items\u0001",
     "\u0001[data-incipit-message][data-incipit-activity]\u0001padding\u0001!",
+    "\u0001[data-incipit-message][data-incipit-activity]>*\u0001min-width\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity]>*\u0001min-height\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows\u0001",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001content\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001display\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001position\u0001!",
+    "\u0001[data-incipit-message][data-incipit-activity]::after\u0001z-index\u0001",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001top\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001bottom\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001left\u0001!",
@@ -194,23 +200,8 @@
     "\u0001[data-incipit-message][data-incipit-activity-edge=\"last\"]::after\u0001bottom\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity-edge=\"only\"]::after\u0001display\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity-collapsed]::after\u0001display\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001content\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001display\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001position\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001box-sizing\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001left\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001top\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001width\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001height\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001border\u0001",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001border-radius\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001background-color\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001animation\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001z-index\u0001",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"][data-incipit-activity-has-header=\"1\"]::before\u0001top\u0001!",
     "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] details[data-incipit-thinking]::before\u0001top\u0001",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"] [data-incipit-markdown-root]\u0001color\u0001",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"] [data-incipit-markdown-root]>p\u0001margin\u0001!",
+    "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] [data-incipit-thinking-static]::before\u0001top\u0001",
     "\u0001[data-incipit-activity-header]\u0001display\u0001",
     "\u0001[data-incipit-activity-header]\u0001align-items\u0001",
     "\u0001[data-incipit-activity-header]\u0001gap\u0001",
@@ -227,6 +218,7 @@
     "\u0001[data-incipit-activity-header]\u0001line-height\u0001",
     "\u0001[data-incipit-activity-header]\u0001text-align\u0001",
     "\u0001[data-incipit-activity-header]\u0001cursor\u0001",
+    "\u0001[data-incipit-activity-header]\u0001transition\u0001",
     "\u0001[data-incipit-activity-header]:hover\u0001color\u0001",
     "\u0001[data-incipit-activity-header]:focus-visible\u0001color\u0001",
     "\u0001[data-incipit-activity-header]:focus-visible\u0001outline\u0001",
@@ -253,8 +245,17 @@
     "\u0001[data-incipit-activity-header]:hover [data-incipit-activity-header-caret]\u0001opacity\u0001",
     "\u0001[data-incipit-activity-header]:focus-visible [data-incipit-activity-header-caret]\u0001opacity\u0001",
     "\u0001[data-incipit-activity-header][aria-expanded=\"false\"] [data-incipit-activity-header-caret]\u0001transform\u0001",
-    "\u0001[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header=\"1\"])\u0001display\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity-collapsed]>:not([data-incipit-activity-header])\u0001display\u0001!",
+    "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001grid-template-rows\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001padding-top\u0001!",
+    "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001padding-bottom\u0001!",
+    "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001overflow\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-collapsed]>:not([data-incipit-activity-header])\u0001visibility\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header=\"1\"])>:nth-child(n+2)\u0001display\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]>:nth-child(n+3)\u0001display\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-animating]\u0001overflow\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-animating]\u0001transition\u0001",
+    "\u0001[data-incipit-message][data-incipit-activity-animating]>*\u0001transition\u0001",
     "@media (hover: none)\u0001[data-incipit-activity-header-caret]\u0001opacity\u0001",
     "\u0001[data-incipit-message]\u0001font-size\u0001",
     "\u0001[data-incipit-message]>[data-incipit-markdown-root]\u0001max-height\u0001!",
@@ -262,39 +263,88 @@
     "\u0001[data-incipit-message]>[data-incipit-markdown-root]\u0001overflow-x\u0001!",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary] svg[data-incipit-thinking-toggle]\u0001display\u0001!",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001display\u0001!",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001display\u0001!",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001align-items\u0001",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001align-items\u0001",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001gap\u0001",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001gap\u0001",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001max-width\u0001",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001max-width\u0001",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001min-width\u0001",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001min-width\u0001",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001padding\u0001",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001padding\u0001",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001line-height\u0001",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001line-height\u0001",
+    "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001color\u0001",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001color\u0001",
+    "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001opacity\u0001!",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001opacity\u0001!",
+    "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001transition\u0001",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001transition\u0001",
+    "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:hover\u0001color\u0001",
+    "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001color\u0001",
+    "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001outline\u0001",
+    "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001outline-offset\u0001",
+    "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001cursor\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]\u0001position\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]\u0001position\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001content\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001content\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001position\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001position\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001z-index\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001z-index\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001left\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001left\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001top\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001top\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001width\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001width\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001height\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001height\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001background-color\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001background-color\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001pointer-events\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001pointer-events\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001content\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001content\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001display\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001display\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001position\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001position\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001z-index\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001z-index\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001flex\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001flex\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001width\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001width\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001height\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001height\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001margin-left\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001margin-left\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001margin-right\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001margin-right\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001background-color\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001background-color\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001opacity\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001opacity\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001-webkit-mask-image\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-image\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001-webkit-mask-repeat\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-repeat\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001-webkit-mask-position\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-position\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001-webkit-mask-size\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-size\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001mask-image\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-image\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001mask-repeat\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-repeat\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001mask-position\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-position\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001mask-size\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-size\u0001",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001content\u0001",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001display\u0001",
     "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001flex\u0001",
@@ -318,6 +368,15 @@
     "\u0001details[data-incipit-thinking][open]>summary[data-incipit-thinking-summary]::after\u0001transform\u0001",
     "\u0001details[data-incipit-thinking]:not([open])>summary[data-incipit-thinking-summary]::after\u0001transform\u0001",
     "@media (hover: none)\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001opacity\u0001",
+    "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001display\u0001",
+    "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001grid-template-rows\u0001",
+    "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001overflow\u0001",
+    "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]>*\u0001min-width\u0001",
+    "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]>*\u0001min-height\u0001",
+    "\u0001details[data-incipit-thinking][data-incipit-thinking-opening=\"1\"]>[data-incipit-thinking-content]\u0001animation\u0001",
+    "\u0001details[data-incipit-thinking][data-incipit-thinking-closing=\"1\"]>[data-incipit-thinking-content]\u0001animation\u0001",
+    "@keyframes incipit-unfold\u0001from\u0001grid-template-rows\u0001",
+    "@keyframes incipit-fold\u0001to\u0001grid-template-rows\u0001",
     "\u0001[data-incipit-markdown-root]>p\u0001width\u0001",
     "\u0001[data-incipit-markdown-root]>ul\u0001width\u0001",
     "\u0001[data-incipit-markdown-root]>ol\u0001width\u0001",
@@ -4629,6 +4688,7 @@
     "\u0001[data-incipit-tool-toggle]\u0001text-align\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001vertical-align\u0001",
     "\u0001[data-incipit-tool-toggle]\u0001cursor\u0001",
+    "\u0001[data-incipit-tool-toggle]\u0001transition\u0001",
     "\u0001[data-incipit-tool-toggle]:hover\u0001color\u0001",
     "\u0001[data-incipit-tool-toggle]:focus-visible\u0001color\u0001",
     "\u0001[data-incipit-tool-toggle]:focus-visible\u0001outline\u0001",
@@ -4636,6 +4696,7 @@
     "\u0001[data-incipit-tool-use][data-incipit-tool-expandable=\"false\"] [data-incipit-tool-toggle]\u0001cursor\u0001",
     "\u0001[data-incipit-tool-use][data-incipit-tool-expandable=\"false\"] [data-incipit-tool-toggle]:hover\u0001color\u0001",
     "\u0001[data-incipit-tool-icon]\u0001position\u0001",
+    "\u0001[data-incipit-tool-icon]\u0001z-index\u0001",
     "\u0001[data-incipit-tool-icon]\u0001display\u0001",
     "\u0001[data-incipit-tool-icon]\u0001flex\u0001",
     "\u0001[data-incipit-tool-icon]\u0001align-items\u0001",
@@ -4644,6 +4705,7 @@
     "\u0001[data-incipit-tool-icon]\u0001height\u0001",
     "\u0001[data-incipit-tool-icon]\u0001color\u0001",
     "\u0001[data-incipit-tool-icon]\u0001opacity\u0001",
+    "\u0001[data-incipit-tool-icon]\u0001transition\u0001",
     "\u0001[data-incipit-activity] [data-incipit-tool-icon]\u0001margin-left\u0001",
     "\u0001[data-incipit-activity] [data-incipit-tool-icon]\u0001margin-right\u0001",
     "\u0001[data-incipit-activity] [data-incipit-tool-icon]\u0001background-color\u0001",
@@ -4753,8 +4815,15 @@
     "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001min-width\u0001",
     "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001overflow\u0001",
     "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001padding\u0001",
+    "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001background\u0001",
     "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row]\u0001grid-template-columns\u0001",
     "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row]\u0001min-height\u0001",
+    "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"ctx\"]\u0001background\u0001",
+    "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"gap\"]\u0001background\u0001",
+    "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre]\u0001background\u0001!",
+    "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre] code\u0001background\u0001!",
+    "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre]\u0001background-color\u0001!",
+    "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre] code\u0001background-color\u0001!",
     "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"add\"]\u0001background\u0001!",
     "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"add\"]\u0001box-shadow\u0001",
     "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"del\"]\u0001background\u0001!",
@@ -4906,6 +4975,9 @@
     "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-file-tool-body]\u0001transition\u0001",
     "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-body]\u0001transition\u0001",
     "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-grep-expansion]\u0001transition\u0001",
+    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]\u0001transition\u0001",
+    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]>*\u0001transition\u0001",
+    "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001animation\u0001",
     "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition\u0001",
     "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-activity-header-caret]\u0001transition\u0001",
     "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001transition\u0001",
@@ -5889,14 +5961,15 @@
     "\u0001.incipit-edit-chip-add:hover\u0001border-color\u0001!",
     "\u0001.incipit-edit-chip-add:hover\u0001color\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity]::after\u0001background-color\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001border\u0001",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001background-color\u0001!",
-    "\u0001[data-incipit-message][data-incipit-activity=\"note\"] [data-incipit-markdown-root]\u0001color\u0001",
     "\u0001[data-incipit-activity-header]\u0001color\u0001",
     "\u0001[data-incipit-activity-header]:hover\u0001color\u0001",
     "\u0001[data-incipit-activity-header]:focus-visible\u0001color\u0001",
     "\u0001[data-incipit-activity-header]:focus-visible\u0001outline\u0001",
     "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001background-color\u0001",
+    "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001background-color\u0001",
+    "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:hover\u0001color\u0001!",
+    "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001color\u0001!",
+    "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001outline\u0001",
     "\u0001[data-incipit-tool-heading]\u0001color\u0001",
     "\u0001[data-incipit-tool-toggle]:hover\u0001color\u0001",
     "\u0001[data-incipit-tool-toggle]:focus-visible\u0001color\u0001",
@@ -6041,12 +6114,22 @@
     {
       "key": "\u0001:root\u0001--incipit-conversation-gutter",
       "important": false,
-      "resolved": "clamp(12px,3vw,32px)"
+      "resolved": "clamp(20px,4vw,32px)"
     },
     {
       "key": "\u0001:root\u0001--incipit-emphasis-font",
       "important": false,
       "resolved": "'Emphasis','Reading','IBM Plex Serif','LXGW WenKai','Kaiti SC','STKaiti','KaiTi',serif"
+    },
+    {
+      "key": "\u0001:root\u0001--incipit-fold-duration",
+      "important": false,
+      "resolved": "220ms"
+    },
+    {
+      "key": "\u0001:root\u0001--incipit-fold-easing",
+      "important": false,
+      "resolved": "cubic-bezier(0.2,0.7,0.2,1)"
     },
     {
       "key": "\u0001:root\u0001--incipit-mermaid-accent",
@@ -15181,7 +15264,7 @@
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001-webkit-mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001background-color",
@@ -15191,12 +15274,12 @@
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001flex",
       "important": false,
-      "resolved": "0 0 12px"
+      "resolved": "0 0 14px"
     },
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001height",
       "important": false,
-      "resolved": "12px"
+      "resolved": "14px"
     },
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001mask-image",
@@ -15216,7 +15299,7 @@
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001opacity",
@@ -15231,12 +15314,12 @@
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001transition",
       "important": false,
-      "resolved": "opacity 150ms ease,transform 150ms ease"
+      "resolved": "opacity 180ms ease,transform 180ms ease"
     },
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001width",
       "important": false,
-      "resolved": "12px"
+      "resolved": "14px"
     },
     {
       "key": "\u0001[data-incipit-activity-header-text]\u0001min-width",
@@ -15374,6 +15457,11 @@
       "resolved": "start"
     },
     {
+      "key": "\u0001[data-incipit-activity-header]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
+    },
+    {
       "key": "\u0001[data-incipit-activity] [data-incipit-tool-icon]\u0001background-color",
       "important": false,
       "resolved": "#1e1e1e"
@@ -15387,6 +15475,151 @@
       "key": "\u0001[data-incipit-activity] [data-incipit-tool-icon]\u0001margin-right",
       "important": false,
       "resolved": "4px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001background-color",
+      "important": false,
+      "resolved": "#1e1e1e"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001content",
+      "important": false,
+      "resolved": "\"\""
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001height",
+      "important": false,
+      "resolved": "20px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001left",
+      "important": false,
+      "resolved": "calc(-1 * 30px)"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001pointer-events",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001position",
+      "important": false,
+      "resolved": "absolute"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001top",
+      "important": false,
+      "resolved": "4px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001width",
+      "important": false,
+      "resolved": "20px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001z-index",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-image",
+      "important": false,
+      "resolved": "url(\"data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z' fill='black'/%3E%3Cpath d='M18.5 14.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z' fill='black'/%3E%3C/svg%3E\")"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-position",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-repeat",
+      "important": false,
+      "resolved": "no-repeat"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-size",
+      "important": false,
+      "resolved": "16px 16px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001background-color",
+      "important": false,
+      "resolved": "currentColor"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001content",
+      "important": false,
+      "resolved": "\"\""
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001flex",
+      "important": false,
+      "resolved": "0 0 20px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001height",
+      "important": false,
+      "resolved": "1.55em"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001margin-left",
+      "important": false,
+      "resolved": "calc(-1 * 30px)"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001margin-right",
+      "important": false,
+      "resolved": "4px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-image",
+      "important": false,
+      "resolved": "url(\"data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z' fill='black'/%3E%3Cpath d='M18.5 14.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z' fill='black'/%3E%3C/svg%3E\")"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-position",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-repeat",
+      "important": false,
+      "resolved": "no-repeat"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-size",
+      "important": false,
+      "resolved": "16px 16px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001opacity",
+      "important": false,
+      "resolved": "0.9"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001position",
+      "important": false,
+      "resolved": "relative"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001width",
+      "important": false,
+      "resolved": "20px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001z-index",
+      "important": false,
+      "resolved": "2"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]\u0001position",
+      "important": false,
+      "resolved": "relative"
     },
     {
       "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001background-color",
@@ -15427,6 +15660,11 @@
       "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001width",
       "important": false,
       "resolved": "20px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001z-index",
+      "important": false,
+      "resolved": "1"
     },
     {
       "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001-webkit-mask-image",
@@ -15519,9 +15757,19 @@
       "resolved": "20px"
     },
     {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001z-index",
+      "important": false,
+      "resolved": "2"
+    },
+    {
       "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]\u0001position",
       "important": false,
       "resolved": "relative"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] [data-incipit-thinking-static]::before\u0001top",
+      "important": false,
+      "resolved": "36px"
     },
     {
       "key": "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] details[data-incipit-thinking]::before\u0001top",
@@ -17366,12 +17614,12 @@
     {
       "key": "\u0001[data-incipit-composer-shell]\u0001left",
       "important": true,
-      "resolved": "clamp(12px,3vw,32px)"
+      "resolved": "clamp(20px,4vw,32px)"
     },
     {
       "key": "\u0001[data-incipit-composer-shell]\u0001right",
       "important": true,
-      "resolved": "calc(clamp(12px,3vw,32px) + 0px)"
+      "resolved": "calc(clamp(20px,4vw,32px) + 0px)"
     },
     {
       "key": "\u0001[data-incipit-composer-wrapper]\u0001box-sizing",
@@ -20189,6 +20437,11 @@
       "resolved": "visible"
     },
     {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
       "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001min-width",
       "important": false,
       "resolved": "100%"
@@ -20239,6 +20492,11 @@
       "resolved": "inset 3px 0 0 var(--incipit-diff-add-bar)"
     },
     {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"ctx\"]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
       "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"del\"]\u0001background",
       "important": true,
       "resolved": "var(--incipit-diff-del-line)"
@@ -20247,6 +20505,11 @@
       "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"del\"]\u0001box-shadow",
       "important": false,
       "resolved": "inset 3px 0 0 var(--incipit-diff-del-bar)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"gap\"]\u0001background",
+      "important": false,
+      "resolved": "transparent"
     },
     {
       "key": "\u0001[data-incipit-diff-viewport]:focus-visible\u0001outline",
@@ -20261,12 +20524,12 @@
     {
       "key": "\u0001[data-incipit-diff-viewport]:hover\u0001scrollbar-color",
       "important": false,
-      "resolved": "var(--incipit-diff-scrollbar-thumb-hover) var(--incipit-diff-scrollbar-track-y)"
+      "resolved": "var(--incipit-diff-scrollbar-thumb-hover) transparent"
     },
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001background",
       "important": false,
-      "resolved": "var(--incipit-diff-surface)"
+      "resolved": "transparent"
     },
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001border",
@@ -20296,7 +20559,7 @@
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-color",
       "important": false,
-      "resolved": "var(--incipit-diff-scrollbar-thumb) var(--incipit-diff-scrollbar-track-y)"
+      "resolved": "var(--incipit-diff-scrollbar-thumb) transparent"
     },
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-gutter",
@@ -20661,7 +20924,7 @@
     {
       "key": "\u0001[data-incipit-file-tool-body]\u0001transition",
       "important": false,
-      "resolved": "grid-template-rows 220ms ease"
+      "resolved": "grid-template-rows 220ms cubic-bezier(0.2,0.7,0.2,1)"
     },
     {
       "key": "\u0001[data-incipit-file-tool-inner]>[data-incipit-diff-view]\u0001margin",
@@ -22979,6 +23242,26 @@
       "resolved": "1.55"
     },
     {
+      "key": "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre] code\u0001background",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre] code\u0001background-color",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre]\u0001background",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre]\u0001background-color",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
       "key": "\u0001[data-incipit-message] p\u0001text-autospace",
       "important": false,
       "resolved": "normal"
@@ -23199,6 +23482,16 @@
       "resolved": "1.55em"
     },
     {
+      "key": "\u0001[data-incipit-message]::before\u0001content",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-message]::before\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
       "key": "\u0001[data-incipit-message]:hover>.incipit-assistant-action-row\u0001opacity",
       "important": false,
       "resolved": "1"
@@ -23219,14 +23512,19 @@
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message]:not([data-incipit-activity])::before\u0001content",
-      "important": true,
-      "resolved": "none"
+      "key": "\u0001[data-incipit-message][data-incipit-activity-animating]>*\u0001transition",
+      "important": false,
+      "resolved": "visibility 220ms"
     },
     {
-      "key": "\u0001[data-incipit-message]:not([data-incipit-activity])::before\u0001display",
-      "important": true,
-      "resolved": "none"
+      "key": "\u0001[data-incipit-message][data-incipit-activity-animating]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-animating]\u0001transition",
+      "important": false,
+      "resolved": "grid-template-rows 220ms cubic-bezier(0.2,0.7,0.2,1),padding-top 220ms cubic-bezier(0.2,0.7,0.2,1),padding-bottom 220ms cubic-bezier(0.2,0.7,0.2,1)"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]::after\u0001display",
@@ -23234,14 +23532,44 @@
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header=\"1\"])\u0001display",
-      "important": true,
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header=\"1\"])>:nth-child(n+2)\u0001display",
+      "important": false,
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]>:not([data-incipit-activity-header])\u0001display",
-      "important": true,
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]>:nth-child(n+3)\u0001display",
+      "important": false,
       "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "auto 0fr"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]>:not([data-incipit-activity-header])\u0001visibility",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "0fr"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001padding-bottom",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001padding-top",
+      "important": true,
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"]::after\u0001top",
@@ -23262,6 +23590,11 @@
       "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"only\"]::after\u0001display",
       "important": true,
       "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "auto 1fr"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity]::after\u0001background-color",
@@ -23319,6 +23652,41 @@
       "resolved": "1px"
     },
     {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]::after\u0001z-index",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]>*\u0001min-height",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]>*\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001display",
+      "important": true,
+      "resolved": "grid"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001grid-template-columns",
+      "important": false,
+      "resolved": "minmax(0,1fr)"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "1fr"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001justify-items",
+      "important": false,
+      "resolved": "stretch"
+    },
+    {
       "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001padding",
       "important": true,
       "resolved": "4px 0 4px 30px"
@@ -23327,106 +23695,6 @@
       "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001position",
       "important": true,
       "resolved": "relative"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"] [data-incipit-markdown-root]>p\u0001margin",
-      "important": true,
-      "resolved": "0.35em 0"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"] [data-incipit-markdown-root]\u0001color",
-      "important": false,
-      "resolved": "#bcbcb9"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001animation",
-      "important": true,
-      "resolved": "none"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001background-color",
-      "important": true,
-      "resolved": "#9c9c9a"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001border",
-      "important": false,
-      "resolved": "3px solid #1e1e1e"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001border-radius",
-      "important": true,
-      "resolved": "50%"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001box-sizing",
-      "important": true,
-      "resolved": "content-box"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001content",
-      "important": true,
-      "resolved": "\"\""
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001display",
-      "important": true,
-      "resolved": "block"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001height",
-      "important": true,
-      "resolved": "8px"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001left",
-      "important": true,
-      "resolved": "3px"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001position",
-      "important": true,
-      "resolved": "absolute"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001top",
-      "important": true,
-      "resolved": "8px"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001width",
-      "important": true,
-      "resolved": "8px"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001z-index",
-      "important": false,
-      "resolved": "1"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"][data-incipit-activity-has-header=\"1\"]::before\u0001top",
-      "important": true,
-      "resolved": "40px"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"thinking\"]::before\u0001content",
-      "important": true,
-      "resolved": "none"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"thinking\"]::before\u0001display",
-      "important": true,
-      "resolved": "none"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"tool\"]::before\u0001content",
-      "important": true,
-      "resolved": "none"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"tool\"]::before\u0001display",
-      "important": true,
-      "resolved": "none"
     },
     {
       "key": "\u0001[data-incipit-message]>[data-incipit-markdown-root]\u0001max-height",
@@ -23581,7 +23849,7 @@
     {
       "key": "\u0001[data-incipit-messages-container]\u0001padding-inline",
       "important": true,
-      "resolved": "clamp(12px,3vw,32px)"
+      "resolved": "clamp(20px,4vw,32px)"
     },
     {
       "key": "\u0001[data-incipit-messages-container]\u0001position",
@@ -25599,6 +25867,61 @@
       "resolved": "100%"
     },
     {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001align-items",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001color",
+      "important": false,
+      "resolved": "#9c9c9a"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001cursor",
+      "important": false,
+      "resolved": "default"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001display",
+      "important": true,
+      "resolved": "inline-flex"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001gap",
+      "important": false,
+      "resolved": "6px"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001line-height",
+      "important": false,
+      "resolved": "1.55"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001max-width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001opacity",
+      "important": true,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001padding",
+      "important": false,
+      "resolved": "4px 0"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
+    },
+    {
       "key": "\u0001[data-incipit-tool-added]\u0001color",
       "important": true,
       "resolved": "#7cb27c"
@@ -26241,12 +26564,12 @@
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001-webkit-mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001flex",
       "important": false,
-      "resolved": "0 0 12px"
+      "resolved": "0 0 14px"
     },
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001height",
@@ -26256,7 +26579,7 @@
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001opacity",
@@ -26266,12 +26589,12 @@
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition",
       "important": false,
-      "resolved": "opacity 150ms ease,transform 0.15s ease"
+      "resolved": "opacity 180ms ease,transform 180ms ease"
     },
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001width",
       "important": false,
-      "resolved": "12px"
+      "resolved": "14px"
     },
     {
       "key": "\u0001[data-incipit-tool-heading]\u0001color",
@@ -26389,9 +26712,19 @@
       "resolved": "relative"
     },
     {
+      "key": "\u0001[data-incipit-tool-icon]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
+    },
+    {
       "key": "\u0001[data-incipit-tool-icon]\u0001width",
       "important": false,
       "resolved": "20px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon]\u0001z-index",
+      "important": false,
+      "resolved": "1"
     },
     {
       "key": "\u0001[data-incipit-tool-label]\u0001flex",
@@ -26839,6 +27172,11 @@
       "resolved": "start"
     },
     {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
+    },
+    {
       "key": "\u0001[data-incipit-tool-toggle]\u0001vertical-align",
       "important": false,
       "resolved": "top"
@@ -27171,7 +27509,7 @@
     {
       "key": "\u0001[data-incipit-tool-use] [data-incipit-tool-body]\u0001transition",
       "important": false,
-      "resolved": "max-height 0.22s ease,margin-top 0.22s ease,margin-bottom 0.22s ease,padding-top 0.22s ease,padding-bottom 0.22s ease"
+      "resolved": "max-height 220ms cubic-bezier(0.2,0.7,0.2,1),margin-top 220ms cubic-bezier(0.2,0.7,0.2,1),margin-bottom 220ms cubic-bezier(0.2,0.7,0.2,1),padding-top 220ms cubic-bezier(0.2,0.7,0.2,1),padding-bottom 220ms cubic-bezier(0.2,0.7,0.2,1)"
     },
     {
       "key": "\u0001[data-incipit-tool-use] [data-incipit-tool-out-clipped=\"1\"]\u0001display",
@@ -29779,6 +30117,11 @@
       "resolved": "0.2"
     },
     {
+      "key": "@keyframes incipit-fold\u0001to\u0001grid-template-rows",
+      "important": false,
+      "resolved": "0fr"
+    },
+    {
       "key": "@keyframes incipit-image-preview-fade\u0001from\u0001opacity",
       "important": false,
       "resolved": "0"
@@ -29797,6 +30140,11 @@
       "key": "@keyframes incipit-inline-edit-fade-in\u0001to\u0001opacity",
       "important": false,
       "resolved": "1"
+    },
+    {
+      "key": "@keyframes incipit-unfold\u0001from\u0001grid-template-rows",
+      "important": false,
+      "resolved": "0fr"
     },
     {
       "key": "@media (hover: none)\u0001[data-incipit-activity-header-caret]\u0001opacity",
@@ -29836,10 +30184,20 @@
     {
       "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-activity-header-caret]\u0001transition",
       "important": false,
-      "resolved": "none"
+      "resolved": "opacity 180ms ease"
     },
     {
       "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-file-tool-body]\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]>*\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]\u0001transition",
       "important": false,
       "resolved": "none"
     },
@@ -29856,7 +30214,7 @@
     {
       "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition",
       "important": false,
-      "resolved": "none"
+      "resolved": "opacity 180ms ease"
     },
     {
       "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001animation",
@@ -29869,9 +30227,14 @@
       "resolved": "0.7"
     },
     {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001transition",
+      "key": "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001animation",
       "important": false,
       "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001transition",
+      "important": false,
+      "resolved": "opacity 180ms ease"
     },
     {
       "key": "\u0001*:not([class*=\"inputContainer_\"]):not([class*=\"inputContainer_\"] *):not([contenteditable]):not([contenteditable] *)\u0001scrollbar-color",
@@ -29889,6 +30252,16 @@
       "resolved": "none"
     },
     {
+      "key": "\u0001details[data-incipit-thinking][data-incipit-thinking-closing=\"1\"]>[data-incipit-thinking-content]\u0001animation",
+      "important": false,
+      "resolved": "incipit-fold 220ms cubic-bezier(0.2,0.7,0.2,1) forwards"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking][data-incipit-thinking-opening=\"1\"]>[data-incipit-thinking-content]\u0001animation",
+      "important": false,
+      "resolved": "incipit-unfold 220ms cubic-bezier(0.2,0.7,0.2,1)"
+    },
+    {
       "key": "\u0001details[data-incipit-thinking][open]>summary[data-incipit-thinking-summary]::after\u0001opacity",
       "important": false,
       "resolved": "0.9"
@@ -29897,6 +30270,31 @@
       "key": "\u0001details[data-incipit-thinking][open]>summary[data-incipit-thinking-summary]::after\u0001transform",
       "important": false,
       "resolved": "rotate(90deg)"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]>*\u0001min-height",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]>*\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001display",
+      "important": false,
+      "resolved": "grid"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "1fr"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary] svg[data-incipit-thinking-toggle]\u0001display",
@@ -29921,7 +30319,7 @@
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001-webkit-mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001background-color",
@@ -29941,12 +30339,12 @@
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001flex",
       "important": false,
-      "resolved": "0 0 12px"
+      "resolved": "0 0 14px"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001height",
       "important": false,
-      "resolved": "12px"
+      "resolved": "14px"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001mask-image",
@@ -29966,7 +30364,7 @@
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001opacity",
@@ -29981,12 +30379,12 @@
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001transition",
       "important": false,
-      "resolved": "opacity 150ms ease,transform 0.15s ease"
+      "resolved": "opacity 180ms ease,transform 180ms ease"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001width",
       "important": false,
-      "resolved": "12px"
+      "resolved": "14px"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible::after\u0001opacity",
@@ -29994,14 +30392,39 @@
       "resolved": "0.9"
     },
     {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001color",
+      "important": false,
+      "resolved": "#f8f8f6"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001outline",
+      "important": false,
+      "resolved": "1px solid rgba(217,119,87,0.6)"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001outline-offset",
+      "important": false,
+      "resolved": "2px"
+    },
+    {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:hover::after\u0001opacity",
       "important": false,
       "resolved": "0.9"
     },
     {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:hover\u0001color",
+      "important": false,
+      "resolved": "#f8f8f6"
+    },
+    {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001align-items",
       "important": false,
       "resolved": "center"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001color",
+      "important": false,
+      "resolved": "#9c9c9a"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001display",
@@ -30029,9 +30452,19 @@
       "resolved": "0"
     },
     {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001opacity",
+      "important": true,
+      "resolved": "1"
+    },
+    {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001padding",
       "important": false,
       "resolved": "4px 0"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
     },
     {
       "key": "\u0001fieldset[class*=\"inputContainer_\"] [class*=\"inputMentionChip\"] *\u0001background",
@@ -30473,12 +30906,22 @@
     {
       "key": "\u0001:root\u0001--incipit-conversation-gutter",
       "important": false,
-      "resolved": "clamp(12px,3vw,32px)"
+      "resolved": "clamp(20px,4vw,32px)"
     },
     {
       "key": "\u0001:root\u0001--incipit-emphasis-font",
       "important": false,
       "resolved": "'Emphasis','Reading','IBM Plex Serif','LXGW WenKai','Kaiti SC','STKaiti','KaiTi',serif"
+    },
+    {
+      "key": "\u0001:root\u0001--incipit-fold-duration",
+      "important": false,
+      "resolved": "220ms"
+    },
+    {
+      "key": "\u0001:root\u0001--incipit-fold-easing",
+      "important": false,
+      "resolved": "cubic-bezier(0.2,0.7,0.2,1)"
     },
     {
       "key": "\u0001:root\u0001--incipit-mermaid-accent",
@@ -39983,7 +40426,7 @@
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001-webkit-mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001background-color",
@@ -39993,12 +40436,12 @@
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001flex",
       "important": false,
-      "resolved": "0 0 12px"
+      "resolved": "0 0 14px"
     },
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001height",
       "important": false,
-      "resolved": "12px"
+      "resolved": "14px"
     },
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001mask-image",
@@ -40018,7 +40461,7 @@
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001opacity",
@@ -40033,12 +40476,12 @@
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001transition",
       "important": false,
-      "resolved": "opacity 150ms ease,transform 150ms ease"
+      "resolved": "opacity 180ms ease,transform 180ms ease"
     },
     {
       "key": "\u0001[data-incipit-activity-header-caret]\u0001width",
       "important": false,
-      "resolved": "12px"
+      "resolved": "14px"
     },
     {
       "key": "\u0001[data-incipit-activity-header-text]\u0001min-width",
@@ -40176,6 +40619,11 @@
       "resolved": "start"
     },
     {
+      "key": "\u0001[data-incipit-activity-header]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
+    },
+    {
       "key": "\u0001[data-incipit-activity] [data-incipit-tool-icon]\u0001background-color",
       "important": false,
       "resolved": "#f8f8f6"
@@ -40189,6 +40637,151 @@
       "key": "\u0001[data-incipit-activity] [data-incipit-tool-icon]\u0001margin-right",
       "important": false,
       "resolved": "4px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001background-color",
+      "important": false,
+      "resolved": "#f8f8f6"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001content",
+      "important": false,
+      "resolved": "\"\""
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001height",
+      "important": false,
+      "resolved": "20px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001left",
+      "important": false,
+      "resolved": "calc(-1 * 30px)"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001pointer-events",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001position",
+      "important": false,
+      "resolved": "absolute"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001top",
+      "important": false,
+      "resolved": "4px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001width",
+      "important": false,
+      "resolved": "20px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]::before\u0001z-index",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-image",
+      "important": false,
+      "resolved": "url(\"data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z' fill='black'/%3E%3Cpath d='M18.5 14.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z' fill='black'/%3E%3C/svg%3E\")"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-position",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-repeat",
+      "important": false,
+      "resolved": "no-repeat"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001-webkit-mask-size",
+      "important": false,
+      "resolved": "16px 16px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001background-color",
+      "important": false,
+      "resolved": "currentColor"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001content",
+      "important": false,
+      "resolved": "\"\""
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001display",
+      "important": false,
+      "resolved": "block"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001flex",
+      "important": false,
+      "resolved": "0 0 20px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001height",
+      "important": false,
+      "resolved": "1.55em"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001margin-left",
+      "important": false,
+      "resolved": "calc(-1 * 30px)"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001margin-right",
+      "important": false,
+      "resolved": "4px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-image",
+      "important": false,
+      "resolved": "url(\"data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z' fill='black'/%3E%3Cpath d='M18.5 14.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z' fill='black'/%3E%3C/svg%3E\")"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-position",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-repeat",
+      "important": false,
+      "resolved": "no-repeat"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001mask-size",
+      "important": false,
+      "resolved": "16px 16px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001opacity",
+      "important": false,
+      "resolved": "0.9"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001position",
+      "important": false,
+      "resolved": "relative"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001width",
+      "important": false,
+      "resolved": "20px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]>[data-incipit-thinking-summary]::before\u0001z-index",
+      "important": false,
+      "resolved": "2"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] [data-incipit-thinking-static]\u0001position",
+      "important": false,
+      "resolved": "relative"
     },
     {
       "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001background-color",
@@ -40229,6 +40822,11 @@
       "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001width",
       "important": false,
       "resolved": "20px"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]::before\u0001z-index",
+      "important": false,
+      "resolved": "1"
     },
     {
       "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001-webkit-mask-image",
@@ -40321,9 +40919,19 @@
       "resolved": "20px"
     },
     {
+      "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::before\u0001z-index",
+      "important": false,
+      "resolved": "2"
+    },
+    {
       "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]\u0001position",
       "important": false,
       "resolved": "relative"
+    },
+    {
+      "key": "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] [data-incipit-thinking-static]::before\u0001top",
+      "important": false,
+      "resolved": "36px"
     },
     {
       "key": "\u0001[data-incipit-activity=\"thinking\"][data-incipit-activity-has-header=\"1\"] details[data-incipit-thinking]::before\u0001top",
@@ -42218,12 +42826,12 @@
     {
       "key": "\u0001[data-incipit-composer-shell]\u0001left",
       "important": true,
-      "resolved": "clamp(12px,3vw,32px)"
+      "resolved": "clamp(20px,4vw,32px)"
     },
     {
       "key": "\u0001[data-incipit-composer-shell]\u0001right",
       "important": true,
-      "resolved": "calc(clamp(12px,3vw,32px) + 0px)"
+      "resolved": "calc(clamp(20px,4vw,32px) + 0px)"
     },
     {
       "key": "\u0001[data-incipit-composer-wrapper]\u0001box-sizing",
@@ -45061,6 +45669,11 @@
       "resolved": "visible"
     },
     {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
       "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-body]\u0001min-width",
       "important": false,
       "resolved": "100%"
@@ -45111,6 +45724,11 @@
       "resolved": "inset 3px 0 0 var(--incipit-diff-add-bar)"
     },
     {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"ctx\"]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
       "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"del\"]\u0001background",
       "important": true,
       "resolved": "var(--incipit-diff-del-line)"
@@ -45119,6 +45737,11 @@
       "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"del\"]\u0001box-shadow",
       "important": false,
       "resolved": "inset 3px 0 0 var(--incipit-diff-del-bar)"
+    },
+    {
+      "key": "\u0001[data-incipit-diff-viewport] [data-incipit-diff-island-row=\"gap\"]\u0001background",
+      "important": false,
+      "resolved": "transparent"
     },
     {
       "key": "\u0001[data-incipit-diff-viewport]:focus-visible\u0001outline",
@@ -45133,12 +45756,12 @@
     {
       "key": "\u0001[data-incipit-diff-viewport]:hover\u0001scrollbar-color",
       "important": false,
-      "resolved": "var(--incipit-diff-scrollbar-thumb-hover) var(--incipit-diff-scrollbar-track-y)"
+      "resolved": "var(--incipit-diff-scrollbar-thumb-hover) transparent"
     },
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001background",
       "important": false,
-      "resolved": "var(--incipit-diff-surface)"
+      "resolved": "transparent"
     },
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001border",
@@ -45168,7 +45791,7 @@
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-color",
       "important": false,
-      "resolved": "var(--incipit-diff-scrollbar-thumb) var(--incipit-diff-scrollbar-track-y)"
+      "resolved": "var(--incipit-diff-scrollbar-thumb) transparent"
     },
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-gutter",
@@ -45533,7 +46156,7 @@
     {
       "key": "\u0001[data-incipit-file-tool-body]\u0001transition",
       "important": false,
-      "resolved": "grid-template-rows 220ms ease"
+      "resolved": "grid-template-rows 220ms cubic-bezier(0.2,0.7,0.2,1)"
     },
     {
       "key": "\u0001[data-incipit-file-tool-inner]>[data-incipit-diff-view]\u0001margin",
@@ -47851,6 +48474,26 @@
       "resolved": "1.55"
     },
     {
+      "key": "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre] code\u0001background",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre] code\u0001background-color",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre]\u0001background",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-message] pre[data-incipit-diff-island-pre]\u0001background-color",
+      "important": true,
+      "resolved": "transparent"
+    },
+    {
       "key": "\u0001[data-incipit-message] p\u0001text-autospace",
       "important": false,
       "resolved": "normal"
@@ -48076,6 +48719,16 @@
       "resolved": "rgba(60,55,40,0.14)"
     },
     {
+      "key": "\u0001[data-incipit-message]::before\u0001content",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-message]::before\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
       "key": "\u0001[data-incipit-message]:hover>.incipit-assistant-action-row\u0001opacity",
       "important": false,
       "resolved": "1"
@@ -48096,14 +48749,19 @@
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message]:not([data-incipit-activity])::before\u0001content",
-      "important": true,
-      "resolved": "none"
+      "key": "\u0001[data-incipit-message][data-incipit-activity-animating]>*\u0001transition",
+      "important": false,
+      "resolved": "visibility 220ms"
     },
     {
-      "key": "\u0001[data-incipit-message]:not([data-incipit-activity])::before\u0001display",
-      "important": true,
-      "resolved": "none"
+      "key": "\u0001[data-incipit-message][data-incipit-activity-animating]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-animating]\u0001transition",
+      "important": false,
+      "resolved": "grid-template-rows 220ms cubic-bezier(0.2,0.7,0.2,1),padding-top 220ms cubic-bezier(0.2,0.7,0.2,1),padding-bottom 220ms cubic-bezier(0.2,0.7,0.2,1)"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]::after\u0001display",
@@ -48111,14 +48769,44 @@
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header=\"1\"])\u0001display",
-      "important": true,
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header=\"1\"])>:nth-child(n+2)\u0001display",
+      "important": false,
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]>:not([data-incipit-activity-header])\u0001display",
-      "important": true,
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]>:nth-child(n+3)\u0001display",
+      "important": false,
       "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "auto 0fr"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]>:not([data-incipit-activity-header])\u0001visibility",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "0fr"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001padding-bottom",
+      "important": true,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-collapsed]\u0001padding-top",
+      "important": true,
+      "resolved": "0"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"first\"]::after\u0001top",
@@ -48139,6 +48827,11 @@
       "key": "\u0001[data-incipit-message][data-incipit-activity-edge=\"only\"]::after\u0001display",
       "important": true,
       "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity-has-header=\"1\"]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "auto 1fr"
     },
     {
       "key": "\u0001[data-incipit-message][data-incipit-activity]::after\u0001background-color",
@@ -48196,6 +48889,41 @@
       "resolved": "1px"
     },
     {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]::after\u0001z-index",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]>*\u0001min-height",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]>*\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001display",
+      "important": true,
+      "resolved": "grid"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001grid-template-columns",
+      "important": false,
+      "resolved": "minmax(0,1fr)"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "1fr"
+    },
+    {
+      "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001justify-items",
+      "important": false,
+      "resolved": "stretch"
+    },
+    {
       "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001padding",
       "important": true,
       "resolved": "4px 0 4px 30px"
@@ -48204,106 +48932,6 @@
       "key": "\u0001[data-incipit-message][data-incipit-activity]\u0001position",
       "important": true,
       "resolved": "relative"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"] [data-incipit-markdown-root]>p\u0001margin",
-      "important": true,
-      "resolved": "0.35em 0"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"] [data-incipit-markdown-root]\u0001color",
-      "important": false,
-      "resolved": "#797569"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001animation",
-      "important": true,
-      "resolved": "none"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001background-color",
-      "important": true,
-      "resolved": "#8c897e"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001border",
-      "important": false,
-      "resolved": "3px solid #f8f8f6"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001border-radius",
-      "important": true,
-      "resolved": "50%"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001box-sizing",
-      "important": true,
-      "resolved": "content-box"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001content",
-      "important": true,
-      "resolved": "\"\""
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001display",
-      "important": true,
-      "resolved": "block"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001height",
-      "important": true,
-      "resolved": "8px"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001left",
-      "important": true,
-      "resolved": "3px"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001position",
-      "important": true,
-      "resolved": "absolute"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001top",
-      "important": true,
-      "resolved": "8px"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001width",
-      "important": true,
-      "resolved": "8px"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"]::before\u0001z-index",
-      "important": false,
-      "resolved": "1"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"note\"][data-incipit-activity-has-header=\"1\"]::before\u0001top",
-      "important": true,
-      "resolved": "40px"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"thinking\"]::before\u0001content",
-      "important": true,
-      "resolved": "none"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"thinking\"]::before\u0001display",
-      "important": true,
-      "resolved": "none"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"tool\"]::before\u0001content",
-      "important": true,
-      "resolved": "none"
-    },
-    {
-      "key": "\u0001[data-incipit-message][data-incipit-activity=\"tool\"]::before\u0001display",
-      "important": true,
-      "resolved": "none"
     },
     {
       "key": "\u0001[data-incipit-message]>[data-incipit-markdown-root]\u0001max-height",
@@ -48458,7 +49086,7 @@
     {
       "key": "\u0001[data-incipit-messages-container]\u0001padding-inline",
       "important": true,
-      "resolved": "clamp(12px,3vw,32px)"
+      "resolved": "clamp(20px,4vw,32px)"
     },
     {
       "key": "\u0001[data-incipit-messages-container]\u0001position",
@@ -50481,6 +51109,61 @@
       "resolved": "100%"
     },
     {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001align-items",
+      "important": false,
+      "resolved": "center"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001color",
+      "important": false,
+      "resolved": "#9c9c9a"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001cursor",
+      "important": false,
+      "resolved": "default"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001display",
+      "important": true,
+      "resolved": "inline-flex"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001gap",
+      "important": false,
+      "resolved": "6px"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001line-height",
+      "important": false,
+      "resolved": "1.55"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001max-width",
+      "important": false,
+      "resolved": "100%"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001opacity",
+      "important": true,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001padding",
+      "important": false,
+      "resolved": "4px 0"
+    },
+    {
+      "key": "\u0001[data-incipit-thinking-static]>[data-incipit-thinking-summary]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
+    },
+    {
       "key": "\u0001[data-incipit-thinking-summary]\u0001color",
       "important": true,
       "resolved": "#8c897e"
@@ -51133,12 +51816,12 @@
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001-webkit-mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001flex",
       "important": false,
-      "resolved": "0 0 12px"
+      "resolved": "0 0 14px"
     },
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001height",
@@ -51148,7 +51831,7 @@
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001opacity",
@@ -51158,12 +51841,12 @@
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition",
       "important": false,
-      "resolved": "opacity 150ms ease,transform 0.15s ease"
+      "resolved": "opacity 180ms ease,transform 180ms ease"
     },
     {
       "key": "\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001width",
       "important": false,
-      "resolved": "12px"
+      "resolved": "14px"
     },
     {
       "key": "\u0001[data-incipit-tool-heading]\u0001color",
@@ -51281,9 +51964,19 @@
       "resolved": "relative"
     },
     {
+      "key": "\u0001[data-incipit-tool-icon]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
+    },
+    {
       "key": "\u0001[data-incipit-tool-icon]\u0001width",
       "important": false,
       "resolved": "20px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-icon]\u0001z-index",
+      "important": false,
+      "resolved": "1"
     },
     {
       "key": "\u0001[data-incipit-tool-label]\u0001flex",
@@ -51731,6 +52424,11 @@
       "resolved": "start"
     },
     {
+      "key": "\u0001[data-incipit-tool-toggle]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
+    },
+    {
       "key": "\u0001[data-incipit-tool-toggle]\u0001vertical-align",
       "important": false,
       "resolved": "top"
@@ -52103,7 +52801,7 @@
     {
       "key": "\u0001[data-incipit-tool-use] [data-incipit-tool-body]\u0001transition",
       "important": false,
-      "resolved": "max-height 0.22s ease,margin-top 0.22s ease,margin-bottom 0.22s ease,padding-top 0.22s ease,padding-bottom 0.22s ease"
+      "resolved": "max-height 220ms cubic-bezier(0.2,0.7,0.2,1),margin-top 220ms cubic-bezier(0.2,0.7,0.2,1),margin-bottom 220ms cubic-bezier(0.2,0.7,0.2,1),padding-top 220ms cubic-bezier(0.2,0.7,0.2,1),padding-bottom 220ms cubic-bezier(0.2,0.7,0.2,1)"
     },
     {
       "key": "\u0001[data-incipit-tool-use] [data-incipit-tool-out-clipped=\"1\"]\u0001display",
@@ -54751,6 +55449,11 @@
       "resolved": "0.2"
     },
     {
+      "key": "@keyframes incipit-fold\u0001to\u0001grid-template-rows",
+      "important": false,
+      "resolved": "0fr"
+    },
+    {
       "key": "@keyframes incipit-image-preview-fade\u0001from\u0001opacity",
       "important": false,
       "resolved": "0"
@@ -54769,6 +55472,11 @@
       "key": "@keyframes incipit-inline-edit-fade-in\u0001to\u0001opacity",
       "important": false,
       "resolved": "1"
+    },
+    {
+      "key": "@keyframes incipit-unfold\u0001from\u0001grid-template-rows",
+      "important": false,
+      "resolved": "0fr"
     },
     {
       "key": "@media (hover: none)\u0001[data-incipit-activity-header-caret]\u0001opacity",
@@ -54808,10 +55516,20 @@
     {
       "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-activity-header-caret]\u0001transition",
       "important": false,
-      "resolved": "none"
+      "resolved": "opacity 180ms ease"
     },
     {
       "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-file-tool-body]\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]>*\u0001transition",
+      "important": false,
+      "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]\u0001transition",
       "important": false,
       "resolved": "none"
     },
@@ -54828,7 +55546,7 @@
     {
       "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition",
       "important": false,
-      "resolved": "none"
+      "resolved": "opacity 180ms ease"
     },
     {
       "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001animation",
@@ -54841,9 +55559,14 @@
       "resolved": "0.7"
     },
     {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001transition",
+      "key": "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001animation",
       "important": false,
       "resolved": "none"
+    },
+    {
+      "key": "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001transition",
+      "important": false,
+      "resolved": "opacity 180ms ease"
     },
     {
       "key": "\u0001*:not([class*=\"inputContainer_\"]):not([class*=\"inputContainer_\"] *):not([contenteditable]):not([contenteditable] *)\u0001scrollbar-color",
@@ -54861,6 +55584,16 @@
       "resolved": "none"
     },
     {
+      "key": "\u0001details[data-incipit-thinking][data-incipit-thinking-closing=\"1\"]>[data-incipit-thinking-content]\u0001animation",
+      "important": false,
+      "resolved": "incipit-fold 220ms cubic-bezier(0.2,0.7,0.2,1) forwards"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking][data-incipit-thinking-opening=\"1\"]>[data-incipit-thinking-content]\u0001animation",
+      "important": false,
+      "resolved": "incipit-unfold 220ms cubic-bezier(0.2,0.7,0.2,1)"
+    },
+    {
       "key": "\u0001details[data-incipit-thinking][open]>summary[data-incipit-thinking-summary]::after\u0001opacity",
       "important": false,
       "resolved": "0.9"
@@ -54869,6 +55602,31 @@
       "key": "\u0001details[data-incipit-thinking][open]>summary[data-incipit-thinking-summary]::after\u0001transform",
       "important": false,
       "resolved": "rotate(90deg)"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]>*\u0001min-height",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]>*\u0001min-width",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001display",
+      "important": false,
+      "resolved": "grid"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001grid-template-rows",
+      "important": false,
+      "resolved": "1fr"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001overflow",
+      "important": false,
+      "resolved": "hidden"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary] svg[data-incipit-thinking-toggle]\u0001display",
@@ -54893,7 +55651,7 @@
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001-webkit-mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001background-color",
@@ -54913,12 +55671,12 @@
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001flex",
       "important": false,
-      "resolved": "0 0 12px"
+      "resolved": "0 0 14px"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001height",
       "important": false,
-      "resolved": "12px"
+      "resolved": "14px"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001mask-image",
@@ -54938,7 +55696,7 @@
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001mask-size",
       "important": false,
-      "resolved": "12px 12px"
+      "resolved": "14px 14px"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001opacity",
@@ -54953,12 +55711,12 @@
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001transition",
       "important": false,
-      "resolved": "opacity 150ms ease,transform 0.15s ease"
+      "resolved": "opacity 180ms ease,transform 180ms ease"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001width",
       "important": false,
-      "resolved": "12px"
+      "resolved": "14px"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible::after\u0001opacity",
@@ -54966,14 +55724,39 @@
       "resolved": "0.9"
     },
     {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001color",
+      "important": true,
+      "resolved": "#0d0d0d"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001outline",
+      "important": false,
+      "resolved": "1px solid rgba(191,93,58,0.6)"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:focus-visible\u0001outline-offset",
+      "important": false,
+      "resolved": "2px"
+    },
+    {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:hover::after\u0001opacity",
       "important": false,
       "resolved": "0.9"
     },
     {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]:hover\u0001color",
+      "important": true,
+      "resolved": "#0d0d0d"
+    },
+    {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001align-items",
       "important": false,
       "resolved": "center"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001color",
+      "important": false,
+      "resolved": "#9c9c9a"
     },
     {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001display",
@@ -55001,9 +55784,19 @@
       "resolved": "0"
     },
     {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001opacity",
+      "important": true,
+      "resolved": "1"
+    },
+    {
       "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001padding",
       "important": false,
       "resolved": "4px 0"
+    },
+    {
+      "key": "\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]\u0001transition",
+      "important": false,
+      "resolved": "color 180ms ease"
     },
     {
       "key": "\u0001fieldset[class*=\"inputContainer_\"] [class*=\"inputMentionChip\"] *\u0001background",

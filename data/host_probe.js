@@ -41,6 +41,7 @@ export const ATTR = Object.freeze({
   thinkingToggle: 'data-incipit-thinking-toggle',
   thinkingContent: 'data-incipit-thinking-content',
   thinkingSummary: 'data-incipit-thinking-summary',
+  thinkingStatic: 'data-incipit-thinking-static',
   toolArgs: 'data-incipit-tool-args',
   toolBody: 'data-incipit-tool-body',
   toolCommand: 'data-incipit-tool-command',
@@ -112,6 +113,10 @@ const STATIC_PROBES = Object.freeze([
   ['[class*="Attachments"]', ATTR.userAttachments],
   ['details[class*="thinking"]', ATTR.thinking],
   ['summary[class*="thinkingSummary"]', ATTR.thinkingSummary],
+  // Empty or redacted thinking renders as a static div with the same summary
+  // class and no disclosure; it joins the activity rail but never toggles.
+  ['div[class*="thinking_"]', ATTR.thinkingStatic],
+  ['div[class*="thinkingSummary"]', ATTR.thinkingSummary],
 ]);
 
 const CSS_ALWAYS_WARMUP_MS = 5000;

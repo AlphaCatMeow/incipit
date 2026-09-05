@@ -10594,7 +10594,7 @@ import {
     // `pendingToolUseRoots` Set keeps the scan amortised per RAF.
     // Activity groups re-layout a turn only when its row list or a row's set
     // of blocks changes; streaming text inside a paragraph never qualifies.
-    const ACTIVITY_BLOCKS = '[class*="toolUse_"], details[class*="thinking"], [class*="root_"]';
+    const ACTIVITY_BLOCKS = '[class*="toolUse_"], [class*="thinking_"], [class*="root_"]';
     function enqueueActivityChange(mutation, target) {
       if (!target || !target.matches) return;
       if (target.matches('[class*="turn_"], [class*="messagesContainer_"]')) {

@@ -187,11 +187,19 @@
      (48rem minus its 1rem side insets), so the line length stays constant
      when the configured body size changes. */
   --incipit-conversation-column-width: calc(var(--incipit-body-size, 13px) * 46);
-  --incipit-conversation-gutter: clamp(12px, 3vw, 32px);
+  /* Side insets once the pane is narrower than the column: never below 20px
+     so a sidebar-width pane keeps air on both sides of the text. */
+  --incipit-conversation-gutter: clamp(20px, 4vw, 32px);
   /* Activity rows: 20px glyph column plus 10px gap; glyph centre sits one
      row padding (4px) plus half a 1.55 line (10px) below the 4px row inset. */
   --incipit-activity-rail: 30px;
   --incipit-activity-glyph-top: 18px;
+  /* One fold curve for every expand/collapse: tool bodies, diff previews,
+     thinking content and activity groups. Height moves on grid tracks or
+     max-height for the duration only; `activity_groups.js` mirrors the
+     duration as FOLD_MS. */
+  --incipit-fold-duration: 220ms;
+  --incipit-fold-easing: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 /* ============================================================
@@ -254,11 +262,9 @@
   overflow-wrap: anywhere;
 }
 /* The host timeline dot and connector are replaced by the activity rail
-   below; prose rows carry neither. */
-[data-incipit-message]:not([data-incipit-activity])::before,
-[data-incipit-message]:not([data-incipit-activity])::after,
-[data-incipit-message][data-incipit-activity="tool"]::before,
-[data-incipit-message][data-incipit-activity="thinking"]::before {
+   below; prose rows carry neither, activity rows draw their own connector. */
+[data-incipit-message]::before,
+[data-incipit-message]:not([data-incipit-activity])::after {
   display: none !important;
   content: none !important;
 }
@@ -271,20 +277,38 @@
    Activity rail.
 
    Turns are host flex columns of message rows. `activity_groups.js` stamps
-   `data-incipit-activity` (tool | thinking | note) and an edge position on
+   `data-incipit-activity` (tool | thinking) and an edge position on
    consecutive rows; CSS draws the reference activity list: a 20px glyph
-   column inside a 30px inset, a 1px connector between glyphs, a dot for
-   interim notes, and a summary header inside the first row of a run. No
-   host node moves; every mark is an attribute or a pseudo-element.
+   column inside a 30px inset, a 1px connector between glyphs, and a summary
+   header inside the first row of a run. Assistant prose between runs stays
+   a normal message. No host node moves; every mark is an attribute or a
+   pseudo-element. Hover feedback fades over 180ms on color and opacity only,
+   so it never triggers layout.
    ============================================================ */
 [data-incipit-message][data-incipit-activity] {
   position: relative !important;
+  /* A one-column grid: the block sits in an fr track that the collapse
+     transition can drive to zero, which a flex column cannot. */
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  justify-items: stretch;
   padding: 4px 0 4px var(--incipit-activity-rail) !important;
 }
+[data-incipit-message][data-incipit-activity] > * {
+  min-width: 0;
+  min-height: 0;
+}
+[data-incipit-message][data-incipit-activity-has-header="1"] {
+  grid-template-rows: auto 1fr;
+}
+/* The connector paints below the glyph slots (z 1) and glyphs (z 2), so every
+   icon interrupts the line instead of being crossed by it. */
 [data-incipit-message][data-incipit-activity]::after {
   content: "" !important;
   display: block !important;
   position: absolute !important;
+  z-index: 0;
   top: 0 !important;
   bottom: 0 !important;
   left: 9.5px !important;
@@ -308,37 +332,11 @@
   display: none !important;
 }
 
-/* Interim notes: assistant prose between tools, shown as a dot and muted text.
-   The host dot pseudo-element is reused, so its status colors and blink are
-   overridden here. */
-[data-incipit-message][data-incipit-activity="note"]::before {
-  content: "" !important;
-  display: block !important;
-  position: absolute !important;
-  box-sizing: content-box !important;
-  left: 3px !important;
-  top: 8px !important;
-  width: 8px !important;
-  height: 8px !important;
-  border: 3px solid #1e1e1e;
-  border-radius: 50% !important;
-  background-color: #9c9c9a !important;
-  animation: none !important;
-  z-index: 1;
-}
 /* A group header above the first row pushes its glyph down by the header
    height plus its gap (28px + 4px). */
-[data-incipit-message][data-incipit-activity="note"][data-incipit-activity-has-header="1"]::before {
-  top: 40px !important;
-}
-[data-incipit-activity="thinking"][data-incipit-activity-has-header="1"] details[data-incipit-thinking]::before {
+[data-incipit-activity="thinking"][data-incipit-activity-has-header="1"] details[data-incipit-thinking]::before,
+[data-incipit-activity="thinking"][data-incipit-activity-has-header="1"] [data-incipit-thinking-static]::before {
   top: 36px;
-}
-[data-incipit-message][data-incipit-activity="note"] [data-incipit-markdown-root] {
-  color: #bcbcb9;
-}
-[data-incipit-message][data-incipit-activity="note"] [data-incipit-markdown-root] > p {
-  margin: 0.35em 0 !important;
 }
 
 /* Group summary: mounted as the first child of the run's first row and pulled
@@ -360,6 +358,7 @@
   line-height: 20px;
   text-align: start;
   cursor: pointer;
+  transition: color 180ms ease;
 }
 [data-incipit-activity-header]:hover,
 [data-incipit-activity-header]:focus-visible {
@@ -376,21 +375,21 @@
   white-space: nowrap;
 }
 [data-incipit-activity-header-caret] {
-  flex: 0 0 12px;
-  width: 12px;
-  height: 12px;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
   background-color: currentColor;
   opacity: 0;
   transform: rotate(90deg);
-  transition: opacity 150ms ease, transform 150ms ease;
+  transition: opacity 180ms ease, transform 180ms ease;
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
-  -webkit-mask-size: 12px 12px;
+  -webkit-mask-size: 14px 14px;
   mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
   mask-repeat: no-repeat;
   mask-position: center;
-  mask-size: 12px 12px;
+  mask-size: 14px 14px;
 }
 [data-incipit-activity-header]:hover [data-incipit-activity-header-caret],
 [data-incipit-activity-header]:focus-visible [data-incipit-activity-header-caret] {
@@ -399,12 +398,36 @@
 [data-incipit-activity-header][aria-expanded="false"] [data-incipit-activity-header-caret] {
   transform: none;
 }
-/* Collapsed run: the header row keeps only its header; the other rows hide. */
-[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header="1"]) {
-  display: none !important;
+/* Collapsed run: the block track closes to zero and the row padding goes with
+   it, so the header row keeps only its header and the other rows take no
+   space. Hidden blocks leave the accessibility tree; a rare second block in
+   the same host row snaps. The transition lives on a transient attribute that
+   `activity_groups.js` sets only around a user toggle, so a row that joins a
+   collapsed run while streaming never animates. */
+[data-incipit-message][data-incipit-activity-collapsed] {
+  grid-template-rows: 0fr;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden;
+}
+[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header="1"] {
+  grid-template-rows: auto 0fr;
 }
 [data-incipit-message][data-incipit-activity-collapsed] > :not([data-incipit-activity-header]) {
-  display: none !important;
+  visibility: hidden;
+}
+[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header="1"]) > :nth-child(n+2),
+[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header="1"] > :nth-child(n+3) {
+  display: none;
+}
+[data-incipit-message][data-incipit-activity-animating] {
+  overflow: hidden;
+  transition: grid-template-rows var(--incipit-fold-duration) var(--incipit-fold-easing),
+              padding-top var(--incipit-fold-duration) var(--incipit-fold-easing),
+              padding-bottom var(--incipit-fold-duration) var(--incipit-fold-easing);
+}
+[data-incipit-message][data-incipit-activity-animating] > * {
+  transition: visibility var(--incipit-fold-duration);
 }
 @media (hover: none) {
   [data-incipit-activity-header-caret] { opacity: 0.9; }
@@ -434,11 +457,15 @@
 /* The host's thinking SVG is re-rendered during streaming and can drift out
    of sync with the frozen `<details>` state, so hide it and render our own
    caret from a stable pseudo-element instead. The row follows the activity
-   vocabulary: glyph in the rail, 12px caret only on hover, focus or open. */
+   vocabulary: glyph in the rail, tool-row grey that lifts to body white on
+   hover, a 14px caret only on hover, focus or open. The static block the
+   host renders for empty thinking shares the layout but has no caret, no
+   hover lift and no pointer cursor, like a non-expandable tool row. */
 details[data-incipit-thinking] > summary[data-incipit-thinking-summary] svg[data-incipit-thinking-toggle] {
   display: none !important;
 }
-details[data-incipit-thinking] > summary[data-incipit-thinking-summary] {
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary],
+[data-incipit-thinking-static] > [data-incipit-thinking-summary] {
   display: inline-flex !important;
   align-items: center;
   gap: 6px;
@@ -446,14 +473,31 @@ details[data-incipit-thinking] > summary[data-incipit-thinking-summary] {
   min-width: 0;
   padding: 4px 0;
   line-height: 1.55;
+  color: #9c9c9a;
+  opacity: 1 !important;
+  transition: color 180ms ease;
 }
-[data-incipit-activity="thinking"] details[data-incipit-thinking] {
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:hover,
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
+  color: #f8f8f6;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
+  outline: 1px solid rgba(217,119,87,0.6);
+  outline-offset: 2px;
+}
+[data-incipit-thinking-static] > [data-incipit-thinking-summary] {
+  cursor: default;
+}
+[data-incipit-activity="thinking"] details[data-incipit-thinking],
+[data-incipit-activity="thinking"] [data-incipit-thinking-static] {
   position: relative;
 }
 /* Canvas-colored patch behind the glyph so the rail line stops around it. */
-[data-incipit-activity="thinking"] details[data-incipit-thinking]::before {
+[data-incipit-activity="thinking"] details[data-incipit-thinking]::before,
+[data-incipit-activity="thinking"] [data-incipit-thinking-static]::before {
   content: "";
   position: absolute;
+  z-index: 1;
   left: calc(-1 * var(--incipit-activity-rail));
   top: 4px;
   width: 20px;
@@ -461,10 +505,12 @@ details[data-incipit-thinking] > summary[data-incipit-thinking-summary] {
   background-color: #1e1e1e;
   pointer-events: none;
 }
-[data-incipit-activity="thinking"] details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::before {
+[data-incipit-activity="thinking"] details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::before,
+[data-incipit-activity="thinking"] [data-incipit-thinking-static] > [data-incipit-thinking-summary]::before {
   content: "";
   display: block;
   position: relative;
+  z-index: 2;
   flex: 0 0 20px;
   width: 20px;
   height: 1.55em;
@@ -484,21 +530,21 @@ details[data-incipit-thinking] > summary[data-incipit-thinking-summary] {
 details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after {
   content: "";
   display: block;
-  flex: 0 0 12px;
-  width: 12px;
-  height: 12px;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
   background-color: currentColor;
   opacity: 0;
   transform-origin: 50% 50%;
-  transition: opacity 150ms ease, transform 0.15s ease;
+  transition: opacity 180ms ease, transform 180ms ease;
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
-  -webkit-mask-size: 12px 12px;
+  -webkit-mask-size: 14px 14px;
   mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
   mask-repeat: no-repeat;
   mask-position: center;
-  mask-size: 12px 12px;
+  mask-size: 14px 14px;
 }
 details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:hover::after,
 details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible::after,
@@ -513,6 +559,30 @@ details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summa
 }
 @media (hover: none) {
   details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after { opacity: 0.9; }
+}
+/* Thinking content unfolds and folds on a grid track. `enhance_thinking.js`
+   sets the opening/closing attributes only around a user click, so a block
+   that React remounts while open never replays the animation. */
+details[data-incipit-thinking] > [data-incipit-thinking-content] {
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+}
+details[data-incipit-thinking] > [data-incipit-thinking-content] > * {
+  min-width: 0;
+  min-height: 0;
+}
+details[data-incipit-thinking][data-incipit-thinking-opening="1"] > [data-incipit-thinking-content] {
+  animation: incipit-unfold var(--incipit-fold-duration) var(--incipit-fold-easing);
+}
+details[data-incipit-thinking][data-incipit-thinking-closing="1"] > [data-incipit-thinking-content] {
+  animation: incipit-fold var(--incipit-fold-duration) var(--incipit-fold-easing) forwards;
+}
+@keyframes incipit-unfold {
+  from { grid-template-rows: 0fr; }
+}
+@keyframes incipit-fold {
+  to { grid-template-rows: 0fr; }
 }
 
 
@@ -1121,11 +1191,11 @@ pre.incipit-mermaid-source {
      collapse; otherwise the chevron can open while the diff stays display:none. */
   display: block !important;
   overflow: hidden;
-  transition: max-height 0.22s ease,
-              margin-top 0.22s ease,
-              margin-bottom 0.22s ease,
-              padding-top 0.22s ease,
-              padding-bottom 0.22s ease;
+  transition: max-height var(--incipit-fold-duration) var(--incipit-fold-easing),
+              margin-top var(--incipit-fold-duration) var(--incipit-fold-easing),
+              margin-bottom var(--incipit-fold-duration) var(--incipit-fold-easing),
+              padding-top var(--incipit-fold-duration) var(--incipit-fold-easing),
+              padding-bottom var(--incipit-fold-duration) var(--incipit-fold-easing);
 }
 [data-incipit-tool-use][data-incipit-tool-collapsed="true"] [data-incipit-tool-body] {
   max-height: 0;
@@ -6598,6 +6668,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   text-align: start;
   vertical-align: top;
   cursor: pointer;
+  transition: color 180ms ease;
 }
 [data-incipit-tool-toggle]:hover,
 [data-incipit-tool-toggle]:focus-visible { color: #f8f8f6; }
@@ -6609,6 +6680,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    the canvas color behind itself so the connector stops around the icon. */
 [data-incipit-tool-icon] {
   position: relative;
+  z-index: 1;
   display: flex;
   flex: 0 0 20px;
   align-items: center;
@@ -6617,6 +6689,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   height: 1.55em;
   color: #9c9c9a;
   opacity: 0.9;
+  transition: color 180ms ease;
 }
 [data-incipit-activity] [data-incipit-tool-icon] {
   margin-left: calc(-1 * var(--incipit-activity-rail));
@@ -6654,13 +6727,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [data-incipit-tool-fingerprint-text] { flex: 0 1 auto; min-width: 0; max-width: 22em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.8; }
 [data-incipit-tool-state] { flex: 0 0 auto; white-space: nowrap; }
 [data-incipit-tool-heading] [data-incipit-tool-chevron] {
-  flex: 0 0 12px;
-  width: 12px;
+  flex: 0 0 14px;
+  width: 14px;
   height: 1.55em;
   opacity: 0;
-  transition: opacity 150ms ease, transform 0.15s ease;
-  -webkit-mask-size: 12px 12px;
-  mask-size: 12px 12px;
+  transition: opacity 180ms ease, transform 180ms ease;
+  -webkit-mask-size: 14px 14px;
+  mask-size: 14px 14px;
 }
 [data-incipit-tool-toggle]:hover [data-incipit-tool-chevron],
 [data-incipit-tool-toggle]:focus-visible [data-incipit-tool-chevron],
@@ -6675,7 +6748,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   color: var(--app-error-foreground); white-space: pre-wrap; overflow-wrap: anywhere; padding: 2px 0 6px;
   font-size: calc(var(--incipit-body-size, 13px) - 1px);
 }
-[data-incipit-file-tool-body] { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 220ms ease; }
+[data-incipit-file-tool-body] { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--incipit-fold-duration) var(--incipit-fold-easing); }
 [data-incipit-file-tool-body][data-incipit-expanded="1"] { grid-template-rows: 1fr; }
 [data-incipit-file-tool-body][hidden] { display: none !important; }
 [data-incipit-file-tool-inner] { min-height: 0; min-width: 0; overflow: hidden; }
@@ -6685,10 +6758,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    Diff preview.
 
    The tool row already names the file and carries the counts, so the preview
-   is one bordered code viewport plus a single footer line for the notice,
-   paging and the complete view. Rows keep the island vocabulary: whole-line
-   green/red backgrounds, a 3px edge bar, restrained line numbers, and
-   character-level tints on paired replacements.
+   is one outlined code viewport plus a single footer line for the notice,
+   paging and the complete view. The viewport sits directly on the message
+   canvas: no surface fill, no gutter fill, no code-block tint, so the only
+   backgrounds inside it are the whole-line green/red rows with their 3px
+   edge bar and the character-level tints on paired replacements.
    ============================================================ */
 [data-incipit-diff-view] {
   border: 0;
@@ -6706,13 +6780,22 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   border-radius: 6px;
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: var(--incipit-diff-scrollbar-thumb) var(--incipit-diff-scrollbar-track-y);
-  background: var(--incipit-diff-surface);
+  scrollbar-color: var(--incipit-diff-scrollbar-thumb) transparent;
+  background: transparent;
 }
-[data-incipit-diff-viewport]:hover { scrollbar-color: var(--incipit-diff-scrollbar-thumb-hover) var(--incipit-diff-scrollbar-track-y); }
+[data-incipit-diff-viewport]:hover { scrollbar-color: var(--incipit-diff-scrollbar-thumb-hover) transparent; }
 [data-incipit-diff-viewport]:focus-visible { outline: 1px solid rgba(217,119,87,0.6); outline-offset: 1px; }
-[data-incipit-diff-viewport] [data-incipit-diff-island-body] { width: max-content; min-width: 100%; overflow: visible; padding: 3px 0; }
+[data-incipit-diff-viewport] [data-incipit-diff-island-body] { width: max-content; min-width: 100%; overflow: visible; padding: 3px 0; background: transparent; }
 [data-incipit-diff-viewport] [data-incipit-diff-island-row] { grid-template-columns: 40px 14px minmax(0, 1fr); min-height: 1.55em; }
+[data-incipit-diff-viewport] [data-incipit-diff-island-row="ctx"],
+[data-incipit-diff-viewport] [data-incipit-diff-island-row="gap"] { background: transparent; }
+/* The preview lives inside the host markdown root, where fenced code gets the
+   `#272727` block tint; the diff `pre` must stay on the canvas. */
+[data-incipit-message] pre[data-incipit-diff-island-pre],
+[data-incipit-message] pre[data-incipit-diff-island-pre] code {
+  background: transparent !important;
+  background-color: transparent !important;
+}
 [data-incipit-diff-viewport] [data-incipit-diff-island-row="add"] { background: var(--incipit-diff-add-line) !important; box-shadow: inset 3px 0 0 var(--incipit-diff-add-bar); }
 [data-incipit-diff-viewport] [data-incipit-diff-island-row="del"] { background: var(--incipit-diff-del-line) !important; box-shadow: inset 3px 0 0 var(--incipit-diff-del-bar); }
 [data-incipit-diff-viewport] [data-incipit-diff-island-pre] { grid-column: 3; min-height: 1.55em; }
@@ -6791,9 +6874,14 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   [data-incipit-tool-label] { max-width: 8em; }
   [data-incipit-diff-dialog] { width: calc(100vw - 16px); max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
 }
+/* Reduced motion removes movement: the expand/collapse rows, the caret
+   rotation and the running-dot blink. The 180ms color and opacity fades on
+   hover are not motion and stay, so hover feedback never snaps. */
 @media (prefers-reduced-motion: reduce) {
   [data-incipit-file-tool-body], [data-incipit-tool-body], [data-incipit-tool-grep-expansion],
+  [data-incipit-message][data-incipit-activity-animating], [data-incipit-message][data-incipit-activity-animating] > * { transition: none; }
+  details[data-incipit-thinking] > [data-incipit-thinking-content] { animation: none; }
   [data-incipit-tool-heading] [data-incipit-tool-chevron], [data-incipit-activity-header-caret],
-  details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after { transition: none; }
+  details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after { transition: opacity 180ms ease; }
   [data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon]::before { animation: none; opacity: 0.7; }
 }

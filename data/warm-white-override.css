@@ -13,8 +13,6 @@
   --ink-action-dropdown-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
   --ink-active-border-bottom: #bf5d3a;
   --ink-activity-after-bg: rgba(60,55,40,0.16);
-  --ink-activity-before-bg: #8c897e;
-  --ink-activity-before-border: 3px solid #f8f8f6;
   --ink-activity-header-focus-visible-outline: 1px solid rgba(191,93,58,0.6);
   --ink-add-bar: #1f883d;
   --ink-add-char-bg: #aceebb99;
@@ -432,7 +430,11 @@
   --ink-text-strong: #0d0d0d;
   --ink-text-tertiary: #797569;
   --ink-text-tool-secondary: #8c897e;
+  --ink-thinking-summary-fg: #9c9c9a;
   --ink-thinking-summary-fg-override: #8c897e;
+  --ink-thinking-summary-focus-visible-outline: 1px solid rgba(191,93,58,0.6);
+  --ink-thinking-summary-hover-fg: #f8f8f6;
+  --ink-thinking-summary-hover-fg-override: #0d0d0d;
   --ink-thumb-bg-override: #ffffff;
   --ink-thumb-icon-border: rgba(0,0,0,0.10);
   --ink-thumb-icon-hover-border: rgba(0,0,0,0.20);
@@ -624,9 +626,10 @@
    the user's expected "hovered tool row reads as body text" affordance
    went silent. Mirror the dark-palette behaviour by force-lifting both
    the row and every descendant span (tool-name, fingerprint, stats,
-   chevron — anything riding `currentColor`) to ink on hover. Thinking
-   summary intentionally stays at the resting tone because it's not a
-   click target. */
+   chevron — anything riding `currentColor`) to ink on hover. The
+   disclosure-style thinking summary gets the same lift in the activity
+   rail block below; the static thinking block is not a click target and
+   stays at the resting tone. */
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover,
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover * {
   color: var(--ink-tool-summary-hover-fg-override) !important;
@@ -1232,4 +1235,8 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 .incipit-edit-chip-add:hover {
   border-color: var(--ink-incipit-edit-chip-add-hover-border-override) !important;
   color: var(--ink-incipit-edit-chip-add-hover-fg-override) !important;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:hover,
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
+  color: var(--ink-thinking-summary-hover-fg-override) !important;
 }

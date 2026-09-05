@@ -33,6 +33,10 @@ export function initThinking() {
 
   const intentOpen = new Set();
   const THINKING_REPLACE_GRACE_MS = 1500;
+  // Matches `--incipit-fold-duration`: the closing phase keeps `open` for this
+  // long so the content can fold before the disclosure actually closes.
+  const FOLD_MS = 220;
+  const reducedMotion = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const thinkingTimingByKey = new Map();
   const thinkingSummaryObservers = new Map();
 
@@ -360,15 +364,43 @@ export function initThinking() {
     const topBefore = summary.getBoundingClientRect().top;
 
     // Toggle through the captured native methods and update the intent set
-    // so remounted nodes can be restored by `reconcileAll`.
+    // so remounted nodes can be restored by `reconcileAll`. Opening and
+    // closing carry a transient attribute that theme.css animates; the intent
+    // only flips to closed once the fold has finished, so a reconcile pass in
+    // between leaves the node alone.
     const k = keyFor(details);
-    armHostToggleSync(details);
     if (details.hasAttribute('open')) {
-      NATIVE_REMOVE.call(details, 'open');
-      if (k) intentOpen.delete(k);
+      if (details.__incipitClosing) {
+        // A second click while folding keeps it open.
+        clearTimeout(details.__incipitClosing);
+        details.__incipitClosing = 0;
+        details.removeAttribute('data-incipit-thinking-closing');
+      } else if (reducedMotion()) {
+        armHostToggleSync(details);
+        NATIVE_REMOVE.call(details, 'open');
+        if (k) intentOpen.delete(k);
+      } else {
+        details.setAttribute('data-incipit-thinking-closing', '1');
+        details.__incipitClosing = setTimeout(() => {
+          details.__incipitClosing = 0;
+          details.removeAttribute('data-incipit-thinking-closing');
+          armHostToggleSync(details);
+          NATIVE_REMOVE.call(details, 'open');
+          if (k) intentOpen.delete(k);
+        }, FOLD_MS);
+      }
     } else {
+      armHostToggleSync(details);
       NATIVE_SET.call(details, 'open', '');
       if (k) intentOpen.add(k);
+      if (!reducedMotion()) {
+        details.setAttribute('data-incipit-thinking-opening', '1');
+        clearTimeout(details.__incipitOpening);
+        details.__incipitOpening = setTimeout(() => {
+          details.__incipitOpening = 0;
+          details.removeAttribute('data-incipit-thinking-opening');
+        }, FOLD_MS + 60);
+      }
     }
 
     // One rAF is enough: `getBoundingClientRect()` forces layout, so the

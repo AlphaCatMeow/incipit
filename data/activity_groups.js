@@ -1,34 +1,41 @@
 /**
- * Activity groups: connected runs of tool, thinking and interim note rows.
+ * Activity groups: connected runs of tool and thinking rows.
  *
  * The host renders each assistant message as one sibling row inside a turn.
  * This module classifies those rows, stamps the data attributes that theme.css
- * turns into the left rail (glyph column, connector line, note dots), and
- * mounts a summary header inside the first row of every run that has at least
- * two items. It never moves or removes host nodes: React keeps ownership of
- * every row, and all incipit state lives in attributes and one header button.
+ * turns into the left rail (glyph column and connector line), and mounts a
+ * summary header inside the first row of every run that has at least two
+ * items. It never moves or removes host nodes: React keeps ownership of every
+ * row, and all incipit state lives in attributes and one header button.
  *
  * Row vocabulary:
  * - `tool`: a row containing a host tool-use island (`tool_cards.js` stamps the
  *   tool kind and state that the summary reads back from the DOM).
- * - `thinking`: a row containing a host thinking disclosure.
- * - `note`: assistant prose that is followed by more tool or thinking rows in
- *   the same turn; the trailing prose after the last tool is the answer and
- *   stays a normal message.
+ * - `thinking`: a row containing a host thinking block, either the `<details>`
+ *   disclosure or the static `<div>` the host renders when the thinking text
+ *   is empty or redacted.
+ * - `text`: assistant prose. Prose is the answer or a progress report addressed
+ *   to the user, so it stays a normal message and ends the current run; the
+ *   next tool or thinking row starts a new run.
  */
 import { subscribe } from './runtime_kernel.js';
 
 const TURN_SELECTOR = '[class*="turn_"]';
 const TOOL_SELECTOR = '[class*="toolUse_"]';
-const THINKING_SELECTOR = 'details[class*="thinking"]';
+const THINKING_SELECTOR = 'details[class*="thinking"], div[class*="thinking_"]';
+const THINKING_SUMMARY_SELECTOR = '[class*="thinkingSummary"]';
 const TEXT_SELECTOR = '[class*="root_"]';
 const HEADER_ATTR = 'data-incipit-activity-header';
 const LIVE_THINKING = /^Thinking(\.\.\.|…)/;
 const MAX_REMEMBERED_GROUPS = 500;
 const LIVE_PHRASES = { read: 'Reading file', edit: 'Editing file', command: 'Running command', search: 'Searching' };
+// Matches `--incipit-fold-duration`; the attribute that carries the CSS
+// transition is removed once the fold has settled so nothing animates later.
+const FOLD_MS = 220;
 
 const dirtyTurns = new Set();
 const collapsedGroups = new Map();
+const animatingRows = new Map();
 let frame = 0;
 let initialized = false;
 
@@ -56,6 +63,8 @@ export function initActivityGroups() {
     dirtyTurns.clear();
     if (frame) cancelAnimationFrame(frame);
     frame = 0;
+    for (const timer of animatingRows.values()) clearTimeout(timer);
+    animatingRows.clear();
   });
 }
 
@@ -109,10 +118,36 @@ function classifyRow(row) {
   return 'skip';
 }
 
+function stopAnimating(row) {
+  const timer = animatingRows.get(row);
+  if (timer !== undefined) { clearTimeout(timer); animatingRows.delete(row); }
+  removeAttribute(row, 'data-incipit-activity-animating');
+}
+
+/**
+ * Flip a row's collapsed state. Only a user toggle animates: rows that join
+ * an already collapsed run while streaming take the resting state at once, so
+ * the fold transition never runs on the streaming hot path.
+ */
+function setCollapsed(row, collapsed, animate) {
+  const was = row.getAttribute('data-incipit-activity-collapsed') === '1';
+  if (was === collapsed) return;
+  if (collapsed) row.setAttribute('data-incipit-activity-collapsed', '1');
+  else row.removeAttribute('data-incipit-activity-collapsed');
+  if (!animate) return;
+  stopAnimating(row);
+  row.setAttribute('data-incipit-activity-animating', '1');
+  animatingRows.set(row, setTimeout(() => {
+    animatingRows.delete(row);
+    removeAttribute(row, 'data-incipit-activity-animating');
+  }, FOLD_MS + 60));
+}
+
 function clearRow(row) {
   removeAttribute(row, 'data-incipit-activity');
   removeAttribute(row, 'data-incipit-activity-edge');
   removeAttribute(row, 'data-incipit-activity-collapsed');
+  stopAnimating(row);
   removeHeader(row);
 }
 
@@ -122,34 +157,25 @@ function removeHeader(row) {
   removeAttribute(row, 'data-incipit-activity-has-header');
 }
 
-function layoutTurn(turn) {
+function layoutTurn(turn, animate = false) {
   const rows = Array.from(turn.children);
-  const kinds = rows.map(classifyRow);
-  // Prose becomes a note only when more activity follows it in the same turn.
-  let activityAhead = false;
-  for (let i = rows.length - 1; i >= 0; i--) {
-    const kind = kinds[i];
-    if (kind === 'tool' || kind === 'thinking') activityAhead = true;
-    else if (kind === 'text') kinds[i] = activityAhead ? 'note' : 'text';
-    else if (kind !== 'skip') activityAhead = false;
-  }
   const groups = [];
   let current = null;
-  rows.forEach((row, i) => {
-    const kind = kinds[i];
-    if (kind === 'tool' || kind === 'thinking' || kind === 'note') {
+  for (const row of rows) {
+    const kind = classifyRow(row);
+    if (kind === 'tool' || kind === 'thinking') {
       if (!current) { current = []; groups.push(current); }
       current.push({ row, kind });
-      return;
+      continue;
     }
     if (kind !== 'skip') current = null;
     clearRow(row);
-  });
-  for (const group of groups) applyGroup(group);
+  }
+  for (const group of groups) applyGroup(group, animate);
 }
 
 function isLiveThinking(row) {
-  const summary = row.querySelector(THINKING_SELECTOR + ' > summary');
+  const summary = row.querySelector(THINKING_SUMMARY_SELECTOR);
   return !!summary && LIVE_THINKING.test((summary.textContent || '').trim());
 }
 
@@ -160,9 +186,8 @@ function livePhrase(root) {
 }
 
 function collectStats(members) {
-  const stats = { read: 0, edit: 0, command: 0, search: 0, other: 0, tools: 0, thinking: 0, notes: 0, failed: 0, live: '', key: '' };
+  const stats = { read: 0, edit: 0, command: 0, search: 0, other: 0, tools: 0, thinking: 0, failed: 0, live: '', key: '' };
   for (const { row, kind } of members) {
-    if (kind === 'note') { stats.notes++; continue; }
     if (kind === 'thinking') {
       stats.thinking++;
       if (isLiveThinking(row)) stats.live = 'Thinking';
@@ -191,14 +216,10 @@ function describe(stats) {
     if (stats.command) parts.push('ran ' + plural(stats.command, 'command'));
     if (stats.search) parts.push(stats.search === 1 ? 'searched once' : 'searched ' + stats.search + ' times');
     if (stats.other) parts.push(plural(stats.other, parts.length ? 'other tool call' : 'tool call'));
-    if (!parts.length) parts.push(stats.thinking > 1 ? 'thought ' + stats.thinking + ' times' : 'thought');
     text = parts.join(', ');
     text = text.charAt(0).toUpperCase() + text.slice(1);
   }
-  const tail = [];
-  if (stats.notes) tail.push(plural(stats.notes, 'note'));
-  if (stats.failed) tail.push(stats.failed + ' failed');
-  return tail.length ? text + ' · ' + tail.join(' · ') : text;
+  return stats.failed ? text + ' · ' + stats.failed + ' failed' : text;
 }
 
 function onHeaderClick(event) {
@@ -208,7 +229,7 @@ function onHeaderClick(event) {
   if (!key) return;
   rememberCollapsed(key, collapsedGroups.get(key) !== true);
   const turn = header.closest(TURN_SELECTOR);
-  if (turn) layoutTurn(turn);
+  if (turn) layoutTurn(turn, !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
 }
 
 function mountHeader(row, key, label, collapsed) {
@@ -229,20 +250,19 @@ function mountHeader(row, key, label, collapsed) {
   setAttribute(row, 'data-incipit-activity-has-header', '1');
 }
 
-function applyGroup(members) {
+function applyGroup(members, animate) {
   const stats = collectStats(members);
-  // Single tool rows read fine on their own; the summary earns its line once a
-  // run has at least two items, matching the reference activity list.
-  const showHeader = stats.tools > 0 && stats.tools + stats.notes >= 2 && !!stats.key;
+  // A single row reads fine on its own; the summary earns its line once a run
+  // has at least two items and at least one tool to describe.
+  const showHeader = stats.tools > 0 && stats.tools + stats.thinking >= 2 && !!stats.key;
   const collapsed = showHeader && collapsedGroups.get(stats.key) === true;
   const label = showHeader ? describe(stats) : '';
   members.forEach(({ row, kind }, index) => {
     setAttribute(row, 'data-incipit-activity', kind);
     setAttribute(row, 'data-incipit-activity-edge',
       members.length === 1 ? 'only' : index === 0 ? 'first' : index === members.length - 1 ? 'last' : 'middle');
-    if (collapsed) setAttribute(row, 'data-incipit-activity-collapsed', '1');
-    else removeAttribute(row, 'data-incipit-activity-collapsed');
     if (index === 0 && showHeader) mountHeader(row, stats.key, label, collapsed);
     else removeHeader(row);
+    setCollapsed(row, collapsed, animate);
   });
 }
