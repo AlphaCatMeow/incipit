@@ -13,6 +13,7 @@ import { initLegacyAskRefinement } from './legacy/ask_refinement.js';
 import { initToolCards, enhanceToolCard, sweepToolCards } from './tool_cards.js';
 import { initActivityGroups, markActivityDirty, scanActivityTurns } from './activity_groups.js';
 import { showDiffPayload } from './diff/view.js';
+import { getFileLanguage } from './syntax_highlight.js';
 import {
   conversationIsBusy as kernelConversationIsBusy,
   getHostState as kernelGetHostState,
@@ -8331,19 +8332,20 @@ import {
     }
 
     function lineDiffStats(oldText, newText) {
-      const a = String(oldText == null ? '' : oldText).split('\n');
-      const b = String(newText == null ? '' : newText).split('\n');
+      const before = String(oldText == null ? '' : oldText), after = String(newText == null ? '' : newText);
+      if (before.length + after.length > 128 * 1024) return null;
+      const lines = text => { const value = text ? text.replace(/\r\n/g, '\n').split('\n') : []; if (value.at(-1) === '') value.pop(); return value; };
+      const a = lines(before), b = lines(after);
       const m = a.length, n = b.length;
-      if (m === 0 && n === 0) return { added: 0, removed: 0 };
-      if (m * n > 500000) {
-        return {
-          added: Math.max(0, n - m),
-          removed: Math.max(0, m - n),
-        };
-      }
+      if (!m || !n) return { added: n, removed: m };
+      // A net length difference is not a change count; wait for history when
+      // an exact input estimate exceeds this frame's budget (2026-09-05).
+      if (m * n > 500000) return null;
+      const deadline = performance.now() + 2;
       const prev = new Array(n + 1).fill(0);
       const curr = new Array(n + 1).fill(0);
       for (let i = 1; i <= m; i++) {
+        if ((i & 7) === 0 && performance.now() >= deadline) return null;
         for (let j = 1; j <= n; j++) {
           if (a[i - 1] === b[j - 1]) curr[j] = prev[j - 1] + 1;
           else curr[j] = curr[j - 1] > prev[j] ? curr[j - 1] : prev[j];
@@ -8956,68 +8958,7 @@ import {
     }
 
     function languageClassForFilePath(filePath) {
-      const base = basenameOfPath(filePath).toLowerCase();
-      const m = base.match(/\.([a-z0-9]+)$/);
-      const ext = m ? m[1] : base;
-      const langByExt = {
-        bash: 'bash',
-        bat: 'dos',
-        c: 'c',
-        cc: 'cpp',
-        cls: 'apex',
-        cmd: 'dos',
-        cpp: 'cpp',
-        cs: 'csharp',
-        css: 'css',
-        csv: 'csv',
-        cxx: 'cpp',
-        diff: 'diff',
-        dockerfile: 'dockerfile',
-        go: 'go',
-        h: 'cpp',
-        hpp: 'cpp',
-        html: 'xml',
-        ini: 'ini',
-        java: 'java',
-        js: 'javascript',
-        json: 'json',
-        jsonl: 'json',
-        jsx: 'javascript',
-        kt: 'kotlin',
-        less: 'less',
-        lua: 'lua',
-        m: 'objectivec',
-        // Diff previews must display markdown-family files as literal source.
-        // highlight.js' markdown lexer injects semantic spans such as
-        // `.hljs-strong` / `.hljs-bullet`, which visually reads as markdown
-        // rendering inside the diff. Force these files through plaintext.
-        markdown: 'plaintext',
-        md: 'plaintext',
-        mdx: 'plaintext',
-        mdown: 'plaintext',
-        mkd: 'plaintext',
-        mjs: 'javascript',
-        mm: 'objectivec',
-        patch: 'diff',
-        php: 'php',
-        ps1: 'powershell',
-        py: 'python',
-        rb: 'ruby',
-        rs: 'rust',
-        scss: 'scss',
-        sh: 'bash',
-        sql: 'sql',
-        swift: 'swift',
-        toml: 'toml',
-        ts: 'typescript',
-        tsx: 'typescript',
-        txt: 'plaintext',
-        xml: 'xml',
-        yaml: 'yaml',
-        yml: 'yaml',
-      };
-      const lang = langByExt[ext] || 'plaintext';
-      return 'language-' + lang;
+      return 'language-' + getFileLanguage(filePath);
     }
 
     function findDirectChildByAttr(parent, attrName) {
@@ -10506,6 +10447,7 @@ import {
         for (const edit of input.edits) {
           if (!edit || edit.replace_all || typeof edit.old_string !== 'string' || typeof edit.new_string !== 'string') { stats = null; break; }
           const part = lineDiffStats(edit.old_string, edit.new_string);
+          if (!part) { stats = null; break; }
           stats.added += part.added; stats.removed += part.removed;
         }
       }

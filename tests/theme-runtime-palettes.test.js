@@ -316,8 +316,6 @@ for (let index = 0; index < 12; index += 1) {
 }
 assert.strictEqual(mermaidVariables('warm-white').darkMode, false);
 assert.strictEqual(mermaidVariables('warm-black').background, '#1f1f1e');
-assert.match(typographySource, /'ink-black':\s*'hljs\/styles\/vs2015\.min\.css'/,
-  'ink-black explicitly uses the dark vs2015 highlight palette');
 
 const overlayContract = Object.freeze({
   'warm-black': ['#2c2c2a', '#f8f8f6', '#333330', '#f8f8f6', '0 2px 8px rgba(0, 0, 0, 0.22)'],

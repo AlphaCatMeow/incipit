@@ -1,4 +1,6 @@
 import { getDiffModel } from './client.js';
+import { colorDiffRows } from './syntax.js';
+import { getFileLanguage } from '../syntax_highlight.js';
 
 const PAGE_ROWS = 200;
 let activeDialog = null;
@@ -56,7 +58,7 @@ function annotateCharacters(code, row) {
   }
 }
 
-function renderRow(row, index, language, highlight) {
+function renderRow(row, index, markup) {
   const line = element('div', 'data-incipit-diff-island-row');
   line.setAttribute('data-incipit-diff-island-row', row.kind);
   line.dataset.incipitDiffRowIndex = String(index);
@@ -73,11 +75,7 @@ function renderRow(row, index, language, highlight) {
   const pre = element('pre', 'data-incipit-diff-island-pre');
   const code = element('code', 'data-incipit-diff-island-code');
   code.textContent = row.text;
-  const highlighter = globalThis.hljs;
-  if (highlight && language && language !== 'plaintext' && row.text.length < 4000 && highlighter?.getLanguage?.(language)) {
-    try { code.innerHTML = highlighter.highlight(row.text, { language, ignoreIllegals: true }).value; }
-    catch (_) { code.textContent = row.text; }
-  }
+  if (markup !== undefined) code.innerHTML = markup;
   annotateCharacters(code, row);
   pre.appendChild(code);
   if (row.noNewline) {
@@ -105,34 +103,52 @@ function createRowViewport(parent, model, options = {}) {
   let page = 0;
   let renderGeneration = 0;
   let disposed = false;
+  let colorController = null;
+  const syntaxNotice = element('span', 'data-incipit-diff-notice'); syntaxNotice.hidden = true; syntaxNotice.setAttribute('aria-live', 'polite');
+  const syntaxRetry = button('Retry color', () => setPage(page), 'data-incipit-diff-retry'); syntaxRetry.hidden = true;
   const previous = button('Previous', () => setPage(page - 1), 'data-incipit-diff-page-previous');
   const next = button('Next', () => setPage(page + 1), 'data-incipit-diff-page-next');
   pager.append(previous, label, next);
   parent.appendChild(viewport);
   (options.pagerHost || parent).appendChild(pager);
+  (options.pagerHost || parent).append(syntaxNotice, syntaxRetry);
 
   async function setPage(value, targetRow = null) {
     if (disposed) return;
+    const retainedTop = value === page ? viewport.scrollTop : 0;
     const last = Math.max(0, Math.ceil(model.rows.length / PAGE_ROWS) - 1);
     page = Math.max(0, Math.min(last, value));
     const token = ++renderGeneration;
+    colorController?.abort(); colorController = new AbortController();
     const start = page * PAGE_ROWS, end = Math.min(model.rows.length, start + PAGE_ROWS);
     previous.disabled = page === 0; next.disabled = page === last; pager.hidden = last === 0;
     label.textContent = (start + 1) + '–' + end + ' of ' + model.rows.length;
-    body.replaceChildren();
-    viewport.scrollTop = 0;
+    viewport.setAttribute('aria-busy', 'true');
+    syntaxNotice.textContent = 'Loading code…'; syntaxNotice.hidden = false; syntaxRetry.hidden = true;
+    let markup = new Map();
+    try {
+      const colored = await colorDiffRows(model.rows.slice(start, end), options.language || getFileLanguage(model.filePath), colorController.signal);
+      markup = colored.markup;
+      if (disposed || token !== renderGeneration) return;
+      syntaxNotice.textContent = colored.notice; syntaxNotice.hidden = !colored.notice;
+    } catch (error) {
+      if (disposed || token !== renderGeneration || error.name === 'AbortError') return;
+      syntaxNotice.textContent = 'Code is shown without syntax color.'; syntaxNotice.title = error.message;
+      syntaxNotice.hidden = false; syntaxRetry.hidden = false;
+    }
+    if (disposed || token !== renderGeneration) return;
     let deadline = performance.now() + 4;
     let fragment = document.createDocumentFragment();
     for (let i = start; i < end; i++) {
-      fragment.appendChild(renderRow(model.rows[i], i, options.language, performance.now() < deadline));
+      fragment.appendChild(renderRow(model.rows[i], i, markup.get(i - start)));
       if (performance.now() >= deadline) {
-        body.appendChild(fragment);
         await new Promise(resolve => setTimeout(resolve, 0));
         if (disposed || token !== renderGeneration) return;
-        fragment = document.createDocumentFragment(); deadline = performance.now() + 4;
+        deadline = performance.now() + 4;
       }
     }
-    body.appendChild(fragment);
+    if (!model.rows.length) fragment.appendChild(element('div', 'data-incipit-diff-empty', 'No text changes.'));
+    body.replaceChildren(fragment); viewport.scrollTop = retainedTop; viewport.removeAttribute('aria-busy');
     if (targetRow !== null) {
       const target = body.querySelector('[data-incipit-diff-row-index="' + targetRow + '"]');
       if (target) {
@@ -152,7 +168,7 @@ function createRowViewport(parent, model, options = {}) {
     ready,
     snapshot() { return { page, top: viewport.scrollTop, left: viewport.scrollLeft }; },
     goToRow(index) { return setPage(Math.floor(index / PAGE_ROWS), index); },
-    dispose() { disposed = true; renderGeneration++; pager.remove(); },
+    dispose() { disposed = true; renderGeneration++; colorController?.abort(); pager.remove(); syntaxNotice.remove(); syntaxRetry.remove(); },
   };
 }
 

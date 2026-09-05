@@ -234,6 +234,12 @@ Thanks to the [linuxdo](https://linux.do/) community for discussion, sharing, an
 
 Starting with the next release, incipit is distributed under the GNU Affero General Public License v3.0 or later. Earlier published releases remain under the license they were published with. See [LICENSE](LICENSE).
 
+### Bundled syntax highlighting
+
+Prose code blocks and diffs share [highlight.js 11.9.0](https://github.com/highlightjs/highlight.js), copyright © 2006 Ivan Sagalaev and contributors, under the BSD 3-Clause License. The full license is included in [data/hljs/LICENSE](data/hljs/LICENSE). Additional core grammars load only when needed; their pinned sources and hashes are recorded in [data/hljs/languages/sources.json](data/hljs/languages/sources.json).
+
+The Vue single-file component grammar is adapted from [highlightjs-vue](https://github.com/highlightjs/highlightjs-vue), copyright © 2019 Sara Lissette Luis Ibáñez, under the BSD 3-Clause License. It supports Vue 3 script setup and flexible attribute order. The full license is included in [data/hljs/LICENSE.vue](data/hljs/LICENSE.vue).
+
 ### Bundled fonts
 
 incipit bundles the following webview fonts, each under the SIL Open Font License 1.1. The full license accompanies every family at `data/fonts/<family>/OFL.txt`:

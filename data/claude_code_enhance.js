@@ -1,5 +1,6 @@
 import { preprocessMarkdown } from './markdown_preprocess.js';
 import { startHostProbe } from './host_probe.js';
+import { ensureHighlighter, normalizeLanguage } from './syntax_highlight.js';
 import {
   CFG,
   applyAppVarOverrides,
@@ -97,7 +98,16 @@ import {
     const cache = new Map();
     const MAX_CACHE_ENTRIES = 160;
     const BUSY_AUTO_HIGHLIGHT_CHAR_LIMIT = 8000;
+    const highlighterRequests = new Set();
     let lastHealthKey = '';
+
+    function requestRenderHighlighter(language = '') {
+      if (highlighterRequests.has(language)) return;
+      highlighterRequests.add(language);
+      ensureHighlighter(language).then(highlighter => {
+        if (!language || highlighter.getLanguage(language)) globalThis.__incipitTypography?.enqueueCodeHighlight?.(document.querySelector('[data-incipit-messages-container]'));
+      }).catch(() => { setTimeout(() => highlighterRequests.delete(language), 5000); });
+    }
 
     function fnv1a(str) {
       let h = 0x811c9dc5;
@@ -140,6 +150,7 @@ import {
       const hljs = window.hljs;
       if (!hljs || typeof hljs.highlight !== 'function') {
         noteRenderHealth('pending', { reason: 'hljs-not-ready' });
+        requestRenderHighlighter(normalizeLanguage(/\blanguage-([A-Za-z0-9_+.-]+)\b/.exec(String(className || ''))?.[1]));
         return null;
       }
 
@@ -149,7 +160,11 @@ import {
       if (cache.has(key)) return cache.get(key);
 
       const match = /\blanguage-([A-Za-z0-9_+.-]+)\b/.exec(classes);
-      const language = match && match[1];
+      const language = normalizeLanguage(match && match[1]);
+      if (language && !hljs.getLanguage(language)) {
+        requestRenderHighlighter(language);
+        return null;
+      }
       if (!language && code.length > BUSY_AUTO_HIGHLIGHT_CHAR_LIMIT && renderTimeHighlightIsBusy()) {
         noteRenderHealth('degraded', {
           reason: 'busy-large-auto-highlight',
