@@ -2,7 +2,7 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "83b4c1eb5fd4f10b24fd20c42e0ad1da7f5356599c071be5ad5392fab8bb9ebb",
+    "themeSha256": "438915ae16f0350d4f7a23fbab9d299d890762b1ead5e40b1787095221887752",
     "warmWhiteSha256": "c07da96a1a35485b1414615aea252808c5a589b8a513ffcd5b18c05e0d6e59c7"
   },
   "themeSequence": [
@@ -20564,7 +20564,7 @@
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-gutter",
       "important": false,
-      "resolved": "stable"
+      "resolved": "auto"
     },
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-width",
@@ -45796,7 +45796,7 @@
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-gutter",
       "important": false,
-      "resolved": "stable"
+      "resolved": "auto"
     },
     {
       "key": "\u0001[data-incipit-diff-viewport]\u0001scrollbar-width",

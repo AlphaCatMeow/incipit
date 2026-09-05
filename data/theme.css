@@ -7234,7 +7234,9 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   overflow: auto;
   border: 1px solid var(--incipit-diff-border);
   border-radius: 6px;
-  scrollbar-gutter: stable;
+  /* No reserved scrollbar gutter: the whole-line tints must reach the border,
+     and a page either overflows from its first frame or never does. */
+  scrollbar-gutter: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--incipit-diff-scrollbar-thumb) transparent;
   background: transparent;
