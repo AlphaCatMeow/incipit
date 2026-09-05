@@ -7994,13 +7994,6 @@ import {
 
     function animateExpandTargets(el, targets) {
       targets = targets.filter(Boolean);
-      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-        targets.forEach(clearFoldInline);
-        el.dataset.incipitToolCollapsed = 'false';
-        globalThis.__incipitTypography?.enqueueCodeHighlight?.(el);
-        scheduleFoldLayoutRefresh(targets);
-        return;
-      }
       if (!targets.length) {
         el.dataset.incipitToolCollapsed = 'false';
         return;
@@ -8038,11 +8031,6 @@ import {
 
     function animateCollapseTargets(el, targets) {
       targets = targets.filter(Boolean);
-      if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-        targets.forEach(clearFoldInline);
-        el.dataset.incipitToolCollapsed = 'true';
-        return;
-      }
       if (!targets.length) {
         el.dataset.incipitToolCollapsed = 'true';
         return;

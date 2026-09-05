@@ -229,7 +229,7 @@ function onHeaderClick(event) {
   if (!key) return;
   rememberCollapsed(key, collapsedGroups.get(key) !== true);
   const turn = header.closest(TURN_SELECTOR);
-  if (turn) layoutTurn(turn, !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
+  if (turn) layoutTurn(turn, true);
 }
 
 function mountHeader(row, key, label, collapsed) {

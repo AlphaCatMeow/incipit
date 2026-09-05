@@ -2,7 +2,7 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "438915ae16f0350d4f7a23fbab9d299d890762b1ead5e40b1787095221887752",
+    "themeSha256": "110cc881b0774d2be26097b139aa7859a9cae6453090c0ef9a1de47af9c68b1c",
     "warmWhiteSha256": "c07da96a1a35485b1414615aea252808c5a589b8a513ffcd5b18c05e0d6e59c7"
   },
   "themeSequence": [
@@ -4971,18 +4971,7 @@
     "@media (max-width: 380px)\u0001[data-incipit-tool-label]\u0001max-width\u0001",
     "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001width\u0001",
     "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-width\u0001",
-    "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-height\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-file-tool-body]\u0001transition\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-body]\u0001transition\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-grep-expansion]\u0001transition\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]\u0001transition\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]>*\u0001transition\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001animation\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-activity-header-caret]\u0001transition\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001transition\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001animation\u0001",
-    "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001opacity\u0001"
+    "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-height\u0001"
   ],
   "warmSequence": [
     "\u0001:root\u0001--app-background\u0001!",
@@ -6114,7 +6103,7 @@
     {
       "key": "\u0001:root\u0001--incipit-conversation-gutter",
       "important": false,
-      "resolved": "clamp(20px,4vw,32px)"
+      "resolved": "clamp(28px,5vw,36px)"
     },
     {
       "key": "\u0001:root\u0001--incipit-emphasis-font",
@@ -17614,12 +17603,12 @@
     {
       "key": "\u0001[data-incipit-composer-shell]\u0001left",
       "important": true,
-      "resolved": "clamp(20px,4vw,32px)"
+      "resolved": "clamp(28px,5vw,36px)"
     },
     {
       "key": "\u0001[data-incipit-composer-shell]\u0001right",
       "important": true,
-      "resolved": "calc(clamp(20px,4vw,32px) + 0px)"
+      "resolved": "calc(clamp(28px,5vw,36px) + 0px)"
     },
     {
       "key": "\u0001[data-incipit-composer-wrapper]\u0001box-sizing",
@@ -23849,7 +23838,7 @@
     {
       "key": "\u0001[data-incipit-messages-container]\u0001padding-inline",
       "important": true,
-      "resolved": "clamp(20px,4vw,32px)"
+      "resolved": "clamp(28px,5vw,36px)"
     },
     {
       "key": "\u0001[data-incipit-messages-container]\u0001position",
@@ -30182,61 +30171,6 @@
       "resolved": "8em"
     },
     {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-activity-header-caret]\u0001transition",
-      "important": false,
-      "resolved": "opacity 180ms ease"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-file-tool-body]\u0001transition",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]>*\u0001transition",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]\u0001transition",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-body]\u0001transition",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-grep-expansion]\u0001transition",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition",
-      "important": false,
-      "resolved": "opacity 180ms ease"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001animation",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001opacity",
-      "important": false,
-      "resolved": "0.7"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001animation",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001transition",
-      "important": false,
-      "resolved": "opacity 180ms ease"
-    },
-    {
       "key": "\u0001*:not([class*=\"inputContainer_\"]):not([class*=\"inputContainer_\"] *):not([contenteditable]):not([contenteditable] *)\u0001scrollbar-color",
       "important": true,
       "resolved": "#3c3c3c transparent"
@@ -30906,7 +30840,7 @@
     {
       "key": "\u0001:root\u0001--incipit-conversation-gutter",
       "important": false,
-      "resolved": "clamp(20px,4vw,32px)"
+      "resolved": "clamp(28px,5vw,36px)"
     },
     {
       "key": "\u0001:root\u0001--incipit-emphasis-font",
@@ -42826,12 +42760,12 @@
     {
       "key": "\u0001[data-incipit-composer-shell]\u0001left",
       "important": true,
-      "resolved": "clamp(20px,4vw,32px)"
+      "resolved": "clamp(28px,5vw,36px)"
     },
     {
       "key": "\u0001[data-incipit-composer-shell]\u0001right",
       "important": true,
-      "resolved": "calc(clamp(20px,4vw,32px) + 0px)"
+      "resolved": "calc(clamp(28px,5vw,36px) + 0px)"
     },
     {
       "key": "\u0001[data-incipit-composer-wrapper]\u0001box-sizing",
@@ -49086,7 +49020,7 @@
     {
       "key": "\u0001[data-incipit-messages-container]\u0001padding-inline",
       "important": true,
-      "resolved": "clamp(20px,4vw,32px)"
+      "resolved": "clamp(28px,5vw,36px)"
     },
     {
       "key": "\u0001[data-incipit-messages-container]\u0001position",
@@ -55512,61 +55446,6 @@
       "key": "@media (max-width: 380px)\u0001[data-incipit-tool-label]\u0001max-width",
       "important": false,
       "resolved": "8em"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-activity-header-caret]\u0001transition",
-      "important": false,
-      "resolved": "opacity 180ms ease"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-file-tool-body]\u0001transition",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]>*\u0001transition",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-message][data-incipit-activity-animating]\u0001transition",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-body]\u0001transition",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-grep-expansion]\u0001transition",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-heading] [data-incipit-tool-chevron]\u0001transition",
-      "important": false,
-      "resolved": "opacity 180ms ease"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001animation",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001[data-incipit-tool-use][data-incipit-tool-state=\"running\"] [data-incipit-tool-icon]::before\u0001opacity",
-      "important": false,
-      "resolved": "0.7"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>[data-incipit-thinking-content]\u0001animation",
-      "important": false,
-      "resolved": "none"
-    },
-    {
-      "key": "@media (prefers-reduced-motion: reduce)\u0001details[data-incipit-thinking]>summary[data-incipit-thinking-summary]::after\u0001transition",
-      "important": false,
-      "resolved": "opacity 180ms ease"
     },
     {
       "key": "\u0001*:not([class*=\"inputContainer_\"]):not([class*=\"inputContainer_\"] *):not([contenteditable]):not([contenteditable] *)\u0001scrollbar-color",

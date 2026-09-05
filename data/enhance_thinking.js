@@ -36,7 +36,6 @@ export function initThinking() {
   // Matches `--incipit-fold-duration`: the closing phase keeps `open` for this
   // long so the content can fold before the disclosure actually closes.
   const FOLD_MS = 220;
-  const reducedMotion = () => !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const thinkingTimingByKey = new Map();
   const thinkingSummaryObservers = new Map();
 
@@ -375,10 +374,6 @@ export function initThinking() {
         clearTimeout(details.__incipitClosing);
         details.__incipitClosing = 0;
         details.removeAttribute('data-incipit-thinking-closing');
-      } else if (reducedMotion()) {
-        armHostToggleSync(details);
-        NATIVE_REMOVE.call(details, 'open');
-        if (k) intentOpen.delete(k);
       } else {
         details.setAttribute('data-incipit-thinking-closing', '1');
         details.__incipitClosing = setTimeout(() => {
@@ -393,14 +388,12 @@ export function initThinking() {
       armHostToggleSync(details);
       NATIVE_SET.call(details, 'open', '');
       if (k) intentOpen.add(k);
-      if (!reducedMotion()) {
-        details.setAttribute('data-incipit-thinking-opening', '1');
-        clearTimeout(details.__incipitOpening);
-        details.__incipitOpening = setTimeout(() => {
-          details.__incipitOpening = 0;
-          details.removeAttribute('data-incipit-thinking-opening');
-        }, FOLD_MS + 60);
-      }
+      details.setAttribute('data-incipit-thinking-opening', '1');
+      clearTimeout(details.__incipitOpening);
+      details.__incipitOpening = setTimeout(() => {
+        details.__incipitOpening = 0;
+        details.removeAttribute('data-incipit-thinking-opening');
+      }, FOLD_MS + 60);
     }
 
     // One rAF is enough: `getBoundingClientRect()` forces layout, so the

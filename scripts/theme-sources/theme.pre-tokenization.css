@@ -187,9 +187,9 @@
      (48rem minus its 1rem side insets), so the line length stays constant
      when the configured body size changes. */
   --incipit-conversation-column-width: calc(var(--incipit-body-size, 13px) * 46);
-  /* Side insets once the pane is narrower than the column: never below 20px
-     so a sidebar-width pane keeps air on both sides of the text. */
-  --incipit-conversation-gutter: clamp(20px, 4vw, 32px);
+  /* Side insets once the pane is narrower than the column: never below 28px
+     so a sidebar-width pane keeps real air on both sides of the text. */
+  --incipit-conversation-gutter: clamp(28px, 5vw, 36px);
   /* Activity rows: 20px glyph column plus 10px gap; glyph centre sits one
      row padding (4px) plus half a 1.55 line (10px) below the 4px row inset. */
   --incipit-activity-rail: 30px;
@@ -197,7 +197,9 @@
   /* One fold curve for every expand/collapse: tool bodies, diff previews,
      thinking content and activity groups. Height moves on grid tracks or
      max-height for the duration only; `activity_groups.js` mirrors the
-     duration as FOLD_MS. */
+     duration as FOLD_MS. Folds and hover fades always run: incipit's motion
+     is small, local and interaction-triggered, so it is not gated on the
+     platform's reduced-motion preference. */
   --incipit-fold-duration: 220ms;
   --incipit-fold-easing: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
@@ -6875,15 +6877,4 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 @media (max-width: 380px) {
   [data-incipit-tool-label] { max-width: 8em; }
   [data-incipit-diff-dialog] { width: calc(100vw - 16px); max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
-}
-/* Reduced motion removes movement: the expand/collapse rows, the caret
-   rotation and the running-dot blink. The 180ms color and opacity fades on
-   hover are not motion and stay, so hover feedback never snaps. */
-@media (prefers-reduced-motion: reduce) {
-  [data-incipit-file-tool-body], [data-incipit-tool-body], [data-incipit-tool-grep-expansion],
-  [data-incipit-message][data-incipit-activity-animating], [data-incipit-message][data-incipit-activity-animating] > * { transition: none; }
-  details[data-incipit-thinking] > [data-incipit-thinking-content] { animation: none; }
-  [data-incipit-tool-heading] [data-incipit-tool-chevron], [data-incipit-activity-header-caret],
-  details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after { transition: opacity 180ms ease; }
-  [data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon]::before { animation: none; opacity: 0.7; }
 }

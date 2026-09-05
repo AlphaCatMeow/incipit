@@ -337,7 +337,6 @@ function createFileCard(root, initial, options) {
     }
     headline.setOpen(value);
     root.dataset.incipitToolCollapsed = String(!value);
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     if (value) {
       body.hidden = false; body.inert = false; ensureView(); view.setVisible(true);
       requestAnimationFrame(() => { if (token === transitionGeneration) body.dataset.incipitExpanded = '1'; });
@@ -345,7 +344,7 @@ function createFileCard(root, initial, options) {
       if (body.contains(document.activeElement)) headline.toggle.focus({ preventScroll: true });
       body.inert = true; body.dataset.incipitExpanded = '0';
       const finish = () => { if (token === transitionGeneration) { body.hidden = true; view?.setVisible(false); sourcePayload = null; } };
-      if (reduced) finish(); else closeTimer = setTimeout(finish, 260);
+      closeTimer = setTimeout(finish, 260);
     }
   }
 
