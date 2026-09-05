@@ -158,11 +158,7 @@ The over-stretched brackets in KaTeX's native rendering are fixed as well.
   <img src="docs/screenshots/actions.png" width="420" alt="incipit user-message action row: edit / rerun / fork / more — four restrained icons" />
 </p>
 
-- Edit (inline editor): expands an editor in place. AI messages are editable too. Every output block can be edited.
-
-<p align="center">
-  <img src="docs/screenshots/edit-assistant.png" width="420" alt="incipit inline editor: in-place edit on an AI turn — translucent panel, serif body, two action icons (× / ✓) at the bottom" />
-</p>
+- Edit (inline editor): edit user messages in place, including their text, images, and IDE references. Assistant replies remain read-only; their copy menu and change review remain available. When later replies contain signed thinking, use Save and Rerun so the changed prompt is sent without replaying incompatible downstream thinking.
 
 - Attachment management: messages display the IDE file references, code selections, and images already attached. You can click to remove existing attachments, or drag-and-drop / paste to add new images.
 Local save: clicking save only rewrites the local JSONL conversation record file. No network requests are triggered.
@@ -172,7 +168,7 @@ Resend logic: editing only modifies the local context state. To submit the modif
   <img src="docs/screenshots/edit-user.png" width="420" alt="incipit inline editor: in-place edit on a user message — chip strip at the top with image attachment chip and add button" />
 </p>
 
-- Rerun: only available on user messages, executable at any user message. It removes the entire downstream conversation context, then resends the current message verbatim through Claude Code's native interface (session.send) under the same session id, fully preserving text, images, and IDE reference structure. **This means the cache for the user message and its prior context is preserved.**
+- Rerun: available on user prompts throughout the conversation. It removes the selected prompt and its downstream context, then resends the prompt and supported attachments through Claude Code's native send and resume flow. Earlier model messages remain unchanged, keeping their prefix eligible for prompt-cache reuse. A cache hit is not guaranteed: expiry, available cache checkpoints, model/settings changes, and changes to text or images can affect it. The cache badge reports server usage for the current transcript; rebuilding its local statistics does not clear the server's prompt cache.
 
 - Fork: calls the host AppContext's forkConversation interface, copying the current and preceding context into a new session while leaving the original session intact.
 

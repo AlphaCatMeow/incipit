@@ -5044,40 +5044,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   padding: 0;
   animation: incipit-inline-edit-fade-in 120ms ease-out;
 }
-/* AI: draft card reuses the in-message code-block surface so the
-   editor reads as the same family of "embedded content surface" as
-   <pre> blocks — one step lighter than the chat background. Light
-   padding + small radius give it the same shape as a code block. */
-[data-incipit-inline-edit-shell="assistant"] {
-  background: #272727;
-  padding: 8px 10px;
-  border-radius: 4px;
-}
 /* User: no shell chrome of its own — the (expanded) bubble carries
    the visual identity. */
 [data-incipit-inline-edit-shell="user"] {
   background: transparent;
   padding: 0;
-}
-
-/* Edit hover preview — when the user hovers the AI's pencil icon,
-   paint the markdown root with the same draft-card background the
-   inline-edit shell uses on click. Acts as a "dry run": you see
-   exactly what region edit-mode will turn into a draft card before
-   committing. JS toggles `data-incipit-edit-hover-preview` on the
-   markdown root in mouseenter/mouseleave on the edit button. The
-   transition smooths the colour appear/disappear so rapid mouse-overs
-   across the three icons read as a soft pulse, not a hard blink.
-   No padding here on purpose: padding would shift layout while the
-   icon row toggles, and the visible colour change alone is plenty of
-   affordance. User bubbles already carry the draft-card colour at
-   rest, so this rule does not need a user-side counterpart. */
-[data-incipit-markdown-root] {
-  transition: background-color 0.18s ease;
-  border-radius: 4px;
-}
-[data-incipit-markdown-root][data-incipit-edit-hover-preview] {
-  background-color: #272727;
 }
 
 @keyframes incipit-inline-edit-fade-in {

@@ -1712,22 +1712,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   color: #0d0d0d !important;
 }
 
-/* ---------- Inline edit (warm-white draft card) ----------
-   AI draft card reuses the warm-white code-block surface (#E6E4DE)
-   — same "embedded content" weight as <pre> blocks, so the editor
-   reads as the same surface family. Save icon + caret use the
-   deeper #bf5d3a accent. User bubble keeps its own #E6E4DE fill
-   (set elsewhere); no extra chrome needed when expanded. */
-[data-incipit-inline-edit-shell="assistant"] {
-  background: #E6E4DE !important;
-}
-/* Edit hover preview — same paper-tone draft fill the inline-edit
-   shell uses when actually opened. theme.css defines the transition
-   and base behaviour; this only flips the colour for warm-white so
-   the preview matches the (now-paper) draft card. */
-[data-incipit-markdown-root][data-incipit-edit-hover-preview] {
-  background-color: #E6E4DE !important;
-}
+/* User edit controls retain the warm-white accent and bubble surface. */
 .incipit-inline-edit-textarea {
   caret-color: #bf5d3a !important;
 }

@@ -521,10 +521,10 @@ import {
           mediaType: src.media_type || 'image/*',
           dataUrl,
         });
+      } else {
+        out.chips.push({ chipId: 'k-' + (++chipSeq), kind: 'keep', index: i,
+          blockKind: 'attachment', label: block.type || 'Attachment' });
       }
-      // Unknown / unrecognised block types are silently dropped from
-      // the editor view; they're already non-editable from the user's
-      // POV and forwarding an opaque blob would mislead the chip strip.
     }
     out.proseText = proseParts.join('\n');
     return out;
@@ -606,28 +606,12 @@ import {
     return null;
   }
 
-  // Walk a user record's content and pull out the first `<ide_*>` ref.
-  // Used by rerun to pre-poke `session.selection.value` so the host's
-  // own send pipeline rebuilds the exact ref text the saved record had.
-  // At most one `<ide_*>` per user message in practice (zB1 only emits
-  // one) so first-hit is correct.
-  function extractSavedIdeRef(record) {
-    const content = transcriptContent(record);
-    if (!Array.isArray(content)) return null;
-    for (const item of content) {
-      const block = unwrapTranscriptContentBlock(item);
-      if (!block || block.type !== 'text') continue;
-      const ref = parseIdeRefForSend(block.text);
-      if (ref) return ref;
-    }
-    return null;
-  }
 
   // Convert a saved `{type:'image', source:{type:'base64', media_type, data}}`
   // block back into a composer-shaped attachment `{file: File, dataUrl}`,
   // which is what `session.send`'s second arg expects (see host bundle
   // `vx`/`zB1`). Returns null for non-base64 sources we can't replay
-  // (e.g. URL-source images, which Anthropic doesn't accept anyway).
+  // (e.g. URL-source images, which this host composer adapter cannot rebuild).
   //
   // The filename is synthesized from media_type since the saved block
   // carries no filename. The host's downstream code (zB1) reads only
@@ -687,8 +671,13 @@ import {
       } else if (chip.kind === 'image-new' && chip.source) {
         att = imageSourceToAttachment(chip.source);
       }
+      if (chip.blockKind === 'image' && !att) throw new Error('This saved image cannot be replayed by the host. Reattach it or remove it before rerunning.');
+      if (chip.blockKind === 'attachment') throw new Error('This attachment type cannot be replayed by the host. Keep the original message or remove that attachment explicitly.');
+      if (chip.kind === 'keep' && chip.blockKind?.startsWith('ide_') && !parseIdeRefForSend(chip.rawText)) throw new Error('This IDE reference format cannot be replayed by the host.');
       if (att) attachments.push(att);
     }
+    const refs = (chips || []).filter(chip => chip.kind === 'keep' && chip.blockKind?.startsWith('ide_'));
+    if (refs.length > 1) throw new Error('The host can replay one IDE selection at a time. Keep one reference or copy the others into your prompt before rerunning.');
     return {
       prose: typeof text === 'string' ? text : '',
       attachments,
@@ -702,19 +691,7 @@ import {
   // host-public types `session.send` accepts.
   function buildRerunPayloadFromRecord(record) {
     const classified = classifyUserRecordBlocks(record);
-    const prose = classified.proseText || '';
-    const attachments = [];
-    const content = transcriptContent(record);
-    if (Array.isArray(content)) {
-      for (const item of content) {
-        const block = unwrapTranscriptContentBlock(item);
-        if (!block || block.type !== 'image') continue;
-        const att = imageBlockToAttachment(block);
-        if (att) attachments.push(att);
-      }
-    }
-    const savedIdeRef = extractSavedIdeRef(record);
-    return { prose, attachments, savedIdeRef };
+    return buildRerunPayloadFromEditorDraft(record, classified.proseText, classified.chips);
   }
 
   function transcriptText(record) {
@@ -767,7 +744,8 @@ import {
     const session = locateActiveSessionState();
     const messages = session && session.messages && session.messages.value;
     if (!Array.isArray(messages)) return false;
-    const idx = transcriptRecordIndex(messages, record);
+    const firstCopy = record.uuid ? messages.findIndex(message => message?.uuid === record.uuid) : -1;
+    const idx = firstCopy >= 0 ? firstCopy : transcriptRecordIndex(messages, record);
     if (idx < 0) return false;
     for (let i = idx + 1; i < messages.length; i++) {
       if (recordHasSignedThinking(messages[i])) return true;
@@ -1669,75 +1647,7 @@ import {
     return fallback;
   }
 
-  // Build an edited copy of a host message object.
-  //
-  // SHAPE NOTE (reverse-engineered from `webview/index.js` 2.1.118):
-  // `messages.value` does not hold raw JSONL records. Each entry is an
-  // `Ez` instance with the flat shape
-  //   { type, uuid, betaMessageId, content, timestamp,
-  //     parentToolUseId, isSynthetic, compactMetadata }
-  // and `content` is a `SY[]` array. Each `SY` wraps one JSONL block:
-  //   { content: { type:'text', text }, partial, hash, lastModifiedTime,
-  //     toolResultSignal, progressSignal, ... }
-  // React renders blocks via `J.content.map(B => createElement(yW,
-  // {key: B.key, ...}))`, where `B.key === B.hash + B.lastModifiedTime`.
-  //
-  // To make the webview re-render after an edit we must:
-  //   1. Build a brand-new `SY` (new hash → new key → React unmounts the
-  //      old block and mounts a new one with the new text).
-  //   2. Build a brand-new `Ez` (new instance → React.memo on the row
-  //      sees a different prop reference and re-renders this message).
-  //   3. Hand back the new `Ez` so the caller can place it into a fresh
-  //      `messages.value` array (signal subscribers fire, useMemo deps
-  //      invalidate).
-  // We pull the constructors off the existing instances, so we don't
-  // need to anchor to the minified class names. Failure path: return
-  // the original message — caller's array slice is still a new array
-  // reference, so the rest of the reflect pipeline (interrupt + clear
-  // channelId) still runs.
-  function makeEditedMessage(message, newText) {
-    if (!message || typeof message !== 'object') return message;
-    if (!Array.isArray(message.content) || message.content.length === 0) return message;
-
-    let textIdx = -1;
-    for (let i = 0; i < message.content.length; i++) {
-      const sy = message.content[i];
-      const c = sy && sy.content;
-      if (c && c.type === 'text' && typeof c.text === 'string') {
-        textIdx = i;
-        break;
-      }
-    }
-    if (textIdx < 0) return message;
-
-    const oldSy = message.content[textIdx];
-    const SyCtor = oldSy && oldSy.constructor;
-    if (typeof SyCtor !== 'function') return message;
-    let newSy;
-    try {
-      newSy = new SyCtor({ ...oldSy.content, text: newText }, !!oldSy.partial);
-    } catch (_) { return message; }
-
-    const newContent = message.content.slice();
-    newContent[textIdx] = newSy;
-
-    const EzCtor = message.constructor;
-    if (typeof EzCtor !== 'function') return message;
-    try {
-      return new EzCtor(message.type, newContent, {
-        uuid: message.uuid,
-        betaMessageId: message.betaMessageId,
-        timestamp: message.timestamp,
-        parentToolUseId: message.parentToolUseId,
-        isSynthetic: message.isSynthetic,
-        compactMetadata: message.compactMetadata,
-      });
-    } catch (_) { return message; }
-  }
-
-  // Block-aware companion to makeEditedMessage. The save path for rich
-  // user edits sends a `blocks` spec (kept-by-index + new text + new
-  // images); reflect needs to rebuild the Ez accordingly.
+  // Rebuild a host user message from kept block wrappers and edited content.
   //
   // Why reuse the original SY for `kind:'keep'` (vs constructing a
   // fresh one with the same JSONL block): SY carries `hash` and
@@ -2116,13 +2026,6 @@ import {
       } else {
         // Idle → busy: flip past-turn rows to disabled and remove any
         // tail-row that slipped in during the send/stop transition.
-        // Also eagerly clear any active edit hover-preview attr so a
-        // user who happened to be hovering the pencil at the moment
-        // streaming started doesn't see the draft-bg lingering on a
-        // now-disabled icon (mouseenter early-return covers fresh
-        // hovers; this handles the hover-in-flight case).
-        document.querySelectorAll('[data-incipit-edit-hover-preview]')
-          .forEach(el => el.removeAttribute('data-incipit-edit-hover-preview'));
         requestAnimationFrame(cleanupDuringBusy);
       }
     };
@@ -4391,47 +4294,6 @@ import {
     });
   }
 
-  const assistantUuidResolvePending = new Map();
-
-  async function ensureAssistantRecordUuid(record) {
-    if (!record || record.type !== 'assistant') return record;
-    if (recordUuid(record)) return record;
-
-    const live = liveTranscriptRecord(null, record);
-    if (live && recordUuid(live)) return live;
-
-    const betaMessageId = recordBetaMessageId(live || record);
-    if (!betaMessageId) return live || record;
-
-    const identity = transcriptRecordIdentity(live || record);
-    if (!identity) return live || record;
-
-    const key = `${identity.sessionId}:${betaMessageId}`;
-    let pending = assistantUuidResolvePending.get(key);
-    if (!pending) {
-      pending = requestTranscriptMutation('resolve_assistant_uuid', {
-        betaMessageId,
-        textTail: transcriptText(live || record).slice(-600),
-        ...identity,
-      }).then(payload => {
-        const uuid = payload && typeof payload.uuid === 'string' ? payload.uuid : '';
-        if (uuid) {
-          try { record.uuid = uuid; } catch (_) {}
-          if (live && live !== record) {
-            try { live.uuid = uuid; } catch (_) {}
-          }
-        }
-        return uuid;
-      }).finally(() => {
-        assistantUuidResolvePending.delete(key);
-      });
-      assistantUuidResolvePending.set(key, pending);
-    }
-
-    try { await pending; }
-    catch (_) { return live || record; }
-    return liveTranscriptRecord(null, live || record) || live || record;
-  }
 
   function nodeIsRendered(node) {
     return !!(
@@ -4760,84 +4622,8 @@ import {
     }, 2600);
   }
 
-  // After a JSONL mutation succeeds, reflect the change in the live
-  // webview state without `window.location.reload()` (which blanks
-  // VS Code webviews because `acquireVsCodeApi()` can only be called
-  // once per webview lifecycle) and without `loadFromServer()` (which
-  // flips `isLoading.value` and renders a "Loading..." placeholder
-  // mid-transition — visible flicker).
-  //
-  // Strategy:
-  //   1. Mutate `activeSession.messages.value` directly. React keys
-  //      messages by uuid, so removed rows disappear and edited rows
-  //      re-render in place — siblings are untouched.
-  //   2. Interrupt the live Claude CLI for this session and null out
-  //      `claudeChannelId`. The CLI's in-memory transcript is now
-  //      stale (it was hydrated once at spawn time and only appends
-  //      thereafter — confirmed by the fact that a window reload was
-  //      previously needed for edits to "stick"). Tearing it down
-  //      defers the spawn cost to the user's next send().
-  //   3. Next send() runs the host's standard path:
-  //        await this.launchClaude()  // sees channelId === null,
-  //                                    // spawns a fresh process in
-  //                                    // resume mode against the
-  //                                    // edited JSONL.
-  //      User-visible delay is only the spawn time on the first
-  //      token (~the same wait as opening a session for the first
-  //      time). No flicker, no loading placeholder, no reload.
-  function reflectTranscriptMutation(op, payload, newText) {
-    const session = locateActiveSessionState();
-    const conn = locateConnection();
-
-    // Step 1 — mutate messages.value to reflect the change instantly.
-    // Only edit ops reach here; truncate has its own reflect path
-    // inside `rerunFromUser` because it also needs to trigger a fresh
-    // send afterwards.
-    if (session && session.messages && Array.isArray(session.messages.value)) {
-      const current = session.messages.value;
-      let next = null;
-      if (op === 'edit_user' || op === 'edit_assistant_text') {
-        const targetUuid = payload && payload.uuid;
-        if (targetUuid && typeof newText === 'string') {
-          const idx = transcriptRecordIndex(current, { uuid: targetUuid });
-          if (idx >= 0) {
-            next = current.slice();
-            next[idx] = makeEditedMessage(current[idx], newText);
-          }
-        }
-      }
-      if (next) {
-        try { session.messages.value = next; } catch (_) {}
-      }
-    }
-
-    // Step 2 — tear down current Claude CLI; defer spawn to next send.
-    if (session) {
-      const oldChannelId = session.claudeChannelId;
-      if (oldChannelId && conn && typeof conn.interruptClaude === 'function') {
-        try { conn.interruptClaude(oldChannelId); } catch (_) {}
-        noteChannelInterrupt();
-      }
-      try { session.claudeChannelId = null; } catch (_) {}
-      // Also clear loadingPromise so a future loadFromServer (e.g. on
-      // session resume) actually re-runs against the new JSONL.
-      try { session.loadingPromise = undefined; } catch (_) {}
-    }
-
-    // Step 3 — only surface a toast when we couldn't locate the
-    // SessionState (rare React-shape drift). In the success path the
-    // user can see the change directly in the bubble list, so a
-    // confirmation toast is just noise that overlaps the input.
-    if (!session) {
-      showTranscriptToast('Local history updated. Refresh the window so the model sees the new content.', 'warn');
-    }
-  }
-
-  // Block-aware reflect for rich user edits. Replaces the target Ez
-  // with a block-rebuilt Ez (kept SYs preserved by reference, new
-  // text/image SYs minted) and tears down the live channel. Mirrors
-  // the channel-teardown half of reflectTranscriptMutation; the only
-  // structural difference is which Ez constructor is used.
+  // Reflect rich user edits without reloading the webview. The next official
+  // send resumes the updated JSONL; existing attachment wrappers retain identity.
   function reflectUserEditBlocks(uuid, blocksSpec) {
     const session = locateActiveSessionState();
     const conn = locateConnection();
@@ -4916,12 +4702,13 @@ import {
     }
 
     // Build the rerun payload from the saved record's blocks. Routes
-    // through the host's own send pipeline (`session.send` →
-    // `zB1` → API content[]), so the model sees byte-equivalent content
-    // to what the bubble shows: text, image base64 blocks, and a
-    // single optional `<ide_*>` ref synthesized from the saved selection.
-    const { prose, attachments, savedIdeRef } = overridePayload || buildRerunPayloadFromRecord(record);
-    if (!prose && !attachments.length) {
+    // through the host's own send pipeline: text, base64 images, and
+    // one optional IDE reference reconstructed from the saved selection.
+    let replay;
+    try { replay = overridePayload || buildRerunPayloadFromRecord(record); }
+    catch (error) { showTranscriptToast(error.message || String(error), 'error'); return; }
+    const { prose, attachments, savedIdeRef } = replay;
+    if (!prose && !attachments.length && !savedIdeRef) {
       showTranscriptToast('No content to rerun', 'error');
       return;
     }
@@ -5082,11 +4869,10 @@ import {
       const why = confirmed.reason === 'advanced'
         ? 'a background task or the interrupted reply appended after the cut'
         : 'the previous turn did not finish stopping in time';
-      showTranscriptToast(
-        'Rerun was held back because ' + why +
-        '. Local history was restored — wait for the current reply to finish, then rerun again.',
-        'error',
-      );
+      const recovery = rolled?.rolledBack
+        ? 'Local history was restored. Wait for the current reply to finish, then retry.'
+        : 'The transcript could not be safely restored. Review the current conversation before retrying.';
+      showTranscriptToast('Rerun was held back because ' + why + '. ' + recovery, 'error');
       return;
     }
 
@@ -5111,7 +4897,9 @@ import {
     }
 
     try {
-      await session.send(prose, attachments, includeSelection);
+      // Saved content already contains its resolved references. Re-expanding
+      // it can read today's terminal/browser state into a replay (2026-09-05).
+      await session.send(prose, attachments, includeSelection, undefined, { expandMentions: !!overridePayload });
     } catch (error) {
       let rollback = null;
       let rollbackError = null;
@@ -5327,7 +5115,7 @@ import {
     await forkFromUser(record, button);
   }
 
-  // ---- inline editor (replaces modal for edit_user / edit_assistant_text) ----
+  // ---- User-message inline editor ----
   //
   // Flow:
   //   1. Mark the bubble's content node + the existing icon row with
@@ -5337,7 +5125,7 @@ import {
   //   2. Inject a `[data-incipit-inline-edit-shell]` sibling holding a
   //      transparent <textarea> (no border, body font, terra-red caret).
   //   3. Inject an `[data-incipit-inline-edit-actions]` sibling next to
-  //      the original icon row, holding [取消] [保存] text buttons.
+  //      the original icon row, holding Cancel and Save buttons.
   //   4. Save button respects `conversationIsBusy()`; sweep flips it.
   //   5. Cancel / save / Esc / Ctrl-Enter all teardown — remove the
   //      injected nodes and unhide the originals. Save also fires the
@@ -5665,15 +5453,14 @@ import {
   async function saveAndRerunInlineEditor(uuid, button) {
     const state = inlineEditByUuid.get(uuid);
     if (!state) return;
-    if (state.kind !== 'user') {
-      await saveInlineEditor(uuid);
-      return;
-    }
+    if (state.record?.type !== 'user') return;
     if (blockMutationWhileBusyOrUnknown()) return;
     const text = state.textarea.value;
     const blocksSpec = buildUserEditBlocksSpec(state, text);
-    const rerunPayload = buildRerunPayloadFromEditorDraft(state.record, text, state.chips);
-    if (blocksSpec.length === 0 || (!rerunPayload.prose && !rerunPayload.attachments.length)) {
+    let rerunPayload;
+    try { rerunPayload = buildRerunPayloadFromEditorDraft(state.record, text, state.chips); }
+    catch (error) { showTranscriptToast(error.message || String(error), 'error'); return; }
+    if (blocksSpec.length === 0 || (!rerunPayload.prose && !rerunPayload.attachments.length && !rerunPayload.savedIdeRef)) {
       showTranscriptToast(
         'Nothing to rerun — type something or keep at least one image attachment.',
         'error',
@@ -5695,70 +5482,32 @@ import {
 
   async function saveInlineEditor(uuid) {
     const state = inlineEditByUuid.get(uuid);
-    if (!state) return;
+    if (!state || state.record?.type !== 'user') return;
     if (blockMutationWhileBusyOrUnknown()) return;
-    const text = state.textarea.value;
-    const op = state.kind === 'assistant' ? 'edit_assistant_text' : 'edit_user';
-
-    // Build blocks payload for user kind. We always go through the
-    // rich (blocks) path for user edits, never the legacy text-only
-    // path: the host's text-only path uses `replaceTextContent`, which
-    // walks the content array and overwrites the FIRST text block with
-    // the new prose. For multi-block records (ide_opened_file +
-    // user-prose, ide_selection + user-prose, image + user-prose) the
-    // first text block is the ide_* wrapper, so a text-only save would
-    // silently overwrite the ref while dropping the user's actual
-    // prose block. Blocks path eliminates this whole class of hazard
-    // by sending an explicit kept-by-index spec.
-    let blocksSpec = null;
-    if (state.kind === 'user') {
-      blocksSpec = buildUserEditBlocksSpec(state, text);
-      if (blocksSpec.length === 0) {
-        showTranscriptToast(
-          'Nothing to save — type something or keep at least one attachment.',
-          'error',
-        );
-        return;
-      }
-    }
-
-    state.saveBtn.dataset.incipitInflight = '1';
-    state.cancelBtn.dataset.incipitInflight = '1';
-    let payload;
-    try {
-      const liveIdentity = transcriptRecordIdentity(liveTranscriptRecord(uuid, state.record)) || state.identity || {};
-      const requestPayload = blocksSpec
-        ? { uuid, blocks: blocksSpec, ...liveIdentity }
-        : { uuid, text, ...liveIdentity };
-      payload = await requestTranscriptMutation(op, requestPayload);
-    } catch (error) {
-      if (state.saveBtn) state.saveBtn.removeAttribute('data-incipit-inflight');
-      if (state.cancelBtn) state.cancelBtn.removeAttribute('data-incipit-inflight');
-      showTranscriptToast(error && error.message ? error.message : String(error), 'error');
+    const blocksSpec = buildUserEditBlocksSpec(state, state.textarea.value);
+    if (!blocksSpec.length) {
+      showTranscriptToast('Nothing to save — type something or keep at least one attachment.', 'error');
       return;
     }
-    // Teardown BEFORE reflect — otherwise React's mount of the new
-    // markdown root lands AFTER our hidden icon row + injected nodes,
-    // leaving the icon row stranded at the top of the bubble after
-    // teardown. Restoring DOM to the pre-edit shape first lets React
-    // reconcile in the same position the original markdown root held.
-    teardownInlineEditor(uuid);
-    // Yield to the event loop so the browser can paint the closed
-    // editor before reflect's synchronous React re-render of the edited
-    // markdown row stalls the main thread (re-parsing markdown, hljs,
-    // KaTeX). Without this, teardown + the React commit run in one
-    // task and the user perceives "click → frozen → done" with zero
-    // intermediate feedback. Same total work, much better responsiveness.
-    await new Promise(resolve => setTimeout(resolve, 0));
-    if (blocksSpec) {
-      reflectUserEditBlocks(uuid, blocksSpec);
-    } else {
-      reflectTranscriptMutation(op, payload, text);
+    state.saveBtn.dataset.incipitInflight = '1';
+    state.cancelBtn.dataset.incipitInflight = '1';
+    try {
+      const liveIdentity = transcriptRecordIdentity(liveTranscriptRecord(uuid, state.record)) || state.identity || {};
+      await requestTranscriptMutation('edit_user', { uuid, blocks: blocksSpec, ...liveIdentity });
+    } catch (error) {
+      state.saveBtn?.removeAttribute('data-incipit-inflight');
+      state.cancelBtn?.removeAttribute('data-incipit-inflight');
+      showTranscriptToast(error.message || String(error), 'error');
+      return;
     }
+    // Release the editor before React replaces the saved user bubble.
+    teardownInlineEditor(uuid);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    reflectUserEditBlocks(uuid, blocksSpec);
   }
 
-  function openInlineEditor({ kind, record, bubbleHost, contentEl, originalActionRow, identity, initialText }) {
-    if (!record || !bubbleHost || !contentEl) return;
+  function openInlineEditor({ record, bubbleHost, contentEl, originalActionRow, identity }) {
+    if (!record || record.type !== 'user' || !bubbleHost || !contentEl) return;
     if (conversationIsBusy()) return;
     const existing = inlineEditByUuid.get(record.uuid);
     if (existing) {
@@ -5795,61 +5544,47 @@ import {
 
     const shell = document.createElement('div');
     shell.className = 'incipit-inline-edit-shell';
-    shell.setAttribute('data-incipit-inline-edit-shell', kind);
+    shell.setAttribute('data-incipit-inline-edit-shell', 'user');
 
-    // For user kind, build the chip strip + extract prose-only text.
-    // Refs (ide_opened_file / ide_selection) and image attachments
-    // become chips above the textarea; the textarea holds only the
-    // user's typed prose. Assistant edits are pure text — no chips.
-    let chipsContainer = null;
-    let chipsAddBtn = null;
-    let chipsFileInput = null;
-    let initialChips = [];
-    let textareaInitial = initialText || '';
-    if (kind === 'user') {
-      const classified = classifyUserRecordBlocks(record);
-      initialChips = classified.chips;
-      // Override caller's initialText (which joined all text blocks
-      // including the ide_* wrappers) with prose-only text. Wrappers
-      // round-trip via keep-by-index, not by being typed back into
-      // the textarea — typing them as text would let the user
-      // accidentally synthesize fake refs the host must reject.
-      textareaInitial = classified.proseText;
+    // Keep attachment wrappers outside the prose field so editing text
+    // cannot accidentally synthesize an IDE-generated reference.
+    const classified = classifyUserRecordBlocks(record);
+    const initialChips = classified.chips;
+    const textareaInitial = classified.proseText;
 
-      chipsContainer = document.createElement('div');
-      chipsContainer.className = 'incipit-edit-chip-strip';
-      chipsContainer.setAttribute('data-incipit-inline-edit-chips', '');
-      shell.appendChild(chipsContainer);
+    const chipsContainer = document.createElement('div');
+    chipsContainer.className = 'incipit-edit-chip-strip';
+    chipsContainer.setAttribute('data-incipit-inline-edit-chips', '');
+    shell.appendChild(chipsContainer);
 
-      // '+' add-image button + hidden file input (multiple file pick).
-      // Paste/drop work too; the visible '+' is just affordance.
-      chipsFileInput = document.createElement('input');
-      chipsFileInput.type = 'file';
-      chipsFileInput.accept = 'image/png,image/jpeg,image/gif,image/webp';
-      chipsFileInput.multiple = true;
-      chipsFileInput.style.display = 'none';
-      shell.appendChild(chipsFileInput);
+    // '+' add-image button + hidden file input (multiple file pick).
+    // Paste/drop work too; the visible '+' is just affordance.
+    const chipsFileInput = document.createElement('input');
+    chipsFileInput.type = 'file';
+    chipsFileInput.accept = 'image/png,image/jpeg,image/gif,image/webp';
+    chipsFileInput.multiple = true;
+    chipsFileInput.style.display = 'none';
+    shell.appendChild(chipsFileInput);
 
-      chipsAddBtn = document.createElement('button');
-      chipsAddBtn.className = 'incipit-edit-chip-add';
-      chipsAddBtn.type = 'button';
-      chipsAddBtn.title = 'Attach image (paste or drop also works)';
-      chipsAddBtn.setAttribute('aria-label', 'Attach image');
-      chipsAddBtn.innerHTML = CHIP_PLUS_ICON_SVG;
-      chipsAddBtn.addEventListener('click', (ev) => {
-        ev.preventDefault();
-        ev.stopPropagation();
-        chipsFileInput.value = '';
-        chipsFileInput.click();
-      });
-      chipsFileInput.addEventListener('change', () => {
-        const state = inlineEditByUuid.get(record.uuid);
-        if (!state) return;
-        for (const f of Array.from(chipsFileInput.files || [])) {
-          addInlineEditImageFromFile(state, f);
-        }
-      });
-    }
+    const chipsAddBtn = document.createElement('button');
+    chipsAddBtn.className = 'incipit-edit-chip-add';
+    chipsAddBtn.type = 'button';
+    chipsAddBtn.title = 'Attach image (paste or drop also works)';
+    chipsAddBtn.setAttribute('aria-label', 'Attach image');
+    chipsAddBtn.innerHTML = CHIP_PLUS_ICON_SVG;
+    chipsAddBtn.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      chipsFileInput.value = '';
+      chipsFileInput.click();
+    });
+    chipsFileInput.addEventListener('change', () => {
+      const state = inlineEditByUuid.get(record.uuid);
+      if (!state) return;
+      for (const f of Array.from(chipsFileInput.files || [])) {
+        addInlineEditImageFromFile(state, f);
+      }
+    });
 
     const textarea = document.createElement('textarea');
     textarea.className = 'incipit-inline-edit-textarea';
@@ -5859,57 +5594,55 @@ import {
     textarea.rows = 1;
     shell.appendChild(textarea);
 
-    // Image paste/drop handlers (user kind only). Paste captures
+    // Image paste/drop handlers. Paste captures
     // clipboardData image items; drop captures dragged-in files.
     // Text paste falls through to the textarea's natural behaviour.
-    if (kind === 'user') {
-      textarea.addEventListener('paste', (ev) => {
-        const items = (ev.clipboardData && ev.clipboardData.items) || [];
-        let handled = false;
-        const state = inlineEditByUuid.get(record.uuid);
-        for (const it of items) {
-          if (it.kind === 'file' && /^image\//.test(it.type || '')) {
-            const file = it.getAsFile && it.getAsFile();
-            if (file && state) {
-              addInlineEditImageFromFile(state, file);
-              handled = true;
-            }
+    textarea.addEventListener('paste', (ev) => {
+      const items = (ev.clipboardData && ev.clipboardData.items) || [];
+      let handled = false;
+      const state = inlineEditByUuid.get(record.uuid);
+      for (const it of items) {
+        if (it.kind === 'file' && /^image\//.test(it.type || '')) {
+          const file = it.getAsFile && it.getAsFile();
+          if (file && state) {
+            addInlineEditImageFromFile(state, file);
+            handled = true;
           }
         }
-        if (handled) {
-          ev.preventDefault();
-          ev.stopPropagation();
-        }
-      });
-      shell.addEventListener('dragover', (ev) => {
-        // Only signal accept when an image-ish file is being dragged;
-        // suppresses VS Code's editor-level default for image drops.
-        const dt = ev.dataTransfer;
-        if (!dt) return;
-        const types = dt.types || [];
-        const looksLikeFile = Array.prototype.indexOf.call(types, 'Files') !== -1;
-        if (looksLikeFile) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          try { dt.dropEffect = 'copy'; } catch (_) {}
-        }
-      });
-      shell.addEventListener('drop', (ev) => {
-        const dt = ev.dataTransfer;
-        if (!dt) return;
-        const files = Array.from(dt.files || []).filter(f => /^image\//.test(f.type || ''));
-        if (!files.length) return;
+      }
+      if (handled) {
         ev.preventDefault();
         ev.stopPropagation();
-        const state = inlineEditByUuid.get(record.uuid);
-        if (!state) return;
-        for (const f of files) addInlineEditImageFromFile(state, f);
-      });
-    }
+      }
+    });
+    shell.addEventListener('dragover', (ev) => {
+      // Only signal accept when an image-ish file is being dragged;
+      // suppresses VS Code's editor-level default for image drops.
+      const dt = ev.dataTransfer;
+      if (!dt) return;
+      const types = dt.types || [];
+      const looksLikeFile = Array.prototype.indexOf.call(types, 'Files') !== -1;
+      if (looksLikeFile) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        try { dt.dropEffect = 'copy'; } catch (_) {}
+      }
+    });
+    shell.addEventListener('drop', (ev) => {
+      const dt = ev.dataTransfer;
+      if (!dt) return;
+      const files = Array.from(dt.files || []).filter(f => /^image\//.test(f.type || ''));
+      if (!files.length) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      const state = inlineEditByUuid.get(record.uuid);
+      if (!state) return;
+      for (const f of files) addInlineEditImageFromFile(state, f);
+    });
 
     const editActions = document.createElement('div');
     editActions.className = 'incipit-transcript-action-row incipit-inline-edit-actions';
-    editActions.setAttribute('data-incipit-inline-edit-actions', kind);
+    editActions.setAttribute('data-incipit-inline-edit-actions', 'user');
 
     // SVG icon buttons (matching the original three-icon row family).
     // makeTranscriptActionButton wires stopPropagation, the
@@ -5927,14 +5660,12 @@ import {
       SAVE_ICON_SVG,
       () => saveInlineEditor(record.uuid),
     );
-    const saveRerunBtn = kind === 'user'
-      ? makeTranscriptActionButton(
-        'rerun',
-        'Save and rerun (Ctrl+Enter)',
-        RERUN_ICON_SVG,
-        () => saveAndRerunInlineEditor(record.uuid, saveRerunBtn),
-      )
-      : null;
+    const saveRerunBtn = makeTranscriptActionButton(
+      'rerun',
+      'Save and rerun (Ctrl+Enter)',
+      RERUN_ICON_SVG,
+      () => saveAndRerunInlineEditor(record.uuid, saveRerunBtn),
+    );
 
     // When downstream assistant messages contain signed thinking blocks,
     // local-only Save is impossible (API rejects a modified upstream that
@@ -5942,13 +5673,12 @@ import {
     // too). Hide Save, keep only Cancel + Rerun so the user can't hit
     // that dead end. Read from messages.value, not DOM (virtualization).
     const hasDownstreamThinking =
-      kind === 'user' && userRecordHasDownstreamSignedThinking(record);
+      userRecordHasDownstreamSignedThinking(record);
 
     if (hasDownstreamThinking) {
       editActions.append(cancelBtn, saveRerunBtn);
     } else {
-      editActions.append(cancelBtn, saveBtn);
-      if (saveRerunBtn) editActions.appendChild(saveRerunBtn);
+      editActions.append(cancelBtn, saveBtn, saveRerunBtn);
     }
 
     // DOM injection.
@@ -5958,20 +5688,12 @@ import {
     } else {
       bubbleHost.appendChild(shell);
     }
-    // Edit-actions — placement depends on kind:
-    //  - user: inside the bubble itself, after the shell, so the
-    //    cancel/save pair sits at the bottom-right of the expanded
-    //    draft card (the bubble carries the visual identity).
-    //  - assistant: outside the markdown root, next to the original
-    //    icon row at message-host level, matching the original AI
-    //    action row position (below the warm draft card).
+    // Keep the editing controls inside the user's bubble when available.
     let editActionsPlaced = false;
-    if (kind === 'user') {
-      const userBubbleEl = contentEl.closest('[data-incipit-user-bubble]');
-      if (userBubbleEl) {
-        userBubbleEl.appendChild(editActions);
-        editActionsPlaced = true;
-      }
+    const userBubbleEl = contentEl.closest('[data-incipit-user-bubble]');
+    if (userBubbleEl) {
+      userBubbleEl.appendChild(editActions);
+      editActionsPlaced = true;
     }
     if (!editActionsPlaced) {
       if (originalActionRow && originalActionRow.parentElement) {
@@ -5984,21 +5706,18 @@ import {
     // Hide originals via attr (CSS handles display:none).
     contentEl.setAttribute('data-incipit-inline-edit-hidden', '');
     if (originalActionRow) originalActionRow.setAttribute('data-incipit-inline-edit-hidden', '');
-    // For user kind: also hide the host-rendered attachment pill row
+    // Also hide the host-rendered attachment pill row
     // (`[data-incipit-user-attachments]`). The host renders it either
     // inside the user bubble (short messages) or as a sibling above the
     // bubble (long messages). Without this hide, both the host's pills
     // *and* our chip strip render simultaneously, showing the same
     // images twice with two different visual styles. Scope query at the
     // userMessageContainer level to cover both layouts.
-    let attachmentsEl = null;
-    if (kind === 'user') {
-      attachmentsEl = bubbleHost.querySelector(SEL.userAttachments);
-      if (attachmentsEl) {
-        attachmentsEl.setAttribute('data-incipit-inline-edit-hidden', '');
-      }
+    const attachmentsEl = bubbleHost.querySelector(SEL.userAttachments);
+    if (attachmentsEl) {
+      attachmentsEl.setAttribute('data-incipit-inline-edit-hidden', '');
     }
-    bubbleHost.setAttribute('data-incipit-inline-editing', kind);
+    bubbleHost.setAttribute('data-incipit-inline-editing', 'user');
 
     const autoGrow = () => {
       textarea.style.height = 'auto';
@@ -6021,7 +5740,6 @@ import {
       }
     });
     inlineEditByUuid.set(record.uuid, {
-      kind,
       record,
       bubbleHost,
       contentEl,
@@ -6033,7 +5751,7 @@ import {
       editActionsEl: editActions,
       originalActionRow: originalActionRow || null,
       identity: identity || null,
-      // Chip strip state (user kind only). chips is mutated in place
+      // Chip strip state. chips is mutated in place
       // by removeInlineEditChip / addInlineEditImageFromFile;
       // renderInlineEditChipStrip clears + repaints `chipsContainerEl`
       // each time. chipsCounter namespace 'n-N' keeps new-image chip
@@ -6047,10 +5765,8 @@ import {
       attachmentsEl,
     });
 
-    if (kind === 'user') {
-      const seedState = inlineEditByUuid.get(record.uuid);
-      renderInlineEditChipStrip(seedState);
-    }
+    const seedState = inlineEditByUuid.get(record.uuid);
+    renderInlineEditChipStrip(seedState);
 
     applyInlineSaveBusyState(saveBtn, conversationIsBusy());
 
@@ -6246,15 +5962,12 @@ import {
         () => {
           const cur = liveRecord();
           const userContentEl = userBubbleContentElement(bubbleEl) || bubbleEl;
-          const initialText = transcriptText(cur) || userBubbleText(bubbleEl).trim();
           openInlineEditor({
-            kind: 'user',
             record: cur,
             bubbleHost: host,
             contentEl: userContentEl,
             originalActionRow: row,
             identity,
-            initialText,
           });
         }
       ));
@@ -6629,11 +6342,8 @@ import {
     return false;
   }
 
-  // AI text turns get a 2-icon row at the markdown end: pencil (edit
-  // local transcript) + more (copy as text/markdown). No delete:
-  // destructive operations live on user bubbles only, where they have
-  // a clean truncate-and-rerun semantic. No standalone copy: copy
-  // sits inside the more dropdown. Mid-turn assistant records
+  // Assistant output is read-only. Its terminal row retains the copy menu
+  // and the change-review placement anchor. Mid-turn assistant records
   // (thinking / tool_use / interrupted-tool-end) get nothing — the
   // turn boundary is the user's input, not the assistant's last block.
   function reconcileAssistantTranscriptActions(markdownRoot, fallbackRecord = null) {
@@ -6690,46 +6400,10 @@ import {
     const row = document.createElement('div');
     row.className = 'incipit-transcript-action-row incipit-assistant-action-row';
     row.__incipitTranscriptRecord = record;
-    const identity = transcriptRecordIdentity(record);
     // Re-resolve the record by uuid at click time — see addUserCopyButton.
     const capturedUuid = record && record.uuid;
     const liveRecord = () => liveTranscriptRecord(capturedUuid, record);
     const getMarkdown = () => transcriptText(liveRecord()) || markdownRoot.textContent || '';
-
-    const editBtn = makeTranscriptActionButton('edit', 'Edit AI output (local history only)', EDIT_ICON_SVG, async () => {
-      let cur = liveRecord();
-      cur = await ensureAssistantRecordUuid(cur);
-      if (!cur || !recordUuid(cur)) {
-        showTranscriptToast(
-          'Local history is still syncing this assistant message; try again in a moment.',
-          'warn',
-        );
-        noteTranscriptActionMutation();
-        return;
-      }
-      openInlineEditor({
-        kind: 'assistant',
-        record: cur,
-        bubbleHost: host,
-        contentEl: markdownRoot,
-        originalActionRow: row,
-        identity: transcriptRecordIdentity(cur) || identity,
-        initialText: transcriptText(cur) || markdownRoot.textContent || '',
-      });
-    });
-    row.appendChild(editBtn);
-    // Edit hover preview: hover the pencil → markdown root paints with
-    // the inline-edit draft-card colour (same as a real edit click
-    // produces). Skip when disabled by streaming gate; idle→busy
-    // transition also clears the attr eagerly elsewhere so hover-in-
-    // flight doesn't linger on a now-disabled icon.
-    editBtn.addEventListener('mouseenter', () => {
-      if (editBtn.dataset.incipitDisabled === '1') return;
-      markdownRoot.setAttribute('data-incipit-edit-hover-preview', '1');
-    });
-    editBtn.addEventListener('mouseleave', () => {
-      markdownRoot.removeAttribute('data-incipit-edit-hover-preview');
-    });
 
     const moreBtn = makeTranscriptActionButton('more', 'More actions', MORE_ICON_SVG, () => {
       openActionDropdown(moreBtn, buildCopyDropdownItems(getMarkdown));

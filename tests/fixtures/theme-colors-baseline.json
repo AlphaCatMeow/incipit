@@ -2,8 +2,8 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "3763d23289ca56c9c47b629df7083c6d4e87ea1ad7f9f97b75c982317cbfa0db",
-    "warmWhiteSha256": "b9034bddcd247d40c78427f559e0eb80ef26acc3817ee6cfc791fc705c279fa9"
+    "themeSha256": "b3d68680edc4b91fe6b22b6a763c2a92571551dca88f0179d0632f80d5acb606",
+    "warmWhiteSha256": "7c80bb5e0294bbc6a97e51166907db04f06fd75ed2a6e450fdf2a19967302775"
   },
   "themeSequence": [
     "\u0001@font-face#1\u0001font-family\u0001",
@@ -3697,14 +3697,8 @@
     "\u0001.incipit-inline-edit-shell\u0001margin\u0001",
     "\u0001.incipit-inline-edit-shell\u0001padding\u0001",
     "\u0001.incipit-inline-edit-shell\u0001animation\u0001",
-    "\u0001[data-incipit-inline-edit-shell=\"assistant\"]\u0001background\u0001",
-    "\u0001[data-incipit-inline-edit-shell=\"assistant\"]\u0001padding\u0001",
-    "\u0001[data-incipit-inline-edit-shell=\"assistant\"]\u0001border-radius\u0001",
     "\u0001[data-incipit-inline-edit-shell=\"user\"]\u0001background\u0001",
     "\u0001[data-incipit-inline-edit-shell=\"user\"]\u0001padding\u0001",
-    "\u0001[data-incipit-markdown-root]\u0001transition\u0001",
-    "\u0001[data-incipit-markdown-root]\u0001border-radius\u0001",
-    "\u0001[data-incipit-markdown-root][data-incipit-edit-hover-preview]\u0001background-color\u0001",
     "@keyframes incipit-inline-edit-fade-in\u0001from\u0001opacity\u0001",
     "@keyframes incipit-inline-edit-fade-in\u0001to\u0001opacity\u0001",
     "\u0001.incipit-inline-edit-textarea\u0001display\u0001",
@@ -5978,8 +5972,6 @@
     "\u0001[class*=\"keys_\"] kbd\u0001border-color\u0001!",
     "\u0001[class*=\"menuHeaderHint\"] kbd\u0001color\u0001!",
     "\u0001[class*=\"keys_\"] kbd\u0001color\u0001!",
-    "\u0001[data-incipit-inline-edit-shell=\"assistant\"]\u0001background\u0001!",
-    "\u0001[data-incipit-markdown-root][data-incipit-edit-hover-preview]\u0001background-color\u0001!",
     "\u0001.incipit-inline-edit-textarea\u0001caret-color\u0001!",
     "\u0001.incipit-transcript-action-save\u0001color\u0001!",
     "\u0001.incipit-transcript-action-save:hover\u0001color\u0001!",
@@ -21254,21 +21246,6 @@
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-inline-edit-shell=\"assistant\"]\u0001background",
-      "important": false,
-      "resolved": "#272727"
-    },
-    {
-      "key": "\u0001[data-incipit-inline-edit-shell=\"assistant\"]\u0001border-radius",
-      "important": false,
-      "resolved": "4px"
-    },
-    {
-      "key": "\u0001[data-incipit-inline-edit-shell=\"assistant\"]\u0001padding",
-      "important": false,
-      "resolved": "8px 10px"
-    },
-    {
       "key": "\u0001[data-incipit-inline-edit-shell=\"user\"]\u0001background",
       "important": false,
       "resolved": "transparent"
@@ -22054,11 +22031,6 @@
       "resolved": "normal"
     },
     {
-      "key": "\u0001[data-incipit-markdown-root][data-incipit-edit-hover-preview]\u0001background-color",
-      "important": false,
-      "resolved": "#272727"
-    },
-    {
       "key": "\u0001[data-incipit-markdown-root]>blockquote\u0001box-sizing",
       "important": false,
       "resolved": "border-box"
@@ -22107,16 +22079,6 @@
       "key": "\u0001[data-incipit-markdown-root]>ul\u0001width",
       "important": false,
       "resolved": "100%"
-    },
-    {
-      "key": "\u0001[data-incipit-markdown-root]\u0001border-radius",
-      "important": false,
-      "resolved": "4px"
-    },
-    {
-      "key": "\u0001[data-incipit-markdown-root]\u0001transition",
-      "important": false,
-      "resolved": "background-color 0.18s ease"
     },
     {
       "key": "\u0001[data-incipit-menu-item-description]\u0001font-family",
@@ -46551,21 +46513,6 @@
       "resolved": "none"
     },
     {
-      "key": "\u0001[data-incipit-inline-edit-shell=\"assistant\"]\u0001background",
-      "important": true,
-      "resolved": "#e6e4de"
-    },
-    {
-      "key": "\u0001[data-incipit-inline-edit-shell=\"assistant\"]\u0001border-radius",
-      "important": false,
-      "resolved": "4px"
-    },
-    {
-      "key": "\u0001[data-incipit-inline-edit-shell=\"assistant\"]\u0001padding",
-      "important": false,
-      "resolved": "8px 10px"
-    },
-    {
       "key": "\u0001[data-incipit-inline-edit-shell=\"user\"]\u0001background",
       "important": false,
       "resolved": "transparent"
@@ -47351,11 +47298,6 @@
       "resolved": "normal"
     },
     {
-      "key": "\u0001[data-incipit-markdown-root][data-incipit-edit-hover-preview]\u0001background-color",
-      "important": true,
-      "resolved": "#e6e4de"
-    },
-    {
       "key": "\u0001[data-incipit-markdown-root]>blockquote\u0001box-sizing",
       "important": false,
       "resolved": "border-box"
@@ -47404,16 +47346,6 @@
       "key": "\u0001[data-incipit-markdown-root]>ul\u0001width",
       "important": false,
       "resolved": "100%"
-    },
-    {
-      "key": "\u0001[data-incipit-markdown-root]\u0001border-radius",
-      "important": false,
-      "resolved": "4px"
-    },
-    {
-      "key": "\u0001[data-incipit-markdown-root]\u0001transition",
-      "important": false,
-      "resolved": "background-color 0.18s ease"
     },
     {
       "key": "\u0001[data-incipit-menu-item-description]\u0001font-family",

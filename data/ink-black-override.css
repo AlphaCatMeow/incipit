@@ -239,8 +239,6 @@
   --ink-dropdown-border-2: rgba(255,255,255,0.06);
   --ink-dropdown-placeholder-fg: rgba(251,251,252,0.42);
   --ink-dropdown-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
-  --ink-edit-hover-preview-bg: #1a1b1c;
-  --ink-edit-hover-preview-bg-override: #1a1b1c;
   --ink-editor-bg: #0a0b0b;
   --ink-file-drag-hint-after-bg: rgba(31,31,30,0.94);
   --ink-file-drag-hint-after-border: 1px solid rgba(194,196,199,0.36);
@@ -289,8 +287,6 @@
   --ink-incipit-transcript-action-save-hover-bg-override: rgba(255,255,255,0.06);
   --ink-incipit-transcript-action-save-hover-fg: #a8a8a8;
   --ink-incipit-transcript-action-save-hover-fg-override: #a8a8a8;
-  --ink-inline-edit-shell-bg: #1a1b1c;
-  --ink-inline-edit-shell-bg-override: #1a1b1c;
   --ink-input-container-background-shadow: 0 2px 10px rgba(0,0,0,0.20),0 1px 3px rgba(0,0,0,0.15);
   --ink-keyboard-hints-fg: rgba(251,251,252,0.58);
   --ink-keys-bg: rgba(255,255,255,0.07);

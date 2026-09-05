@@ -238,8 +238,6 @@
   --ink-dropdown-border-2: rgba(0,0,0,0.06);
   --ink-dropdown-placeholder-fg: rgba(61,57,41,0.46);
   --ink-dropdown-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
-  --ink-edit-hover-preview-bg: #272727;
-  --ink-edit-hover-preview-bg-override: #e6e4de;
   --ink-editor-bg: #e6e4de;
   --ink-file-drag-hint-after-bg: #ffffff;
   --ink-file-drag-hint-after-border: 1px solid rgba(217,119,87,0.36);
@@ -288,8 +286,6 @@
   --ink-incipit-transcript-action-save-hover-bg-override: rgba(60,55,40,0.06);
   --ink-incipit-transcript-action-save-hover-fg: #e3937a;
   --ink-incipit-transcript-action-save-hover-fg-override: #a64f30;
-  --ink-inline-edit-shell-bg: #272727;
-  --ink-inline-edit-shell-bg-override: #e6e4de;
   --ink-input-container-background-shadow: 0 2px 10px rgba(60,55,40,0.05),0 1px 3px rgba(60,55,40,0.04),inset 0 0 0 1px rgba(60,55,40,0.13);
   --ink-keyboard-hints-fg: rgba(61,57,41,0.56);
   --ink-keys-bg: rgba(60,55,40,0.06);
@@ -1174,22 +1170,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   border-color: var(--ink-keys-border-override) !important;
 }
 
-/* ---------- Inline edit (warm-white draft card) ----------
-   AI draft card reuses the warm-white code-block surface (#E6E4DE)
-   — same "embedded content" weight as <pre> blocks, so the editor
-   reads as the same surface family. Save icon + caret use the
-   deeper #bf5d3a accent. User bubble keeps its own #E6E4DE fill
-   (set elsewhere); no extra chrome needed when expanded. */
-[data-incipit-inline-edit-shell="assistant"] {
-  background: var(--ink-inline-edit-shell-bg-override) !important;
-}
-/* Edit hover preview — same paper-tone draft fill the inline-edit
-   shell uses when actually opened. theme.css defines the transition
-   and base behaviour; this only flips the colour for warm-white so
-   the preview matches the (now-paper) draft card. */
-[data-incipit-markdown-root][data-incipit-edit-hover-preview] {
-  background-color: var(--ink-edit-hover-preview-bg-override) !important;
-}
+/* User edit controls retain the warm-white accent and bubble surface. */
 .incipit-inline-edit-textarea {
   caret-color: var(--ink-incipit-inline-edit-textarea-caret-override) !important;
 }

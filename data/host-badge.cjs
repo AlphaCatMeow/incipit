@@ -869,10 +869,8 @@ function resolveConversationMutation(state, message) {
 
   const op = typeof message.op === 'string' ? message.op : '';
   if (!op) throw new Error('Missing transcript mutation operation');
-
-  if (op === 'resolve_assistant_uuid') {
-    const transcript = readTranscript(target);
-    return resolveAssistantUuid(transcript, message);
+  if (op === 'edit_assistant_text') {
+    throw new Error('Assistant messages are read-only. Edit a user message and rerun instead.');
   }
 
   const uuid = typeof message.uuid === 'string' ? message.uuid : '';
@@ -899,7 +897,6 @@ function resolveConversationMutation(state, message) {
       type: row.entry.type || null,
       text: editableTextFromEntry(row.entry),
       canEditUser: canEditUserEntry(row.entry),
-      canEditAssistantText: canEditAssistantTextEntry(row.entry),
       canRerun: row.entry.type === 'user' && canEditUserEntry(row.entry),
     };
   }
@@ -917,8 +914,6 @@ function resolveConversationMutation(state, message) {
     } else {
       result = applyUserEdit(transcript, uuid, textPayload(message));
     }
-  } else if (op === 'edit_assistant_text') {
-    result = applyAssistantTextEdit(transcript, uuid, textPayload(message));
   } else if (op === 'truncate_from_user') {
     result = applyTruncateFromUser(transcript, uuid);
   } else {
@@ -1142,44 +1137,6 @@ function textPayload(message) {
   return message.text;
 }
 
-function resolveAssistantUuid(transcript, message) {
-  const betaMessageId = typeof message.betaMessageId === 'string' ? message.betaMessageId : '';
-  if (!betaMessageId) throw new Error('Missing assistant message id');
-  const requestedTail = normalizeLookupText(message.textTail || '');
-
-  for (let i = transcript.rows.length - 1; i >= 0; i--) {
-    const entry = transcript.rows[i].entry;
-    if (!entry || entry.type !== 'assistant') continue;
-    if (!entry.message || entry.message.id !== betaMessageId) continue;
-    const uuid = typeof entry.uuid === 'string' ? entry.uuid : '';
-    if (!uuid) continue;
-    const text = editableTextFromEntry(entry);
-    const normalized = normalizeLookupText(text);
-    const tailMatched = requestedTail.length < 24 ||
-      normalized.includes(requestedTail) ||
-      requestedTail.includes(normalized.slice(-Math.min(normalized.length, requestedTail.length)));
-    return {
-      ok: true,
-      op: 'resolve_assistant_uuid',
-      uuid,
-      matched: true,
-      tailMatched,
-      canEditAssistantText: canEditAssistantTextEntry(entry),
-    };
-  }
-
-  return {
-    ok: true,
-    op: 'resolve_assistant_uuid',
-    uuid: null,
-    matched: false,
-  };
-}
-
-function normalizeLookupText(text) {
-  return String(text || '').replace(/\s+/g, ' ').trim();
-}
-
 function readTranscript(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8');
   const hasFinalNewline = /\r?\n$/.test(raw);
@@ -1264,7 +1221,7 @@ function applyUserEdit(transcript, uuid, text) {
   const rows = requireTranscriptRows(transcript, uuid);
   const sample = rows[rows.length - 1].entry;
   if (sample.type !== 'user') throw new Error('Only user messages can be edited with this operation');
-  if (!canEditUserEntry(sample)) {
+  if (!rows.every(row => canEditUserEntry(row.entry))) {
     throw new Error('Tool result records cannot be edited; rerun the prior user message instead');
   }
   if (userEditHasDownstreamSignedThinking(transcript, uuid)) {
@@ -1298,8 +1255,8 @@ function applyUserEdit(transcript, uuid, text) {
 //     cannot synthesize a fake auto-attached ref via the prose box
 //   - image.source.type === 'base64' with valid media_type + data
 //
-// Per-row application gate: only keep blocks of type 'text' or 'image'
-// (never tool_result, even though canEditUserEntry already screens at
+// Per-row application gate: preserve existing user attachments verbatim,
+// never tool_result, even though canEditUserEntry already screens at
 // the row level — defensive). After rebuild, content must be non-empty.
 // We compare JSON-stringified old vs new to skip rows whose content
 // happens to already match the spec (no-op write).
@@ -1350,7 +1307,7 @@ function applyUserBlockEdit(transcript, uuid, blocks) {
   if (sample.type !== 'user') {
     throw new Error('Only user messages can be edited with this operation');
   }
-  if (!canEditUserEntry(sample)) {
+  if (!rows.every(row => canEditUserEntry(row.entry))) {
     throw new Error('Tool result records cannot be edited; rerun the prior user message instead');
   }
   if (userEditHasDownstreamSignedThinking(transcript, uuid)) {
@@ -1366,6 +1323,13 @@ function applyUserBlockEdit(transcript, uuid, blocks) {
     if (spec.kind === 'keep') {
       if (!Number.isInteger(spec.index) || spec.index < 0) {
         throw new Error('keep spec requires a non-negative integer index');
+      }
+      for (const row of rows) {
+        const content = row.entry.message?.content;
+        const block = Array.isArray(content) ? content[spec.index] : null;
+        if (!canEditUserEntry(row.entry) || !block || typeof block !== 'object' || block.type === 'tool_result') {
+          throw new Error('Saved attachment copies do not match. Use Save and Rerun or reload the message before editing.');
+        }
       }
     } else if (spec.kind === 'text') {
       if (typeof spec.text !== 'string') {
@@ -1420,21 +1384,8 @@ function applyBlockSpecToEntry(entry, blocks) {
   const newContent = [];
   for (const spec of blocks) {
     if (spec.kind === 'keep') {
-      if (spec.index >= content.length) {
-        // Out-of-range for THIS row's content (dup-uuid shape drift,
-        // exceedingly rare). Skip silently rather than fail; user's
-        // other intent (other kept blocks present in this row + new
-        // text/image) still applies.
-        continue;
-      }
       const block = content[spec.index];
-      if (!block || typeof block !== 'object') continue;
-      // Defensive: only carry text/image. tool_result blocks must
-      // never be preserved through this op — canEditUserEntry already
-      // rejected the row, but double-gate here too.
-      if (block.type === 'text' || block.type === 'image') {
-        newContent.push(block);
-      }
+      newContent.push(block);
     } else if (spec.kind === 'text') {
       newContent.push({ type: 'text', text: spec.text });
     } else if (spec.kind === 'image') {
@@ -1447,23 +1398,6 @@ function applyBlockSpecToEntry(entry, blocks) {
   if (oldStr === newStr) return false;
   entry.message.content = newContent;
   return true;
-}
-
-function applyAssistantTextEdit(transcript, uuid, text) {
-  const rows = requireTranscriptRows(transcript, uuid);
-  const sample = rows[rows.length - 1].entry;
-  if (sample.type !== 'assistant') throw new Error('Only assistant messages can be edited with this operation');
-  if (!canEditAssistantTextEntry(sample)) {
-    throw new Error('This assistant record has no editable text block');
-  }
-  let any = false;
-  for (const row of rows) {
-    if (replaceTextContent(row.entry, text, { requireExistingText: true })) {
-      row.changed = true;
-      any = true;
-    }
-  }
-  return { changed: any };
 }
 
 function requireTranscriptRows(transcript, uuid) {
@@ -1510,6 +1444,9 @@ function applyTruncateFromUser(transcript, uuid) {
   // boundary itself stays put.)
   if (sample.isCompactSummary === true || sample.isVisibleInTranscriptOnly === true) {
     throw new Error('Compact-summary records cannot be the rerun anchor');
+  }
+  if (!canEditUserEntry(sample)) {
+    throw new Error('Choose a user prompt, not a tool result or generated command record, as the rerun point.');
   }
   const cutIdx = rows[rows.length - 1].index;
   const droppedUuids = new Set();
@@ -1590,15 +1527,6 @@ function entryLooksLikeCommandRecord(entry) {
   return typeof firstText === 'string' && COMMAND_RECORD_PREFIX_RE.test(firstText);
 }
 
-function canEditAssistantTextEntry(entry) {
-  if (!entry || entry.type !== 'assistant') return false;
-  const content = entry.message && entry.message.content;
-  if (typeof content === 'string') return true;
-  return Array.isArray(content) && content.some(block =>
-    block && block.type === 'text' && typeof block.text === 'string'
-  );
-}
-
 const SIGNED_THINKING_USER_EDIT_ERROR =
   'This message is followed by signed thinking blocks. Use Save and Rerun instead; ' +
   'a local-only edit would make Claude reject the next request.';
@@ -1617,7 +1545,9 @@ function entryHasSignedThinkingBlock(entry) {
 
 function userEditHasDownstreamSignedThinking(transcript, uuid) {
   const rows = requireTranscriptRows(transcript, uuid);
-  const cutIdx = rows[rows.length - 1].index;
+  // Saving updates every duplicate of the user UUID, including pre-compact
+  // copies; protect thinking after the earliest changed copy (2026-09-05).
+  const cutIdx = rows[0].index;
   for (let i = cutIdx + 1; i < transcript.rows.length; i++) {
     if (entryHasSignedThinkingBlock(transcript.rows[i].entry)) return true;
   }
