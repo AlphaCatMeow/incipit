@@ -127,6 +127,8 @@ Edit / MultiEdit / Write previews start collapsed on their row. Expand a tool to
 
 Historical context comes from the saved tool result. When it is unavailable, the preview identifies the known replacement fragments or requested contents instead of guessing from today's file. Large views render in pages and reuse bounded diff caches. The conversation, compact markers, change review, and composer share a reading column that adapts from a narrow sidebar to a wide editor panel.
 
+File-change counts load while tool rows stay collapsed and recover from delayed history writes. When an execution ends—including a manual stop or a disconnected process—a change review appears after its last assistant activity. File diffs reconstruct the turn from saved tool operations; incomplete histories show the available operations with an explanation of their scope.
+
 Agent and Task calls keep their own input, replies, thinking, and tool activity beneath a single collapsed row. Nested calls remain independently expandable, and parallel agents stay attached to their actual invocation. Running agents have an animated status icon; completed, failed, stopped, and unrecorded states remain distinct.
 
 Workflow calls open into their recorded phases and agents, with per-agent activity, queued work, retries, cached results, and usage where Claude Code provides them. These views read official task events and local history only. Missing or unreadable records offer a retry and access to the source; long histories are paginated, and closing a view releases its readers.

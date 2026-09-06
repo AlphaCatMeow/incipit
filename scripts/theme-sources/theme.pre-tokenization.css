@@ -6720,6 +6720,9 @@ button[data-incipit-tool-file-link]:focus-visible { outline: 1px solid rgba(217,
 [data-incipit-tool-filename-stem] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 [data-incipit-tool-filename-extension] { flex: 0 0 auto; }
 [data-incipit-tool-counts] { display: inline-flex; flex: 0 0 auto; gap: 5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+[data-incipit-tool-counts-retry] { flex: 0 0 auto; padding: 1px 4px; border: 0; border-radius: 4px; color: inherit; background: transparent; font: inherit; font-size: 0.9em; opacity: 0.7; cursor: pointer; }
+[data-incipit-tool-counts-retry]:hover, [data-incipit-tool-counts-retry]:focus-visible { opacity: 1; text-decoration: underline; }
+[data-incipit-tool-counts-retry][hidden] { display: none !important; }
 [data-incipit-tool-fingerprint-text] { flex: 0 1 auto; min-width: 0; max-width: 22em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.8; }
 [data-incipit-tool-state] { flex: 0 0 auto; white-space: nowrap; }
 [data-incipit-tool-heading] [data-incipit-tool-chevron] {

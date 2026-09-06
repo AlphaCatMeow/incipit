@@ -7,10 +7,12 @@ const crypto = require('crypto');
 const { fileURLToPath } = require('url');
 const { StringDecoder } = require('string_decoder');
 const { createToolDiffSource } = require('./tool-diff-source.cjs');
+const { createChangeReviewSource } = require('./change-review-source.cjs');
 const { createAgentActivitySource } = require('./agent-activity-source.cjs');
 
 const GLOBAL_KEY = '__cceBadge';
 let vscodeApi = null;
+const reviewStatsJobs = new WeakSet();
 // `POLL_INTERVAL_MS` matches the 0.1.10 cadence. We layer event-driven
 // `schedulePoll(WRITE_POLL_DEBOUNCE_MS)` on top via wrappers around
 // `fs.appendFile`/`writeFile` callbacks and `createWriteStream`'s
@@ -33,8 +35,6 @@ const NOTES_INDEX_DIR = path.join(os.homedir(), '.incipit', 'notes-v1');
 const NOTES_MAX_COUNT = 200;
 const NOTES_MAX_TEXT_BYTES = 8000;
 const CHANGE_REVIEW_DIFF_MAX_BYTES = 768 * 1024;
-const CHANGE_REVIEW_DIFF_CONTEXT_LINES = 3;
-const CHANGE_REVIEW_DIFF_EXACT_CELL_LIMIT = 600 * 1000;
 const CHANGE_REVIEW_LINE_STATS_VERSION = 2;
 // Change review is a per-turn runtime surface: after the first successful
 // Write/Edit/MultiEdit it stays visible until that assistant turn finalizes.
@@ -91,6 +91,7 @@ function createState() {
     ourFile: null,
     commIdentities: new Map(),
     toolDiffSource: null,
+    changeReviewSource: null,
     agentActivitySource: null,
     targetCache: new Map(),
     parsers: new Map(),
@@ -120,6 +121,8 @@ function wrapShutdown(comm, state) {
   comm.shutdown = async function wrappedShutdown() {
     for (const controller of comm.__incipitAgentActivityRequests?.values() || []) controller.abort();
     comm.__incipitAgentActivityRequests?.clear();
+    for (const controller of comm.__incipitReviewRequests?.values() || []) controller.abort();
+    comm.__incipitReviewRequests?.clear();
     state.comms.delete(comm);
     state.commIdentities.delete(comm);
     if (comm.__incipitMessageDisposable && typeof comm.__incipitMessageDisposable.dispose === 'function') {
@@ -129,6 +132,7 @@ function wrapShutdown(comm, state) {
     if (state.comms.size === 0) {
       stopPolling(state);
       if (state.toolDiffSource) state.toolDiffSource.dispose();
+      state.changeReviewSource?.dispose();
       if (state.agentActivitySource) state.agentActivitySource.dispose();
     }
     return original.apply(this, arguments);
@@ -178,6 +182,10 @@ function handleWebviewMessage(comm, state, message) {
   }
   if (message.type === 'change_review_diff_request') {
     handleChangeReviewDiffRequest(comm, state, message);
+    return;
+  }
+  if (message.type === 'change_review_diff_cancel') {
+    comm.__incipitReviewRequests?.get(message.requestId)?.abort();
     return;
   }
   if (message.type === 'change_review_turn_finalized') {
@@ -447,24 +455,33 @@ function handleFilePathCopyRequest(comm, state, message) {
   }
 }
 
-function handleChangeReviewDiffRequest(comm, state, message) {
+async function handleChangeReviewDiffRequest(comm, state, message) {
   const requestId = message.requestId;
+  const requestedCwd = message.cwd || state.commIdentities.get(comm)?.cwd || null;
+  const controller = new AbortController();
+  if (!comm.__incipitReviewRequests) comm.__incipitReviewRequests = new Map();
+  comm.__incipitReviewRequests.set(requestId, controller);
   const reply = payload => {
+    const identity = state.commIdentities.get(comm);
+    if (controller.signal.aborted || !state.comms.has(comm) || identity?.sessionId !== message.sessionId ||
+        (identity.cwd && requestedCwd && changeReviewFileKey(identity.cwd) !== changeReviewFileKey(requestedCwd))) return;
     try {
       comm.webview.postMessage({
         __incipit: true,
         type: 'change_review_diff_response',
         requestId,
+        sessionId: message.sessionId,
+        cwd: message.cwd,
         payload,
       });
     } catch (_) {}
   };
   try {
-    reply(resolveChangeReviewDiff(state, comm, message || {}));
+    reply(await resolveChangeReviewDiff(state, comm, message || {}, { signal: controller.signal }));
   } catch (error) {
     state.log(`change review diff error: ${error && error.message ? error.message : error}`);
     reply({ ok: false, error: String(error && error.message ? error.message : error) });
-  }
+  } finally { comm.__incipitReviewRequests.delete(requestId); }
 }
 
 function handleChangeReviewTurnFinalized(comm, state, message) {
@@ -2037,6 +2054,7 @@ function sendCurrentChangeReviewPayload(state, comm, target, sessionId) {
       target
     );
     sendChangeReviewPayload(comm, payload);
+    scheduleChangeReviewHistoricalStats(state, parser, sessionId, target);
   } catch (_) {
     sendChangeReviewPayload(comm, emptyChangeReviewPayload(sessionId, target));
   }
@@ -2822,7 +2840,7 @@ function processEditActivityEntry(parser, entry) {
     if (!summaryItem) continue;
     parser.changeReviewPendingSummaries.delete(block.tool_use_id);
     parser.persistDirty = true;
-    if (toolResultIsError(block) || !toolUseResultSucceeded(entry.toolUseResult)) continue;
+    if (blocks.filter(item => item?.type === 'tool_result').length !== 1 || toolResultIsError(block) || !toolUseResultSucceeded(entry.toolUseResult)) continue;
     countChangeReviewSummaryTool(parser, summaryItem, entry.toolUseResult);
   }
 }
@@ -3139,7 +3157,10 @@ function consumeChangeReviewSnapshotUpdatesForItem(parser, item) {
 
 function isRealUserPromptEntry(entry) {
   if (!entry || entry.type !== 'user' || typeof entry.uuid !== 'string' || !entry.uuid) return false;
+  if (entry.isMeta || entry.isSynthetic || entry.message?.isMeta) return false;
   const blocks = Array.isArray(entry.message?.content) ? entry.message.content : [];
+  const text = (typeof entry.message?.content === 'string' ? entry.message.content : blocks.filter(block => block?.type === 'text').map(block => block.text || '').join('\n')).trim();
+  if (/^(?:\[Request interrupted by user|<task-notification>|<local-command-caveat>|<command-name>)/.test(text)) return false;
   if (!blocks.length) return true;
   return !blocks.some(block => block && block.type === 'tool_result');
 }
@@ -3293,7 +3314,7 @@ function countChangeReviewTool(parser, item) {
 }
 
 function changeReviewSummaryFromToolUse(block, ts) {
-  if (!block || typeof block.id !== 'string' || block.name !== 'Agent') return null;
+  if (!block || typeof block.id !== 'string' || !['Agent', 'Task'].includes(block.name)) return null;
   const input = block.input && typeof block.input === 'object' ? block.input : {};
   const agentType = typeof input.subagent_type === 'string' && input.subagent_type
     ? input.subagent_type
@@ -4064,6 +4085,7 @@ function setChangeReviewFileLineStats(file, added, removed) {
 
 function deriveChangeReviewLineStats(file) {
   if (!file || file.backupFileName === undefined) return false;
+  if (file.toolIds?.size) return false;
   try {
     const currentText = changeReviewTextForStats(file.filePath);
     if (currentText == null) return false;
@@ -4143,6 +4165,10 @@ function atomicWriteFileBuffer(filePath, buffer) {
 
 function changeReviewContext(state, comm, message) {
   const identity = revealIdentityForMessage(state, comm, message || {});
+  if (!identity || (message.sessionId && message.sessionId !== identity.sessionId) ||
+      (message.cwd && identity.cwd && changeReviewFileKey(message.cwd) !== changeReviewFileKey(identity.cwd))) {
+    throw new Error('The review request does not match the active session.');
+  }
   const sessionId = typeof message.sessionId === 'string' && message.sessionId
     ? message.sessionId
     : (identity && identity.sessionId);
@@ -4338,269 +4364,63 @@ function bufferLooksBinary(buffer) {
   return false;
 }
 
-function readReviewTextFile(filePath, role) {
-  const stat = fs.statSync(filePath);
-  if (!stat.isFile()) throw new Error(`${role} is not a regular file.`);
-  if (stat.size > CHANGE_REVIEW_DIFF_MAX_BYTES) {
-    throw new Error(`${role} is too large for inline review.`);
-  }
-  const bytes = fs.readFileSync(filePath);
-  if (bufferLooksBinary(bytes)) throw new Error(`${role} appears to be binary.`);
-  return bytes.toString('utf8');
-}
 
-function changeReviewDiffLines(text) {
-  return text === '' ? [] : String(text).split('\n');
-}
-
-function changeReviewDiffGapRow() {
-  return { kind: 'gap', oldLine: null, newLine: null, text: '...' };
-}
-
-// Longest non-crossing chain of lines that occur EXACTLY ONCE in both regions
-// (patience-diff anchors). Returns [{oi, nj}] sorted ascending on both indices.
-function changeReviewAnchorChain(oldLines, newLines, oStart, oEnd, nStart, nEnd) {
-  const oldCount = new Map();
-  const newCount = new Map();
-  const newIndex = new Map();
-  for (let i = oStart; i < oEnd; i++) {
-    const t = oldLines[i];
-    oldCount.set(t, (oldCount.get(t) || 0) + 1);
-  }
-  for (let j = nStart; j < nEnd; j++) {
-    const t = newLines[j];
-    newCount.set(t, (newCount.get(t) || 0) + 1);
-    newIndex.set(t, j);
-  }
-  const pts = [];
-  for (let i = oStart; i < oEnd; i++) {
-    const t = oldLines[i];
-    if (oldCount.get(t) === 1 && newCount.get(t) === 1) {
-      pts.push({ oi: i, nj: newIndex.get(t) });
-    }
-  }
-  if (!pts.length) return [];
-  // LIS on nj (pts already ascending on oi) -> non-crossing matching.
-  const prev = new Array(pts.length).fill(-1);
-  const tailIdx = [];
-  for (let k = 0; k < pts.length; k++) {
-    const nj = pts[k].nj;
-    let lo = 0;
-    let hi = tailIdx.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1;
-      if (pts[tailIdx[mid]].nj < nj) lo = mid + 1;
-      else hi = mid;
-    }
-    prev[k] = lo > 0 ? tailIdx[lo - 1] : -1;
-    if (lo === tailIdx.length) tailIdx.push(k);
-    else tailIdx[lo] = k;
-  }
-  const chain = [];
-  let k = tailIdx[tailIdx.length - 1];
-  while (k !== -1) {
-    chain.push(pts[k]);
-    k = prev[k];
-  }
-  chain.reverse();
-  return chain;
-}
-
-// Last-resort alignment for a region with no unique common anchors. Uses the
-// exact O(m*n) LCS only while the cell budget allows; otherwise marks the region
-// as a full delete+add. After anchoring, such regions are small in practice.
-function pushChangeReviewLcsRows(rows, oldLines, newLines, oStart, oEnd, nStart, nEnd) {
-  const m = oEnd - oStart;
-  const n = nEnd - nStart;
-  if (m && n && m * n <= CHANGE_REVIEW_DIFF_EXACT_CELL_LIMIT) {
-    const dp = Array.from({ length: m + 1 }, () => new Uint32Array(n + 1));
-    for (let i = m - 1; i >= 0; i--) {
-      for (let j = n - 1; j >= 0; j--) {
-        dp[i][j] = oldLines[oStart + i] === newLines[nStart + j]
-          ? dp[i + 1][j + 1] + 1
-          : Math.max(dp[i + 1][j], dp[i][j + 1]);
-      }
-    }
-    let i = 0;
-    let j = 0;
-    while (i < m && j < n) {
-      if (oldLines[oStart + i] === newLines[nStart + j]) {
-        rows.push({ kind: 'ctx', oldLine: oStart + i + 1, newLine: nStart + j + 1, text: newLines[nStart + j] });
-        i++;
-        j++;
-      } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-        rows.push({ kind: 'del', oldLine: oStart + i + 1, newLine: null, text: oldLines[oStart + i] });
-        i++;
-      } else {
-        rows.push({ kind: 'add', oldLine: null, newLine: nStart + j + 1, text: newLines[nStart + j] });
-        j++;
-      }
-    }
-    while (i < m) { rows.push({ kind: 'del', oldLine: oStart + i + 1, newLine: null, text: oldLines[oStart + i] }); i++; }
-    while (j < n) { rows.push({ kind: 'add', oldLine: null, newLine: nStart + j + 1, text: newLines[nStart + j] }); j++; }
-  } else {
-    for (let i = oStart; i < oEnd; i++) rows.push({ kind: 'del', oldLine: i + 1, newLine: null, text: oldLines[i] });
-    for (let j = nStart; j < nEnd; j++) rows.push({ kind: 'add', oldLine: null, newLine: j + 1, text: newLines[j] });
-  }
-}
-
-// Patience-style recursive line diff. Trims common prefix/suffix, then splits on
-// unique common anchor lines and recurses into the gaps. This is what keeps a
-// tiny edit in a huge file tiny: the unchanged body is all unique lines -> all
-// anchors -> context, so the O(m*n) base case only ever sees the changed slivers.
-// The old contiguous-suffix-only trim collapsed the whole tail into one O(m*n)
-// region whenever the LAST line changed, blew past the cell budget, and degraded
-// to a whole-file delete+add (the +N/-M header then disagreed with the body).
-function pushChangeReviewLineDiff(rows, oldLines, newLines, oStart, oEnd, nStart, nEnd) {
-  while (oStart < oEnd && nStart < nEnd && oldLines[oStart] === newLines[nStart]) {
-    rows.push({ kind: 'ctx', oldLine: oStart + 1, newLine: nStart + 1, text: oldLines[oStart] });
-    oStart++;
-    nStart++;
-  }
-  const suffix = [];
-  while (oEnd > oStart && nEnd > nStart && oldLines[oEnd - 1] === newLines[nEnd - 1]) {
-    oEnd--;
-    nEnd--;
-    suffix.push({ kind: 'ctx', oldLine: oEnd + 1, newLine: nEnd + 1, text: oldLines[oEnd] });
-  }
-
-  if (oStart >= oEnd && nStart >= nEnd) {
-    // fully reduced
-  } else if (oStart >= oEnd) {
-    for (let j = nStart; j < nEnd; j++) rows.push({ kind: 'add', oldLine: null, newLine: j + 1, text: newLines[j] });
-  } else if (nStart >= nEnd) {
-    for (let i = oStart; i < oEnd; i++) rows.push({ kind: 'del', oldLine: i + 1, newLine: null, text: oldLines[i] });
-  } else {
-    const anchors = changeReviewAnchorChain(oldLines, newLines, oStart, oEnd, nStart, nEnd);
-    if (anchors.length) {
-      let oi = oStart;
-      let nj = nStart;
-      for (const a of anchors) {
-        pushChangeReviewLineDiff(rows, oldLines, newLines, oi, a.oi, nj, a.nj);
-        rows.push({ kind: 'ctx', oldLine: a.oi + 1, newLine: a.nj + 1, text: oldLines[a.oi] });
-        oi = a.oi + 1;
-        nj = a.nj + 1;
-      }
-      pushChangeReviewLineDiff(rows, oldLines, newLines, oi, oEnd, nj, nEnd);
-    } else {
-      pushChangeReviewLcsRows(rows, oldLines, newLines, oStart, oEnd, nStart, nEnd);
-    }
-  }
-
-  for (let k = suffix.length - 1; k >= 0; k--) rows.push(suffix[k]);
-}
-
-function buildChangeReviewFullDiffRows(oldText, newText) {
-  const oldLines = changeReviewDiffLines(oldText);
-  const newLines = changeReviewDiffLines(newText);
-  if (!oldLines.length && !newLines.length) return [];
-  if (!oldLines.length) {
-    return newLines.map((text, i) => ({ kind: 'add', oldLine: null, newLine: i + 1, text }));
-  }
-  if (!newLines.length) {
-    return oldLines.map((text, i) => ({ kind: 'del', oldLine: i + 1, newLine: null, text }));
-  }
-  const rows = [];
-  pushChangeReviewLineDiff(rows, oldLines, newLines, 0, oldLines.length, 0, newLines.length);
-  return rows;
-}
-
-function isChangeReviewContextRow(row) {
-  return !!row && row.kind === 'ctx';
-}
-
-function compactChangeReviewDiffRows(rows) {
-  rows = Array.isArray(rows) ? rows.filter(Boolean) : [];
-  if (!rows.length) return [];
-  const ranges = [];
-  let i = 0;
-  while (i < rows.length) {
-    while (i < rows.length && isChangeReviewContextRow(rows[i])) i++;
-    const start = i;
-    while (i < rows.length && !isChangeReviewContextRow(rows[i])) i++;
-    if (start < i) {
-      ranges.push([
-        Math.max(0, start - CHANGE_REVIEW_DIFF_CONTEXT_LINES),
-        Math.min(rows.length, i + CHANGE_REVIEW_DIFF_CONTEXT_LINES),
-      ]);
-    }
-  }
-  if (!ranges.length) return rows.slice(0, Math.min(rows.length, CHANGE_REVIEW_DIFF_CONTEXT_LINES * 2 + 1));
-
-  const merged = [];
-  for (const range of ranges) {
-    const prev = merged[merged.length - 1];
-    if (prev && range[0] <= prev[1]) prev[1] = Math.max(prev[1], range[1]);
-    else merged.push(range);
-  }
-
-  const out = [];
-  let lastEnd = 0;
-  for (const range of merged) {
-    if (out.length && range[0] > lastEnd) out.push(changeReviewDiffGapRow());
-    for (let idx = range[0]; idx < range[1]; idx++) out.push(rows[idx]);
-    lastEnd = range[1];
-  }
-  return out;
-}
-
-function firstChangeReviewLine(rows, key) {
-  for (const row of rows || []) {
-    const value = row && Number(row[key]);
-    if (Number.isFinite(value) && value > 0) return value;
-  }
-  return 1;
-}
-
-function changeReviewRowsText(rows, side) {
-  const lines = [];
-  for (const row of rows || []) {
-    if (!row) continue;
-    if (row.kind === 'gap') {
-      if (lines.length && lines[lines.length - 1] !== '...') lines.push('...');
-      continue;
-    }
-    if (side === 'old' && row.kind === 'add') continue;
-    if (side === 'new' && row.kind === 'del') continue;
-    lines.push(typeof row.text === 'string' ? row.text : '');
-  }
-  return lines.join('\n');
-}
-
-function buildChangeReviewDiffPayload(file, oldText, currentText) {
-  const rows = compactChangeReviewDiffRows(buildChangeReviewFullDiffRows(oldText, currentText));
-  return {
-    filePath: file.filePath,
-    displayPath: file.displayPath,
-    oldText: changeReviewRowsText(rows, 'old'),
-    newText: changeReviewRowsText(rows, 'new'),
-    oldStartLine: firstChangeReviewLine(rows, 'oldLine'),
-    newStartLine: firstChangeReviewLine(rows, 'newLine'),
-    rows,
-  };
-}
-
-function resolveChangeReviewDiff(state, comm, message) {
+async function resolveChangeReviewDiff(state, comm, message, options = {}) {
   const ctx = changeReviewContext(state, comm, message);
   const file = findChangeReviewFile(ctx.parser, message.fileId);
   if (!file) throw new Error('No matching file change was found.');
+  if (message.turnKey && resolveChangeReviewTurnKey(ctx.parser, message.turnKey) !== file.turnKey) throw new Error('The requested file belongs to a different turn.');
   repairChangeReviewFileBackupFromBaseline(ctx.parser, file);
   if (ctx.parser.persistDirty) saveUsageCacheParser(state, ctx.parser, ctx.stat);
-  if (file.backupFileName === undefined) {
-    throw new Error('No file history snapshot is available yet.');
-  }
-  const currentText = readReviewTextFile(file.filePath, 'Current file');
-  let oldText = '';
-  if (file.backupFileName !== null) {
-    const backupPath = changeReviewBackupPath(file);
-    if (!fs.existsSync(backupPath)) throw new Error('Claude file-history backup is missing.');
-    oldText = readReviewTextFile(backupPath, 'Backup file');
-  }
+  if (!state.changeReviewSource) state.changeReviewSource = createChangeReviewSource();
+  const guard = ctx.reviewState.files[file.id]?.guard;
+  const legacyCurrentPath = !file.toolIds?.size && guardMatchesCurrent(file.filePath, guard).ok ? file.filePath : null;
+  const diff = await state.changeReviewSource.request({ file: { ...file, toolIds: new Set(file.toolIds) }, sessionId: ctx.sessionId,
+    cwd: ctx.cwd || ctx.parser.projectCwd, target: ctx.target,
+    backupPath: typeof file.backupFileName === 'string' ? changeReviewBackupPath(file) : null, legacyCurrentPath }, options);
+  if (legacyCurrentPath && !guardMatchesCurrent(file.filePath, guard).ok) throw new Error('The captured review endpoint changed while it was being read.');
   return {
     ok: true,
     file: changeReviewFilePayload(file, ctx.reviewState),
-    diff: buildChangeReviewDiffPayload(file, oldText, currentText),
+    diff,
   };
+}
+
+function scheduleChangeReviewHistoricalStats(state, parser, sessionId, target) {
+  if (reviewStatsJobs.has(parser)) return;
+  const reviewState = loadChangeReviewState(state, sessionId);
+  const turn = latestChangeReviewTurnWithChanges(parser, reviewState);
+  if (!turn || !isChangeReviewTurnFinalized(reviewState, turn.turnKey)) return;
+  const signature = file => Array.from(file.toolIds || []).join('\0');
+  const files = Array.from(turn.files.values()).filter(file => file.toolIds?.size &&
+    file.historicalStatsSignature !== signature(file) && file.historicalStatsAttempt !== signature(file) + ':' + parser.committedSize);
+  if (!files.length) return;
+  reviewStatsJobs.add(parser);
+  if (!state.changeReviewSource) state.changeReviewSource = createChangeReviewSource();
+  (async () => {
+    let changed = false;
+    for (const file of files) {
+      const key = signature(file);
+      file.historicalStatsAttempt = key + ':' + parser.committedSize;
+      try {
+        const model = await state.changeReviewSource.request({ file: { ...file, toolIds: new Set(file.toolIds) },
+          sessionId, cwd: turn.cwd || parser.projectCwd, target,
+          backupPath: typeof file.backupFileName === 'string' ? changeReviewBackupPath(file) : null });
+        if (state.parsers.get(target) !== parser || signature(file) !== key || !isChangeReviewTurnFinalized(reviewState, turn.turnKey)) continue;
+        const exact = model.source === 'review-history' && model.quality === 'exact';
+        if (exact) {
+          setChangeReviewFileLineStats(file, model.stats.added, model.stats.removed);
+          file.historicalStatsSignature = key;
+        } else file.hasLineStats = false;
+        changed = true;
+      } catch (_) {}
+    }
+    if (changed) {
+      parser.changeReviewVersion++; parser.persistDirty = true;
+      if (fs.existsSync(target)) saveUsageCacheParser(state, parser, fs.statSync(target));
+      sendChangeReviewTarget(state, target, sessionId);
+    }
+  })().catch(error => state.log('change review statistics: ' + error.message)).finally(() => reviewStatsJobs.delete(parser));
 }
 
 function buildProjectEditActivityResponse(state, target, comm, sessionId) {
@@ -5392,8 +5212,6 @@ module.exports.__test = {
   loadChangeReviewState,
   saveChangeReviewState,
   resolveChangeReviewDiff,
-  buildChangeReviewFullDiffRows,
-  compactChangeReviewDiffRows,
   resolveChangeReviewReject,
   captureChangeReviewGuards,
   changeReviewEntryId,

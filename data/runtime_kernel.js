@@ -1,4 +1,5 @@
 import { getActiveClaudeSessionId, reportHealth } from './enhance_shared.js';
+import { createExecutionLifecycle } from './execution_lifecycle.js';
 
 /**
  * incipit runtime kernel.
@@ -35,6 +36,7 @@ const BRIDGE_IDLE_TRUST_MS = 30000;
 const MARKDOWN_ROOT_SELECTOR = '[data-incipit-markdown-root], [class*="root_"]';
 
 const subscribers = new Map();
+const executionLifecycle = createExecutionLifecycle((event, payload) => emit(event, payload));
 const dirtyRootsByKind = new Map();
 const dirtyCounts = Object.create(null);
 const perfCounters = Object.create(null);
@@ -503,6 +505,7 @@ export function refreshHostState(reason = 'refresh') {
     }
   }
   maintainCompositeBusyRecheck(compositeBusy, reason);
+  executionLifecycle.update(hostState, compositeBusyState(hostState));
   return { ...hostState };
 }
 

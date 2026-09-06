@@ -30,10 +30,15 @@ function canonicalPath(value, cwd) {
   return process.platform === 'win32' ? absolute.toLowerCase() : absolute;
 }
 
-async function readBytes(handle, start, length) {
+function checkAbort(signal) {
+  if (signal?.aborted) throw Object.assign(new Error('Historical diff read cancelled.'), { name: 'AbortError' });
+}
+
+async function readBytes(handle, start, length, signal) {
   const buffer = Buffer.alloc(length);
   let offset = 0;
   while (offset < length) {
+    checkAbort(signal);
     const result = await handle.read(buffer, offset, Math.min(CHUNK_BYTES, length - offset), start + offset);
     if (!result.bytesRead) throw sourceError('history-changed', 'Session history changed while it was being read.');
     offset += result.bytesRead;
@@ -144,6 +149,7 @@ function verifiedSnapshot(result, tool) {
   const edits = Array.isArray(input.edits) ? input.edits : [input];
   let after = before;
   for (const edit of edits) {
+    if (!edit || typeof edit !== 'object') return null;
     const oldText = typeof edit.old_string === 'string' ? edit.old_string : result.oldString;
     const newText = typeof edit.new_string === 'string' ? edit.new_string : result.newString;
     after = replaceOnce(after, oldText, newText, input.replace_all === true || edit.replace_all === true || result.replaceAll === true);
@@ -157,7 +163,7 @@ function verifiedSnapshot(result, tool) {
  * Long-lived indices contain byte offsets and IDs only. Payloads are cached
  * separately with a byte limit and never persisted outside official history.
  */
-function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
+function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = false } = {}) {
   if (typeof resolveTargetFromIdentity !== 'function') throw new TypeError('resolveTargetFromIdentity is required');
   const sessions = new Map();
   let generation = 0;
@@ -206,7 +212,9 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
   function putIndex(item, record) {
     let group = item.records.get(record.id);
     if (!group) group = { assistant: [], result: [] };
-    if (!group[record.role].some(existing => existing.start === record.start)) group[record.role].push(record);
+    const index = group[record.role].findIndex(existing => existing.start === record.start || (record.uuid && existing.uuid === record.uuid));
+    if (index < 0) group[record.role].push(record);
+    else if (record.start >= group[record.role][index].start) group[record.role][index] = record;
     item.records.delete(record.id);
     item.records.set(record.id, group);
     while (item.records.size > MAX_INDEX_ENTRIES) item.records.delete(item.records.keys().next().value);
@@ -224,14 +232,14 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
     }
   }
 
-  async function scan(item, handle, stat, requestedId, epoch, runGeneration, fromBeginning = false) {
+  async function scan(item, handle, stat, requestedId, epoch, runGeneration, fromBeginning = false, signal) {
     let position = fromBeginning ? 0 : item.size;
     let lineStart = fromBeginning ? 0 : item.lineStart;
     let carry = fromBeginning ? Buffer.alloc(0) : item.partial;
     const found = { assistant: [], result: [] };
     while (position < stat.size) {
       checkCurrent(item, epoch, runGeneration);
-      const bytes = await readBytes(handle, position, Math.min(CHUNK_BYTES, stat.size - position));
+      const bytes = await readBytes(handle, position, Math.min(CHUNK_BYTES, stat.size - position), signal);
       position += bytes.length;
       const data = carry.length ? Buffer.concat([carry, bytes]) : bytes;
       let begin = 0;
@@ -272,14 +280,16 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
     const result = { assistant: [], result: [] };
     for (const role of ['assistant', 'result']) {
       for (const record of [...(indexed ? indexed[role] : []), ...extra[role]]) {
-        if (!result[role].some(existing => existing.start === record.start)) result[role].push(record);
+        const index = result[role].findIndex(existing => existing.start === record.start || (record.uuid && existing.uuid === record.uuid));
+        if (index < 0) result[role].push(record);
+        else if (record.start >= result[role][index].start) result[role][index] = record;
       }
     }
     return result;
   }
 
-  async function loadEntry(handle, span) {
-    const raw = await readBytes(handle, span.start, span.end - span.start);
+  async function loadEntry(handle, span, signal) {
+    const raw = await readBytes(handle, span.start, span.end - span.start, signal);
     const entry = parseLine(raw);
     if (!entry) throw sourceError('history-changed', 'The indexed tool record is no longer readable.');
     return { entry, raw };
@@ -297,7 +307,7 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
     }
   }
 
-  async function readPayload(item, handle, group, message) {
+  async function readPayload(item, handle, group, message, signal) {
     const base = { sessionId: item.sessionId, toolUseId: message.toolUseId, filePath: message.filePath,
       schemaVersion: 1, stats: null };
     if (group.result.length > 1 || group.assistant.length > 1) {
@@ -306,7 +316,7 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
     if (!group.result.length) return { ...base, ok: true, state: group.assistant.length ? 'pending' : 'unavailable',
       notice: group.assistant.length ? 'The tool result has not been saved yet.' :
         (item.corrupt ? 'Some session records could not be read; this tool result is unavailable.' : 'This tool was not found in the session history.') };
-    const saved = await loadEntry(handle, group.result[0]);
+    const saved = await loadEntry(handle, group.result[0], signal);
     const content = saved.entry.message && saved.entry.message.content;
     const resultBlocks = Array.isArray(content) ? content.filter(block => block && block.type === 'tool_result') : [];
     const resultBlock = resultBlocks.find(block => block.tool_use_id === message.toolUseId);
@@ -315,15 +325,20 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
     if (resultBlock.is_error) return { ...base, ok: true, state: 'unavailable', notice: 'The tool failed; no completed file change is available.' };
     let tool = null;
     if (group.assistant.length) {
-      const assistant = (await loadEntry(handle, group.assistant[0])).entry;
+      const assistant = (await loadEntry(handle, group.assistant[0], signal)).entry;
       const blocks = assistant.message && assistant.message.content;
-      tool = Array.isArray(blocks) ? blocks.find(block => block.type === 'tool_use' && block.id === message.toolUseId) : null;
+      const matches = Array.isArray(blocks) ? blocks.filter(block => block?.type === 'tool_use' && block.id === message.toolUseId) : [];
+      if (matches.length > 1) throw sourceError('ambiguous-tool-id', 'Multiple tool inputs share this identity in one message.');
+      tool = matches[0] || null;
       if (!tool || (saved.entry.sourceToolAssistantUUID && assistant.uuid !== saved.entry.sourceToolAssistantUUID)) {
         throw sourceError('identity-mismatch', 'The historical tool input and result do not match.');
       }
       if (!FILE_TOOLS.has(tool.name)) throw sourceError('unsupported-tool', 'This tool does not provide a file diff.');
     }
     const result = saved.entry.toolUseResult;
+    if (includeSnapshots && tool && canonicalPath(tool.input?.file_path, item.cwd) === canonicalPath(message.filePath, item.cwd)) {
+      base.operation = { name: tool.name, input: tool.input };
+    }
     if (!result || typeof result !== 'object' || Array.isArray(result)) {
       return { ...base, ok: true, state: 'unavailable', notice: 'This host version did not save structured file-change metadata.' };
     }
@@ -337,17 +352,21 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
     const cached = item.cache.get(revision);
     if (cached) { item.cache.delete(revision); item.cache.set(revision, cached); return cached.payload; }
     let payload;
+    let snapshot;
+    const getSnapshot = () => snapshot === undefined ? (snapshot = verifiedSnapshot(result, tool)) : snapshot;
+    if (includeSnapshots && getSnapshot()) base.snapshot = snapshot;
     // Creation results use an empty structuredPatch even for nonempty files.
-    const patch = result.type === 'create' ? null : validateHunks(result.structuredPatch);
+    let patch = null;
+    try { patch = result.type === 'create' ? null : validateHunks(result.structuredPatch); }
+    catch (error) { if (!getSnapshot()) throw error; }
     if (patch) {
       payload = { ...base, ...patch, filePath: path.resolve(item.cwd, actualPath), revision,
         ok: true, state: 'ready', source: 'structured-patch', lineNumbers: 'absolute', notice: '' };
     } else {
-      const snapshot = verifiedSnapshot(result, tool);
-      if (snapshot) {
+      if (getSnapshot()) {
         const { buildDiffModel } = await import('./diff/model.js');
         const model = await buildDiffModel({ ...snapshot, source: 'snapshot' }, {
-          signal: item.controller.signal,
+          signal,
           budgetMs: 4,
           yieldControl: () => new Promise(resolve => setImmediate(resolve)),
         });
@@ -363,7 +382,8 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
     return payload;
   }
 
-  async function inspect(item, message, runGeneration, epoch) {
+  async function inspect(item, message, runGeneration, epoch, signal) {
+    checkAbort(signal);
     const handle = await fs.promises.open(item.target, 'r');
     try {
       checkCurrent(item, epoch, runGeneration);
@@ -372,14 +392,14 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
         (stat.size === item.size && stat.mtimeMs !== item.stat.mtimeMs);
       if (!reset && item.guard && !sameGuard(await guardAt(handle, item.guard.size), item.guard)) reset = true;
       if (reset) resetIndex(item);
-      const extra = await scan(item, handle, stat, message.toolUseId, epoch, runGeneration);
+      const extra = await scan(item, handle, stat, message.toolUseId, epoch, runGeneration, false, signal);
       let group = mergeRecords(item.records.get(message.toolUseId), extra);
       if (!group.assistant.length || !group.result.length) {
         // Old identities evicted from the bounded index remain reachable.
         if (item.records.size >= MAX_INDEX_ENTRIES) group = mergeRecords(group,
-          await scan(item, handle, stat, message.toolUseId, epoch, runGeneration, true));
+          await scan(item, handle, stat, message.toolUseId, epoch, runGeneration, true, signal));
       }
-      const payload = await readPayload(item, handle, group, message);
+      const payload = await readPayload(item, handle, group, message, signal);
       const after = await handle.stat();
       if (!sameFile(stat, after) || after.size < stat.size ||
           (after.size === stat.size && after.mtimeMs !== stat.mtimeMs)) {
@@ -387,15 +407,17 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
         throw sourceError('history-changed', 'Session history changed while the diff was being prepared.');
       }
       checkCurrent(item, epoch, runGeneration);
+      checkAbort(signal);
       item.stat = stat; item.guard = await guardAt(handle, stat.size);
       return payload;
     } finally { await handle.close(); }
   }
 
-  async function request(message = {}) {
+  async function request(message = {}, { signal } = {}) {
     const { sessionId, cwd, toolUseId, filePath } = message;
     const base = { sessionId, toolUseId, filePath, schemaVersion: 1, stats: null };
     try {
+      checkAbort(signal);
       if (![sessionId, cwd, toolUseId, filePath].every(value => typeof value === 'string' && value && !value.includes('\0')) ||
           /[/\\]/.test(sessionId) || sessionId.length > 128 || toolUseId.length > 256 || !path.isAbsolute(cwd)) {
         throw sourceError('invalid-request', 'A valid session, project, tool identity and file path are required.');
@@ -405,10 +427,19 @@ function createToolDiffSource({ resolveTargetFromIdentity } = {}) {
       const item = getSession(sessionId, cwd, target);
       const epoch = item.epoch;
       const runGeneration = generation;
-      const work = item.queue.then(() => inspect(item, message, runGeneration, epoch));
+      const controller = new AbortController();
+      const lifetime = item.controller.signal;
+      const abort = () => controller.abort();
+      signal?.addEventListener('abort', abort, { once: true });
+      lifetime.addEventListener('abort', abort, { once: true });
+      if (signal?.aborted || lifetime.aborted) abort();
+      const work = item.queue.then(() => inspect(item, message, runGeneration, epoch, controller.signal)).finally(() => {
+        signal?.removeEventListener('abort', abort); lifetime.removeEventListener('abort', abort);
+      });
       item.queue = work.then(() => undefined, () => undefined);
       return await work;
     } catch (error) {
+      if (error.name === 'AbortError') throw error;
       const denied = error.code === 'EACCES' || error.code === 'EPERM';
       return { ...base, ok: false, state: 'error', code: denied ? 'permission-denied' : (error.code || 'source-error'),
         error: denied ? 'Permission was denied while reading the session history.' : error.message };

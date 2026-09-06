@@ -361,6 +361,7 @@ export async function buildDiffModel(payload, options = {}) {
   work.check();
   const notice = [payload.notice || '', work.coarse ? 'A large rewritten range is shown as complete old and new lines.' : ''].filter(Boolean).join(' ');
   return { schemaVersion: 1, revision: payload.revision || null, source, filePath: payload.filePath || '',
-    lineNumbers, notice, rows, hunks, stats: { added, removed }, statsScope: source === 'tool-input' ? 'fragment' : 'complete',
+    lineNumbers, notice, rows, hunks, stats: { added, removed },
+    statsScope: source === 'tool-input' ? 'fragment' : source === 'review-operations' ? 'operations' : 'complete',
     quality: work.coarse || payload.quality === 'coarse' ? 'coarse' : 'exact', byteSize };
 }

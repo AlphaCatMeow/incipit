@@ -3285,10 +3285,8 @@ import {
   }
 
   function changeReviewBusySafe() {
-    // Read-only / visual: gates WHEN the finalized review block renders,
-    // never whether files change. Fail-open (unknown ⇒ idle) so a broken
-    // probe surface cannot permanently brick review rendering; the
-    // busy-resume sweep already retracts a block minted into a live turn.
+    const state = kernelGetHostState();
+    if (state?.source === 'bridge') return state.busy === true || state.pendingInput === true;
     return conversationIsBusy();
   }
 
@@ -3303,26 +3301,17 @@ import {
       : [];
   }
 
-  function changeReviewTurnKeyForLastAssistant() {
-    const session = locateActiveSessionState();
-    const messages = session && session.messages && session.messages.value;
-    if (!Array.isArray(messages) || !messages.length) return '';
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const m = messages[i];
-      if (!m || typeof m !== 'object') continue;
-      if (m.type === 'progress' || m.type === 'system') continue;
-      if (m.type === 'user' && transcriptHasToolResult(m)) continue;
-      if (m.type !== 'assistant') return '';
-      for (let j = i - 1; j >= 0; j--) {
-        const prev = messages[j];
-        if (!prev || typeof prev !== 'object') continue;
-        if (prev.type === 'user' && transcriptHasToolResult(prev)) continue;
-        if (prev.type === 'assistant' || prev.type === 'progress' || prev.type === 'system') continue;
-        if (prev.type !== 'user') return '';
-        return recordUuid(prev);
-      }
-      return '';
-    }
+
+  function isReviewUserPrompt(record) {
+    if (!record || record.type !== 'user' || record.isMeta || record.isSynthetic || record.message?.isMeta || transcriptHasToolResult(record)) return false;
+    if (record.parentToolUseId || record.sdkParentToolUseId || record.parent_tool_use_id) return false;
+    return !/^(?:\[Request interrupted by user|<task-notification>|<local-command-caveat>|<command-name>)/.test(transcriptText(record).trim());
+  }
+
+  function latestReviewTurnKey() {
+    const messages = locateActiveSessionState()?.messages?.value;
+    if (!Array.isArray(messages)) return '';
+    for (let i = messages.length - 1; i >= 0; i--) if (isReviewUserPrompt(messages[i])) return recordUuid(messages[i]);
     return '';
   }
 
@@ -3334,7 +3323,7 @@ import {
       const m = messages[i];
       if (!m || typeof m !== 'object') continue;
       if (m.type === 'progress' || m.type === 'system') continue;
-      if (m.type === 'user' && transcriptHasToolResult(m)) continue;
+      if (m.type === 'user' && !isReviewUserPrompt(m)) continue;
       if (m.type === 'assistant') {
         if (transcriptHasText(m)) return '';
         continue;
@@ -3347,7 +3336,7 @@ import {
 
   function removeCurrentBusyChangeReviewTurnBlocks() {
     if (!changeReviewBusySafe()) return;
-    const turnKey = latestRealUserTurnKey();
+    const turnKey = latestReviewTurnKey();
     if (!turnKey) return;
     document.querySelectorAll('[data-incipit-change-review-turn]').forEach(block => {
       if ((block.getAttribute('data-incipit-change-review-turn') || '') === turnKey) {
@@ -3406,7 +3395,7 @@ import {
   }
 
   function notifyChangeReviewTurnFinalized() {
-    postChangeReviewTurnLifecycle('change_review_turn_finalized', changeReviewTurnKeyForLastAssistant());
+    postChangeReviewTurnLifecycle('change_review_turn_finalized', changeReviewStartedTurnKey || latestReviewTurnKey());
   }
 
   function findAssistantRecordForTurn(turnKey) {
@@ -3419,10 +3408,9 @@ import {
     for (let i = userIdx + 1; i < messages.length; i++) {
       const m = messages[i];
       if (!m || typeof m !== 'object') continue;
-      if (m.type === 'user' && !transcriptHasToolResult(m)) break;
-      if (m.type === 'assistant' && transcriptHasText(m)) {
+      if (isReviewUserPrompt(m)) break;
+      if (m.type === 'assistant' && !m.parentToolUseId && !m.sdkParentToolUseId && !m.parent_tool_use_id) {
         fallback = m;
-        if (isLastAssistantOfTurn(m)) return m;
       }
     }
     return fallback;
@@ -3438,25 +3426,30 @@ import {
     const hosts = document.querySelectorAll(SEL.message + ', [class*="timelineMessage"]');
     for (const host of hosts) {
       if (host.closest(SEL.userMessageContainer) || host.closest('[class*="userMessageContainer"]')) continue;
-      if (!host.querySelector(':scope > .incipit-assistant-action-row')) continue;
       const rec = transcriptRecordForElement(host);
-      if (sameTranscriptRecord(rec, record)) return { host, markdownRoot: null };
+      if (sameTranscriptRecord(rec, record)) return { host, markdownRoot: null, after: !host.querySelector(':scope > .incipit-assistant-action-row') };
     }
     const roots = document.querySelectorAll(SEL.markdownRoot + ', [class*="root_"]');
     for (const root of roots) {
       const rec = transcriptRecordForElement(root);
       if (!sameTranscriptRecord(rec, record)) continue;
       const host = findAssistantActionHost(root) || closestByAttr(root, ATTR.message);
-      if (host && host.querySelector(':scope > .incipit-assistant-action-row')) return { host, markdownRoot: root };
+      if (host) return { host, markdownRoot: root, after: !host.querySelector(':scope > .incipit-assistant-action-row') };
     }
     return null;
   }
 
-  function placeChangeReviewTurnBlock(host, block) {
+  function placeChangeReviewTurnBlock(host, block, after = false) {
     if (!host || !block) return false;
+    if (after) {
+      if (!host.parentNode) return false;
+      if (host.nextSibling !== block) host.parentNode.insertBefore(block, host.nextSibling);
+      return true;
+    }
     const actionRow = host.querySelector(':scope > .incipit-assistant-action-row');
-    if (!actionRow) return false;
-    if (actionRow.nextSibling !== block) host.insertBefore(block, actionRow.nextSibling);
+    if (actionRow) {
+      if (actionRow.nextSibling !== block) host.insertBefore(block, actionRow.nextSibling);
+    } else if (host.lastElementChild !== block) host.appendChild(block);
     return true;
   }
 
@@ -3487,13 +3480,13 @@ import {
         block.setAttribute('data-incipit-change-review-turn', turn.turnKey);
         bindChangeReviewBlockDelegation(block);
       }
-      if (!placeChangeReviewTurnBlock(host, block)) continue;
+      if (!placeChangeReviewTurnBlock(host, block, placement.after)) continue;
       updateChangeReviewTurnBlock(block, turn);
     }
   }
 
   function updateChangeReviewTurnBlock(block, turn) {
-    const busy = changeReviewBusySafe();
+    const busy = conversationBusyTriState() !== false;
     const expanded = block.dataset.incipitChangeReviewExpanded === '1';
     // Build the new subtree OFF-DOM, then swap it into the live block only
     // when it actually differs from what's already rendered. The block
@@ -3559,6 +3552,7 @@ import {
     window.addEventListener('message', evt => {
       const msg = evt && evt.data;
       if (msg && msg.__incipitChangeReview === true && msg.payload) {
+        if (msg.payload.sessionId !== getActiveSessionId()) return;
         changeReviewPayload = msg.payload;
         if (!changeReviewBusySafe()) scheduleChangeReviewTurnBlocksRender();
         return;
@@ -3568,6 +3562,9 @@ import {
         const pending = changeReviewDiffPending.get(msg.requestId);
         if (!pending) return;
         changeReviewDiffPending.delete(msg.requestId);
+        if (msg.sessionId !== pending.sessionId || msg.cwd !== pending.cwd || pending.sessionId !== getActiveSessionId()) {
+          pending.reject(new Error('The review session changed.')); return;
+        }
         const payload = msg.payload || {};
         if (payload.ok === false) pending.reject(new Error(payload.error || 'Diff request failed'));
         else pending.resolve(payload);
@@ -3578,6 +3575,9 @@ import {
         if (!pending) return;
         changeReviewRejectPending.delete(msg.requestId);
         const payload = msg.payload || {};
+        if (pending.sessionId !== getActiveSessionId() || (payload.payload && payload.payload.sessionId !== pending.sessionId)) {
+          pending.reject(new Error('The review session changed.')); return;
+        }
         if (payload.payload) changeReviewPayload = payload.payload;
         if (payload.ok === false) pending.reject(new Error(payload.error || firstRejectError(payload) || 'Reject failed'));
         else pending.resolve(payload);
@@ -3592,7 +3592,7 @@ import {
     return hit ? hit.error : '';
   }
 
-  function postChangeReviewRequest(type, payload, timeoutMs = 10000) {
+  function postChangeReviewRequest(type, payload, timeoutMs = 10000, signal) {
     setupChangeReviewChannel();
     const api = getIncipitVsCodeApi();
     if (!api || typeof api.postMessage !== 'function') {
@@ -3606,22 +3606,35 @@ import {
       requestId,
       sessionId: getActiveSessionId(),
       cwd: getActiveSessionCwd() || (changeReviewPayload && changeReviewPayload.cwd) || null,
-      busy: changeReviewBusySafe(),
+      busy: conversationBusyTriState() !== false,
       ...payload,
     };
     return new Promise((resolve, reject) => {
-      pending.set(requestId, { resolve, reject });
+      let timer;
+      const abort = () => {
+        if (!pending.delete(requestId)) return;
+        if (type === 'change_review_diff_request') try { api.postMessage({ __incipit: true, type: 'change_review_diff_cancel', requestId }); } catch (_) {}
+        finish(Object.assign(new Error('Review closed.'), { name: 'AbortError' }));
+      };
+      const finish = (error, value) => {
+        clearTimeout(timer); signal?.removeEventListener('abort', abort);
+        if (error) reject(error); else resolve(value);
+      };
+      pending.set(requestId, { resolve: value => finish(null, value), reject: error => finish(error), sessionId: message.sessionId, cwd: message.cwd });
+      signal?.addEventListener('abort', abort, { once: true });
+      if (signal?.aborted) { abort(); return; }
       try {
         api.postMessage(message);
       } catch (error) {
         pending.delete(requestId);
-        reject(error);
+        finish(error);
         return;
       }
-      setTimeout(() => {
+      timer = setTimeout(() => {
         const item = pending.get(requestId);
         if (!item) return;
         pending.delete(requestId);
+        if (type === 'change_review_diff_request') try { api.postMessage({ __incipit: true, type: 'change_review_diff_cancel', requestId }); } catch (_) {}
         item.reject(new Error('Change review request timed out.'));
       }, timeoutMs);
     });
@@ -3650,7 +3663,7 @@ import {
   }
 
   function rejectChangeReviewTurn(turnKey, button) {
-    if (!turnKey || changeReviewBusySafe()) return;
+    if (!turnKey || conversationBusyTriState() !== false) return;
     if (button) button.dataset.incipitInflight = '1';
     const files = changeReviewTurnRejectedFiles(turnKey);
     postChangeReviewRequest('change_review_reject_request', { turnKey })
@@ -3665,7 +3678,7 @@ import {
   }
 
   function rejectChangeReviewFile(fileId, button) {
-    if (!fileId || changeReviewBusySafe()) return;
+    if (!fileId || conversationBusyTriState() !== false) return;
     if (button) button.dataset.incipitInflight = '1';
     const files = changeReviewRejectedFilesByIds([fileId]);
     postChangeReviewRequest('change_review_reject_request', { fileId })
@@ -3685,7 +3698,7 @@ import {
     const modal = changeReviewModal;
     const sessionId = getActiveSessionId();
     modal.controller = new AbortController();
-    postChangeReviewRequest('change_review_diff_request', { fileId: file.id }, 12000)
+    postChangeReviewRequest('change_review_diff_request', { fileId: file.id, turnKey: file.turnKey }, 30000, modal.controller.signal)
       .then(payload => {
         if (changeReviewModal !== modal || getActiveSessionId() !== sessionId) return;
         const diff = payload.diff || {};
@@ -3778,18 +3791,19 @@ import {
       newText: diff && typeof diff.newText === 'string' ? diff.newText : '',
     };
     if (diff && Array.isArray(diff.rows)) payload.rows = diff.rows;
+    for (const field of ['notice', 'source', 'quality', 'lineNumbers']) if (diff?.[field] !== undefined) payload[field] = diff[field];
     const lineInfo = diff && (diff.oldStartLine || diff.newStartLine || diff.startLine)
       ? {
           oldStartLine: diff.oldStartLine || diff.startLine || 1,
           newStartLine: diff.newStartLine || diff.startLine || 1,
         }
       : null;
-    const stats = changeReviewFileHasLineStats(file)
+    const stats = diff?.stats || (changeReviewFileHasLineStats(file)
       ? {
           added: changeReviewNumber(file.added),
           removed: changeReviewNumber(file.removed),
         }
-      : null;
+      : null);
     const block = {
       name: 'ChangeReview',
       input: { file_path: filePath },
@@ -4211,16 +4225,15 @@ import {
       scheduleChangeReviewIdentityUpdate(250);
       if (changeReviewBusySafe()) scheduleChangeReviewTurnStarted(20);
     });
-    subscribeRuntime('busyChanged', evt => {
-      if (evt && evt.busy === true) armChangeReviewTurnStarted();
-      else cancelChangeReviewTurnStarted();
+    subscribeRuntime('executionStarted', () => {
+      armChangeReviewTurnStarted();
       if (!changeReviewBusySafe()) {
         scheduleChangeReviewIdentityUpdate(250);
       } else {
         removeCurrentBusyChangeReviewTurnBlocks();
       }
     });
-    subscribeRuntime('assistantTurnFinalized', () => {
+    subscribeRuntime('executionSettled', () => {
       if (changeReviewBusySafe()) {
         removeCurrentBusyChangeReviewTurnBlocks();
         return;
@@ -10070,10 +10083,8 @@ import {
     // Line counts that follow exactly from the tool input: Edit and MultiEdit
     // without replace_all. They show on the row immediately while the
     // historical patch is fetched; Write counts need the saved original.
-    const estimateCache = new WeakMap();
     function estimateToolStats(block) {
       if (!block || !block.input) return null;
-      if (estimateCache.has(block)) return estimateCache.get(block);
       const input = block.input;
       let stats = null;
       if (block.name === 'Edit' && !input.replace_all &&
@@ -10088,7 +10099,6 @@ import {
           stats.added += part.added; stats.removed += part.removed;
         }
       }
-      estimateCache.set(block, stats);
       return stats;
     }
 

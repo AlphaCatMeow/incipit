@@ -2,7 +2,7 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "7b791e73a0041a2938d11aad5c714281be4c477f8b8fc6a5c90076252953cd71",
+    "themeSha256": "2b11a94c7a5ef669d397d2152b27a5bffe8e9c5e892a44f18e1a3530819841d2",
     "warmWhiteSha256": "952c8ed9373717d2824f1534d83a2315a7d271666a69a8372c863f4bb0783c69"
   },
   "themeSequence": [
@@ -4803,6 +4803,21 @@
     "\u0001[data-incipit-tool-counts]\u0001gap\u0001",
     "\u0001[data-incipit-tool-counts]\u0001white-space\u0001",
     "\u0001[data-incipit-tool-counts]\u0001font-variant-numeric\u0001",
+    "\u0001[data-incipit-tool-counts-retry]\u0001flex\u0001",
+    "\u0001[data-incipit-tool-counts-retry]\u0001padding\u0001",
+    "\u0001[data-incipit-tool-counts-retry]\u0001border\u0001",
+    "\u0001[data-incipit-tool-counts-retry]\u0001border-radius\u0001",
+    "\u0001[data-incipit-tool-counts-retry]\u0001color\u0001",
+    "\u0001[data-incipit-tool-counts-retry]\u0001background\u0001",
+    "\u0001[data-incipit-tool-counts-retry]\u0001font\u0001",
+    "\u0001[data-incipit-tool-counts-retry]\u0001font-size\u0001",
+    "\u0001[data-incipit-tool-counts-retry]\u0001opacity\u0001",
+    "\u0001[data-incipit-tool-counts-retry]\u0001cursor\u0001",
+    "\u0001[data-incipit-tool-counts-retry]:hover\u0001opacity\u0001",
+    "\u0001[data-incipit-tool-counts-retry]:focus-visible\u0001opacity\u0001",
+    "\u0001[data-incipit-tool-counts-retry]:hover\u0001text-decoration\u0001",
+    "\u0001[data-incipit-tool-counts-retry]:focus-visible\u0001text-decoration\u0001",
+    "\u0001[data-incipit-tool-counts-retry][hidden]\u0001display\u0001!",
     "\u0001[data-incipit-tool-fingerprint-text]\u0001flex\u0001",
     "\u0001[data-incipit-tool-fingerprint-text]\u0001min-width\u0001",
     "\u0001[data-incipit-tool-fingerprint-text]\u0001max-width\u0001",
@@ -27591,6 +27606,81 @@
       "key": "\u0001[data-incipit-tool-command]\u0001font-variation-settings",
       "important": false,
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]:focus-visible\u0001opacity",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]:focus-visible\u0001text-decoration",
+      "important": false,
+      "resolved": "underline"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]:hover\u0001opacity",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]:hover\u0001text-decoration",
+      "important": false,
+      "resolved": "underline"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001border-radius",
+      "important": false,
+      "resolved": "4px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001flex",
+      "important": false,
+      "resolved": "0 0 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001font-size",
+      "important": false,
+      "resolved": "0.9em"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001opacity",
+      "important": false,
+      "resolved": "0.7"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001padding",
+      "important": false,
+      "resolved": "1px 4px"
     },
     {
       "key": "\u0001[data-incipit-tool-counts][hidden]\u0001display",
@@ -54588,6 +54678,81 @@
       "key": "\u0001[data-incipit-tool-command]\u0001font-variation-settings",
       "important": false,
       "resolved": "\"MONO\" 1,\"CASL\" 0,\"slnt\" 0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]:focus-visible\u0001opacity",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]:focus-visible\u0001text-decoration",
+      "important": false,
+      "resolved": "underline"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]:hover\u0001opacity",
+      "important": false,
+      "resolved": "1"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]:hover\u0001text-decoration",
+      "important": false,
+      "resolved": "underline"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry][hidden]\u0001display",
+      "important": true,
+      "resolved": "none"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001background",
+      "important": false,
+      "resolved": "transparent"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001border",
+      "important": false,
+      "resolved": "0"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001border-radius",
+      "important": false,
+      "resolved": "4px"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001color",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001cursor",
+      "important": false,
+      "resolved": "pointer"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001flex",
+      "important": false,
+      "resolved": "0 0 auto"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001font",
+      "important": false,
+      "resolved": "inherit"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001font-size",
+      "important": false,
+      "resolved": "0.9em"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001opacity",
+      "important": false,
+      "resolved": "0.7"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-counts-retry]\u0001padding",
+      "important": false,
+      "resolved": "1px 4px"
     },
     {
       "key": "\u0001[data-incipit-tool-counts][hidden]\u0001display",

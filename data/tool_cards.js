@@ -30,7 +30,8 @@ function identity() {
 function inputVersion(block) {
   const input = block.input || {};
   return [block.id, block.name, input.file_path, input.old_string, input.new_string, input.content,
-    input.edits, input.replace_all];
+    input.replace_all, ...(Array.isArray(input.edits) ? input.edits.flatMap(edit =>
+      [edit?.old_string, edit?.new_string, edit?.replace_all]) : [])];
 }
 
 function sameVersion(a, b) { return a && a.length === b.length && a.every((value, i) => value === b[i]); }
@@ -83,6 +84,9 @@ export function initToolCards(options) {
     }, { rootMargin: '240px' });
   }
   subscribe('sessionChanged', state => resetSession(state.sessionId || '', state.cwd || ''));
+  subscribe('executionSettled', () => {
+    for (const controller of controllers.values()) controller.refreshCounts?.();
+  });
   window.addEventListener('pagehide', () => resetSession(''));
 }
 
@@ -94,6 +98,7 @@ function clearRootMarks(root) {
 
 function createFileCard(root, initial, options) {
   let data = initial;
+  let renderedState = publicState(initial);
   let version = inputVersion(data.block);
   const session = identity();
   const key = (session.sessionId || '') + ':' + data.block.id;
@@ -105,6 +110,7 @@ function createFileCard(root, initial, options) {
   // with backoff instead of waiting for an unrelated mutation.
   let provisional = options.estimateStats?.(data.block) || null;
   let pendingTimer = null, pendingAttempts = 0;
+  let verifiedCounts = null, retryExhausted = false;
   const PENDING_RETRY_MS = [400, 800, 1600, 3200, 6400, 12800];
   const body = node('div', 'data-incipit-file-tool-body');
   const inner = node('div', 'data-incipit-file-tool-inner');
@@ -121,10 +127,19 @@ function createFileCard(root, initial, options) {
   body.id = bodyId; headline.toggle.setAttribute('aria-controls', bodyId);
   headline.setOpen(open);
   headline.setCounts(provisional);
+  const retryCounts = node('button', 'data-incipit-tool-counts-retry', 'Retry counts');
+  retryCounts.type = 'button'; retryCounts.hidden = true;
+  retryCounts.addEventListener('click', event => {
+    event.stopPropagation(); pendingAttempts = 0; retryExhausted = false; sourceKnown = false; controller.prefetch();
+  });
+  headline.row.append(retryCounts);
   body.addEventListener('click', event => event.stopPropagation());
 
   function schedulePendingRetry() {
-    if (disposed || pendingTimer || pendingAttempts >= PENDING_RETRY_MS.length) return;
+    if (disposed || pendingTimer || publicState(data) !== 'complete') return;
+    retryExhausted = pendingAttempts >= PENDING_RETRY_MS.length;
+    retryCounts.hidden = !!(verifiedCounts || provisional) || !retryExhausted;
+    if (retryExhausted || !controller.intersecting) return;
     pendingTimer = setTimeout(() => { pendingTimer = null; controller.prefetch(); }, PENDING_RETRY_MS[pendingAttempts++]);
   }
 
@@ -141,12 +156,14 @@ function createFileCard(root, initial, options) {
     const promise = fetchToolDiff({ sessionId: current.sessionId, cwd: current.cwd,
       toolUseId: data.block.id, filePath: data.block.input.file_path }, { signal: controller.signal })
       .then(payload => {
-        if (disposed || epoch !== revision) throw Object.assign(new Error('Diff view changed.'), { name: 'AbortError' });
+        if (disposed || epoch !== revision || controller.signal.aborted || publicState(data) === 'error') throw Object.assign(new Error('Diff view changed.'), { name: 'AbortError' });
         if (payload.state === 'ready') {
           sourceKnown = true;
           if (open) sourcePayload = payload;
-          headline.setCounts(payload.quality === 'coarse' ? provisional : payload.stats);
-        } else if (payload.state === 'pending') schedulePendingRetry();
+          verifiedCounts = payload.quality === 'coarse' ? null : payload.stats;
+          headline.setCounts(verifiedCounts || provisional);
+          retryCounts.hidden = !!(verifiedCounts || provisional);
+        } else schedulePendingRetry();
         return payload;
       }).finally(() => {
         signal?.removeEventListener('abort', abort);
@@ -181,7 +198,7 @@ function createFileCard(root, initial, options) {
   function ensureView() {
     if (view) return;
     view = createDiffPreview(diff, { filePath: data.block.input.file_path, loadModel,
-      onStats: stats => headline.setCounts(stats || provisional) });
+      onStats: stats => headline.setCounts(verifiedCounts || stats || provisional) });
   }
 
   function setOpen(value) {
@@ -211,25 +228,38 @@ function createFileCard(root, initial, options) {
     identityReady() {
       revision++; sourceKnown = false; sourcePayload = null; sourceController?.abort(); sourcePromise = null;
       clearTimeout(pendingTimer); pendingTimer = null; pendingAttempts = 0;
+      retryExhausted = false;
+      verifiedCounts = null; headline.setCounts(provisional); retryCounts.hidden = true;
       headline.invalidatePaths(); view?.invalidate(); options.onNativeChange?.();
     },
     toolId: data.block.id,
     intersecting: !visibilityObserver,
     releaseSource() { if (!open) sourcePayload = null; },
+    refreshCounts() {
+      if (sourceKnown || !controller.intersecting) return;
+      clearTimeout(pendingTimer); pendingTimer = null; pendingAttempts = 0; retryExhausted = false; controller.prefetch();
+    },
     prefetch() {
-      if (disposed || publicState(data) !== 'complete' || sourceKnown || sourcePromise) return;
+      if (disposed || publicState(data) !== 'complete' || sourceKnown || sourcePromise || pendingTimer || retryExhausted) return;
+      retryCounts.hidden = true;
       loadSource().catch(error => {
-        if (error.name !== 'AbortError') globalThis.__incipitHealth?.set?.('tool.diffSource', 'degraded', { reason: error.message });
+        if (error.name !== 'AbortError') {
+          schedulePendingRetry();
+          globalThis.__incipitHealth?.set?.('tool.diffSource', 'degraded', { reason: error.message });
+        }
       });
     },
     update(next) {
-      const previousState = publicState(data);
-      const previousPath = data.block.input.file_path;
+      const previousState = renderedState;
+      const previousPath = version[2];
       data = next;
+      renderedState = publicState(next);
       const nextVersion = inputVersion(next.block);
       if (!sameVersion(version, nextVersion)) {
         version = nextVersion; revision++; sourcePayload = null; sourceKnown = false; sourceController?.abort(); sourcePromise = null;
         clearTimeout(pendingTimer); pendingTimer = null; pendingAttempts = 0;
+        retryExhausted = false;
+        verifiedCounts = null; retryCounts.hidden = true;
         provisional = options.estimateStats?.(next.block) || null;
         headline.setCounts(provisional);
         if (previousPath !== next.block.input.file_path) { view?.dispose(); view = null; diff.replaceChildren(); }
@@ -242,10 +272,14 @@ function createFileCard(root, initial, options) {
         ? content.filter(block => block && block.type === 'text').map(block => block.text || '').join('\n') : '';
       toolError.hidden = !failed;
       if (failed) {
-        headline.setCounts(null);
+        headline.setCounts(null); retryCounts.hidden = true;
         const text = message || 'The file operation failed. Inspect the tool result before retrying.';
         if (toolError.textContent !== text) toolError.textContent = text;
-        if (previousState !== 'error') { sourceController?.abort(); sourcePayload = null; view?.invalidate(); }
+        if (previousState !== 'error') {
+          revision++; sourceController?.abort(); sourcePromise = null; sourcePayload = null; sourceKnown = false;
+          clearTimeout(pendingTimer); pendingTimer = null; pendingAttempts = 0; retryExhausted = false;
+          view?.invalidate();
+        }
       }
       if (!headline.header.isConnected) root.insertBefore(headline.header, root.firstChild);
       if (!toolError.isConnected) root.appendChild(toolError);

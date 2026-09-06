@@ -173,11 +173,15 @@ function createRowViewport(parent, model, options = {}) {
 }
 
 async function patchText(model) {
-  const chunks = ['--- ' + model.filePath, '+++ ' + model.filePath];
+  const operations = model.statsScope === 'operations';
+  const chunks = operations ? [model.filePath, model.notice] : ['--- ' + model.filePath, '+++ ' + model.filePath];
   let activeHunk = -1;
   let deadline = performance.now() + 4;
   for (const row of model.rows) {
-    if (row.kind === 'gap') { activeHunk = -1; continue; }
+    if (row.kind === 'gap') {
+      if (operations && row.text) chunks.push('\n' + row.text);
+      activeHunk = -1; continue;
+    }
     if (activeHunk !== row.hunk) {
       activeHunk = row.hunk;
       const hunk = model.hunks[row.hunk];
@@ -243,7 +247,7 @@ export function openFullDiff(model, options = {}) {
     rows.goToRow(matches[match]);
   }
   tools.append(find, button('Previous match', () => moveMatch(-1)), button('Next match', () => moveMatch(1)), searchStatus,
-    button(model.lineNumbers === 'relative' ? 'Copy changes' : 'Copy patch', async () => {
+    button(model.statsScope !== 'complete' || model.lineNumbers === 'relative' ? 'Copy changes' : 'Copy patch', async () => {
       try { await navigator.clipboard.writeText(await patchText(model)); notice.textContent = 'Changes copied.'; }
       catch (_) { notice.textContent = 'Clipboard access was denied. Select and copy the visible code, or try again.'; }
       notice.hidden = false;
