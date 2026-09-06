@@ -157,7 +157,7 @@ function buildHeadline(root, options) {
   const toggle = node('button', 'data-incipit-tool-toggle'); toggle.type = 'button';
   const glyph = node('span', 'data-incipit-tool-icon');
   const label = node('span', 'data-incipit-tool-label');
-  const subject = node('span', 'data-incipit-tool-subject');
+  const subject = node('span', 'data-incipit-tool-subject'); subject.hidden = true;
   const stem = node('span', 'data-incipit-tool-filename-stem');
   const extension = node('span', 'data-incipit-tool-filename-extension');
   subject.append(stem, extension);
@@ -188,7 +188,8 @@ function buildHeadline(root, options) {
       ? input.fileReads.map(read => read.file_path || read.path).filter(value => typeof value === 'string' && value) : [];
     const paths = filePath ? [filePath] : readPaths;
     const isFile = paths.length > 0;
-    const description = isFile ? paths.map(fileName).join(', ') : String(input.description || input.query || input.pattern ||
+    const description = isFile ? paths.map(fileName).join(', ') : String((block.name === 'WebFetch' ? input.url : '') ||
+      input.description || input.query || input.pattern ||
       (block.name === 'Bash' ? input.command || '' : '') || '').replace(/\s+/g, ' ').trim();
     const status = publicState(next);
     const labels = Object.prototype.hasOwnProperty.call(LABELS, block.name) ? LABELS[block.name] : null;

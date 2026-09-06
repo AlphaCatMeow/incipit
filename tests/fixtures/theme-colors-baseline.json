@@ -2,7 +2,7 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "91333a4ec04400aba9572510fc3af90f84b1a7428cd0eda478e973c20395fdb3",
+    "themeSha256": "9dfa5507103ba348667878fa8c2a1d1c290c60217629e3fcc54a3b495246d442",
     "warmWhiteSha256": "7c80bb5e0294bbc6a97e51166907db04f06fd75ed2a6e450fdf2a19967302775"
   },
   "themeSequence": [
@@ -4683,6 +4683,7 @@
     "\u0001[data-incipit-tool-heading]\u0001font-size\u0001!",
     "\u0001[data-incipit-tool-heading]\u0001line-height\u0001",
     "\u0001[data-incipit-tool-row]\u0001display\u0001",
+    "\u0001[data-incipit-tool-row]\u0001width\u0001",
     "\u0001[data-incipit-tool-row]\u0001align-items\u0001",
     "\u0001[data-incipit-tool-row]\u0001gap\u0001",
     "\u0001[data-incipit-tool-row]\u0001box-sizing\u0001",
@@ -5010,7 +5011,6 @@
     "\u0001[data-incipit-diff-find]\u0001padding\u0001",
     "\u0001[data-incipit-diff-find]\u0001font\u0001",
     "\u0001[data-incipit-diff-search-status]\u0001font-size\u0001",
-    "@media (max-width: 380px)\u0001[data-incipit-tool-label]\u0001max-width\u0001",
     "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001width\u0001",
     "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-width\u0001",
     "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001max-height\u0001"
@@ -27086,7 +27086,7 @@
     {
       "key": "\u0001[data-incipit-tool-row]\u0001display",
       "important": false,
-      "resolved": "inline-flex"
+      "resolved": "flex"
     },
     {
       "key": "\u0001[data-incipit-tool-row]\u0001font",
@@ -27132,6 +27132,11 @@
       "key": "\u0001[data-incipit-tool-row]\u0001vertical-align",
       "important": false,
       "resolved": "top"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001width",
+      "important": false,
+      "resolved": "100%"
     },
     {
       "key": "\u0001[data-incipit-tool-state][hidden]\u0001display",
@@ -27351,7 +27356,7 @@
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001max-width",
       "important": false,
-      "resolved": "45%"
+      "resolved": "60%"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001min-width",
@@ -30382,11 +30387,6 @@
       "key": "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001width",
       "important": false,
       "resolved": "calc(100vw - 16px)"
-    },
-    {
-      "key": "@media (max-width: 380px)\u0001[data-incipit-tool-label]\u0001max-width",
-      "important": false,
-      "resolved": "8em"
     },
     {
       "key": "\u0001*:not([class*=\"inputContainer_\"]):not([class*=\"inputContainer_\"] *):not([contenteditable]):not([contenteditable] *)\u0001scrollbar-color",
@@ -52363,7 +52363,7 @@
     {
       "key": "\u0001[data-incipit-tool-row]\u0001display",
       "important": false,
-      "resolved": "inline-flex"
+      "resolved": "flex"
     },
     {
       "key": "\u0001[data-incipit-tool-row]\u0001font",
@@ -52409,6 +52409,11 @@
       "key": "\u0001[data-incipit-tool-row]\u0001vertical-align",
       "important": false,
       "resolved": "top"
+    },
+    {
+      "key": "\u0001[data-incipit-tool-row]\u0001width",
+      "important": false,
+      "resolved": "100%"
     },
     {
       "key": "\u0001[data-incipit-tool-state][hidden]\u0001display",
@@ -52633,7 +52638,7 @@
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001max-width",
       "important": false,
-      "resolved": "45%"
+      "resolved": "60%"
     },
     {
       "key": "\u0001[data-incipit-tool-toggle]\u0001min-width",
@@ -55744,11 +55749,6 @@
       "key": "@media (max-width: 380px)\u0001[data-incipit-diff-dialog]\u0001width",
       "important": false,
       "resolved": "calc(100vw - 16px)"
-    },
-    {
-      "key": "@media (max-width: 380px)\u0001[data-incipit-tool-label]\u0001max-width",
-      "important": false,
-      "resolved": "8em"
     },
     {
       "key": "\u0001*:not([class*=\"inputContainer_\"]):not([class*=\"inputContainer_\"] *):not([contenteditable]):not([contenteditable] *)\u0001scrollbar-color",

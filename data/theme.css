@@ -7091,7 +7091,10 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   line-height: 1.55;
 }
 [data-incipit-tool-row] {
-  display: inline-flex;
+  /* Percentage label limits need the available row width. A shrink-to-fit row
+     truncates even a short standalone action such as Fetched (2026-09-05). */
+  display: flex;
+  width: 100%;
   align-items: flex-start;
   gap: 0 6px;
   box-sizing: border-box;
@@ -7110,7 +7113,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 [data-incipit-tool-row]:hover,
 [data-incipit-tool-row]:focus-within { color: var(--ink-text-primary); }
-[data-incipit-tool-toggle] { display: inline-flex; align-items: flex-start; gap: 6px; flex: 0 0 auto; max-width: 45%; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: start; cursor: inherit; }
+[data-incipit-tool-toggle] { display: inline-flex; align-items: flex-start; gap: 6px; flex: 0 0 auto; max-width: 60%; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: start; cursor: inherit; }
 [data-incipit-tool-toggle]:disabled { opacity: 1; cursor: default; }
 [data-incipit-tool-toggle] [data-incipit-tool-label] { flex-shrink: 1; }
 [data-incipit-tool-file-link] { display: inline-flex; min-width: 0; flex: 0 1 auto; padding: 0; margin: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: start; }
@@ -7317,6 +7320,5 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
 [data-incipit-diff-search-status] { font-size: 11px; }
 
 @media (max-width: 380px) {
-  [data-incipit-tool-label] { max-width: 8em; }
   [data-incipit-diff-dialog] { width: calc(100vw - 16px); max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
 }
