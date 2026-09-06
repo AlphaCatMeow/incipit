@@ -2,7 +2,7 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "b3d68680edc4b91fe6b22b6a763c2a92571551dca88f0179d0632f80d5acb606",
+    "themeSha256": "91333a4ec04400aba9572510fc3af90f84b1a7428cd0eda478e973c20395fdb3",
     "warmWhiteSha256": "7c80bb5e0294bbc6a97e51166907db04f06fd75ed2a6e450fdf2a19967302775"
   },
   "themeSequence": [
@@ -200,8 +200,6 @@
     "\u0001[data-incipit-message][data-incipit-activity-edge=\"last\"]::after\u0001bottom\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity-edge=\"only\"]::after\u0001display\u0001!",
     "\u0001[data-incipit-message][data-incipit-activity-collapsed]::after\u0001display\u0001!",
-    "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) details[data-incipit-thinking]::before\u0001top\u0001",
-    "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) [data-incipit-thinking-static]::before\u0001top\u0001",
     "\u0001[data-incipit-activity-header]\u0001position\u0001",
     "\u0001[data-incipit-activity-header]\u0001top\u0001",
     "\u0001[data-incipit-activity-header]\u0001left\u0001",
@@ -15824,16 +15822,6 @@
       "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]\u0001position",
       "important": false,
       "resolved": "relative"
-    },
-    {
-      "key": "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) [data-incipit-thinking-static]::before\u0001top",
-      "important": false,
-      "resolved": "36px"
-    },
-    {
-      "key": "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) details[data-incipit-thinking]::before\u0001top",
-      "important": false,
-      "resolved": "36px"
     },
     {
       "key": "\u0001[data-incipit-ask-request] [class*=\"button_\"]:hover:not(:disabled)\u0001background",
@@ -41021,16 +41009,6 @@
       "key": "\u0001[data-incipit-activity=\"thinking\"] details[data-incipit-thinking]\u0001position",
       "important": false,
       "resolved": "relative"
-    },
-    {
-      "key": "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) [data-incipit-thinking-static]::before\u0001top",
-      "important": false,
-      "resolved": "36px"
-    },
-    {
-      "key": "\u0001[data-incipit-activity=\"thinking\"]:is([data-incipit-activity-edge=\"first\"],[data-incipit-activity-edge=\"only\"]) details[data-incipit-thinking]::before\u0001top",
-      "important": false,
-      "resolved": "36px"
     },
     {
       "key": "\u0001[data-incipit-ask-request] [class*=\"button_\"]:hover:not(:disabled)\u0001background",

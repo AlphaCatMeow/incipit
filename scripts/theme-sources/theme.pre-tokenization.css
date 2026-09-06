@@ -332,13 +332,6 @@
   display: none !important;
 }
 
-/* Reserve the section heading before it exists, so adding a tool cannot move
-   the thinking or tool row the user is already reading (2026-09-05). */
-[data-incipit-activity="thinking"]:is([data-incipit-activity-edge="first"], [data-incipit-activity-edge="only"]) details[data-incipit-thinking]::before,
-[data-incipit-activity="thinking"]:is([data-incipit-activity-edge="first"], [data-incipit-activity-edge="only"]) [data-incipit-thinking-static]::before {
-  top: 36px;
-}
-
 /* Group summary: mounted as the first child of the run's first row and pulled
    back to the rail edge like the reference header pill. */
 [data-incipit-activity-header] {
@@ -501,7 +494,9 @@ details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-vi
 [data-incipit-activity="thinking"] [data-incipit-thinking-static] {
   position: relative;
 }
-/* Canvas-colored patch behind the glyph so the rail line stops around it. */
+/* The glyph patch is relative to the thinking block, which already follows
+   the row's heading padding. Adding that offset again covers the next message
+   instead of the connector behind the glyph (2026-09-05). */
 [data-incipit-activity="thinking"] details[data-incipit-thinking]::before,
 [data-incipit-activity="thinking"] [data-incipit-thinking-static]::before {
   content: "";
