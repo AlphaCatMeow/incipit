@@ -4,8 +4,8 @@
  * The host renders each assistant message as one sibling row inside a turn.
  * This module classifies those rows, stamps the data attributes that theme.css
  * turns into the left rail (glyph column and connector line), and mounts a
- * summary header inside the first row of every run that has at least two
- * items. It never moves or removes host nodes: React keeps ownership of every
+ * summary header inside the first row as soon as a run begins. It never moves
+ * or removes host nodes: React keeps ownership of every
  * row, and all incipit state lives in attributes and one header button.
  *
  * Row vocabulary:
@@ -28,13 +28,15 @@ const TEXT_SELECTOR = '[class*="root_"]';
 const HEADER_ATTR = 'data-incipit-activity-header';
 const LIVE_THINKING = /^Thinking(\.\.\.|…)/;
 const MAX_REMEMBERED_GROUPS = 500;
-const LIVE_PHRASES = { read: 'Reading file', edit: 'Editing file', command: 'Running command', search: 'Searching' };
+const LIVE_PHRASES = { read: 'Reading file', edit: 'Editing file', command: 'Running command', search: 'Searching', agent: 'Running agent', workflow: 'Running workflow' };
 // Matches `--incipit-fold-duration`; the attribute that carries the CSS
 // transition is removed once the fold has settled so nothing animates later.
 const FOLD_MS = 220;
 
 const dirtyTurns = new Set();
 const collapsedGroups = new Map();
+const groupAliases = new Map();
+let groupSequence = 0;
 const animatingRows = new Map();
 const pendingRows = new Map();
 const enteringRows = new Map();
@@ -63,7 +65,7 @@ function rememberCollapsed(key, collapsed) {
 export function initActivityGroups() {
   if (initialized) return;
   initialized = true;
-  subscribe('sessionChanged', () => { collapsedGroups.clear(); seenTools.clear(); knownTurns = new WeakSet(); clearEntrances(); });
+  subscribe('sessionChanged', () => { collapsedGroups.clear(); groupAliases.clear(); seenTools.clear(); knownTurns = new WeakSet(); clearEntrances(); });
   window.addEventListener('pagehide', () => {
     dirtyTurns.clear();
     if (frame) cancelAnimationFrame(frame);
@@ -90,9 +92,12 @@ function clearEntrances() {
 
 /** Stage a newly mounted live tool; only known turns are eligible for entry motion. */
 export function stageActivityTool(root) {
-  if (root.dataset.incipitToolHeadline === '1') return;
   const row = root.closest('[class*="timelineMessage"]'), turn = root.closest(TURN_SELECTOR);
-  if (!row || !turn || pendingRows.has(row) || getHostState().busy !== true) return;
+  if (!row || !turn) return;
+  if (root.dataset.incipitToolHeadline === '1' && knownTurns.has(turn)) return;
+  // Publish the parent heading even while the first tool is awaiting its fiber.
+  dirtyTurns.add(turn); schedule();
+  if (root.dataset.incipitToolHeadline === '1' || pendingRows.has(row) || getHostState().busy !== true) return;
   if (!root.querySelector('[class*="toolSummary"]') || root.querySelector('[role="dialog"], [class*="permission"]')) return;
   row.setAttribute('data-incipit-activity-preparing', '1');
   const timer = setTimeout(() => {
@@ -189,6 +194,7 @@ function setCollapsed(row, collapsed, animate) {
 function clearRow(row) {
   removeAttribute(row, 'data-incipit-activity');
   removeAttribute(row, 'data-incipit-activity-edge');
+  removeAttribute(row, 'data-incipit-activity-group');
   removeAttribute(row, 'data-incipit-activity-collapsed');
   stopAnimating(row);
   removeHeader(row);
@@ -230,7 +236,7 @@ function livePhrase(root) {
 }
 
 function collectStats(members) {
-  const stats = { read: 0, edit: 0, command: 0, search: 0, other: 0, tools: 0, thinking: 0, failed: 0, live: '', key: '' };
+  const stats = { read: 0, edit: 0, command: 0, search: 0, agent: 0, workflow: 0, other: 0, tools: 0, thinking: 0, failed: 0, live: '', key: '' };
   for (const { row, kind } of members) {
     if (kind === 'thinking') {
       stats.thinking++;
@@ -259,6 +265,8 @@ function describe(stats) {
     if (stats.edit) parts.push('edited ' + plural(stats.edit, 'file'));
     if (stats.command) parts.push('ran ' + plural(stats.command, 'command'));
     if (stats.search) parts.push(stats.search === 1 ? 'searched once' : 'searched ' + stats.search + ' times');
+    if (stats.agent) parts.push(plural(stats.agent, 'agent call'));
+    if (stats.workflow) parts.push(plural(stats.workflow, 'workflow'));
     if (stats.other) parts.push(plural(stats.other, parts.length ? 'other tool call' : 'tool call'));
     text = parts.join(', ');
     text = text.charAt(0).toUpperCase() + text.slice(1);
@@ -296,16 +304,20 @@ function mountHeader(row, key, label, collapsed) {
 
 function applyGroup(members, animate) {
   const stats = collectStats(members);
-  // A single row reads fine on its own; the summary earns its line once a run
-  // has at least two items and at least one tool to describe.
-  const showHeader = stats.tools > 0 && stats.tools + stats.thinking >= 2 && !!stats.key;
-  const collapsed = showHeader && collapsedGroups.get(stats.key) === true;
-  const label = showHeader ? describe(stats) : '';
+  const previous = members.map(({ row }) => row.getAttribute('data-incipit-activity-group')).find(Boolean);
+  const key = (previous && collapsedGroups.has(previous) ? previous : null) || groupAliases.get(stats.key) || previous || stats.key || 'incipit-activity-' + (++groupSequence);
+  if (stats.key) {
+    groupAliases.delete(stats.key); groupAliases.set(stats.key, key);
+    while (groupAliases.size > MAX_REMEMBERED_GROUPS) groupAliases.delete(groupAliases.keys().next().value);
+  }
+  const collapsed = collapsedGroups.get(key) === true;
+  const label = describe(stats) || (stats.thinking ? 'Thinking' : 'Activity');
   members.forEach(({ row, kind }, index) => {
     setAttribute(row, 'data-incipit-activity', kind);
+    setAttribute(row, 'data-incipit-activity-group', key);
     setAttribute(row, 'data-incipit-activity-edge',
       members.length === 1 ? 'only' : index === 0 ? 'first' : index === members.length - 1 ? 'last' : 'middle');
-    if (index === 0 && showHeader) mountHeader(row, stats.key, label, collapsed);
+    if (index === 0) mountHeader(row, key, label, collapsed);
     else removeHeader(row);
     setCollapsed(row, collapsed, animate);
     publishRow(row);

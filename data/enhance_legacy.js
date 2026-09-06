@@ -7573,6 +7573,7 @@ import {
     initToolCards({
       getApi: getIncipitVsCodeApi,
       getIdentity: () => ({ sessionId: getActiveSessionId(), cwd: getActiveSessionCwd() }),
+      getSession: locateActiveSessionState,
     });
     initActivityGroups();
     // Animated expand / collapse for the tool body. Drives the transition
@@ -9842,9 +9843,9 @@ import {
       // when there's no body to fold. Identification is fiber-based, no
       // dependency on host class names.
       const grepData = readToolUseBlock(el);
-      const result = grepData && (['Edit', 'MultiEdit', 'Write'].includes(grepData.block.name) || !grepData.status || grepData.status === 'error')
+      const result = grepData && (['Edit', 'MultiEdit', 'Write', 'Agent', 'Task', 'Workflow', 'RunWorkflow'].includes(grepData.block.name) || !grepData.status || grepData.status === 'error')
         ? readToolResult(grepData.block, el) : null;
-      const ownsFile = enhanceToolCard(el, grepData && { ...grepData, result }, {
+      const ownsTool = enhanceToolCard(el, grepData && { ...grepData, result }, {
         summary,
         estimateStats: estimateToolStats,
         fileAction: path => toolFileAction(path, el),
@@ -9863,7 +9864,7 @@ import {
           return next.block.name === 'Grep' && typeof input.pattern === 'string' && !!input.pattern;
         },
       });
-      if (ownsFile) return;
+      if (ownsTool) return;
       if (grepData && ['Edit', 'MultiEdit', 'Write'].includes(grepData.block.name)) {
         reportHealth('tool.diff.identity', 'degraded', { reason: 'The host did not expose a stable file-tool identity.' });
         return;

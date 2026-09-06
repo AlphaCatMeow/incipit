@@ -1813,9 +1813,13 @@ button[data-incipit-tool-file-link]:focus-visible { outline: 1px solid rgba(191,
 [data-incipit-tool-row]:hover [data-incipit-tool-icon] {
   color: #0d0d0d;
 }
-[data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon]::before {
+[data-incipit-tool-use][data-incipit-tool-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon]::before {
   background-color: #0d0d0d;
 }
 [data-incipit-diff-viewport]:focus-visible {
   outline: 1px solid rgba(191,93,58,0.6);
+}
+[data-incipit-agent-card], [data-incipit-workflow] {
+  --incipit-agent-rule: rgba(13,13,13,0.14);
+  --incipit-agent-muted: #8c897e;
 }

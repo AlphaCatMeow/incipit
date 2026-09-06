@@ -127,6 +127,10 @@ Edit / MultiEdit / Write previews start collapsed on their row. Expand a tool to
 
 Historical context comes from the saved tool result. When it is unavailable, the preview identifies the known replacement fragments or requested contents instead of guessing from today's file. Large views render in pages and reuse bounded diff caches. The conversation, compact markers, change review, and composer share a reading column that adapts from a narrow sidebar to a wide editor panel.
 
+Agent and Task calls keep their own input, replies, thinking, and tool activity beneath a single collapsed row. Nested calls remain independently expandable, and parallel agents stay attached to their actual invocation. Running agents have an animated status icon; completed, failed, stopped, and unrecorded states remain distinct.
+
+Workflow calls open into their recorded phases and agents, with per-agent activity, queued work, retries, cached results, and usage where Claude Code provides them. These views read official task events and local history only. Missing or unreadable records offer a retry and access to the source; long histories are paginated, and closing a view releases its readers.
+
 <p align="center">
   <img src="docs/screenshots/diff-warm-black.png" width="360" alt="incipit diff in warm-black: wine red / forest green backgrounds with character-level inline coloring" />
   <img src="docs/screenshots/diff-warm-white.png" width="360" alt="incipit diff in warm-white: soft pink / soft green backgrounds with character-level inline coloring" />
@@ -235,6 +239,10 @@ Starting with the next release, incipit is distributed under the GNU Affero Gene
 Prose code blocks and diffs share [highlight.js 11.9.0](https://github.com/highlightjs/highlight.js), copyright © 2006 Ivan Sagalaev and contributors, under the BSD 3-Clause License. The full license is included in [data/hljs/LICENSE](data/hljs/LICENSE). Additional core grammars load only when needed; their pinned sources and hashes are recorded in [data/hljs/languages/sources.json](data/hljs/languages/sources.json).
 
 The Vue single-file component grammar is adapted from [highlightjs-vue](https://github.com/highlightjs/highlightjs-vue), copyright © 2019 Sara Lissette Luis Ibáñez, under the BSD 3-Clause License. It supports Vue 3 script setup and flexible attribute order. The full license is included in [data/hljs/LICENSE.vue](data/hljs/LICENSE.vue).
+
+### Bundled message formatting
+
+Agent history uses [markdown-it 15.0.1](https://github.com/markdown-it/markdown-it) under the MIT License. Full third-party notices are included in [data/markdown/LICENSES.txt](data/markdown/LICENSES.txt), with dependency licenses, the pinned package integrity, and the asset hash in [data/markdown/source.json](data/markdown/source.json). The parser loads locally on demand; opening history does not load remote images.
 
 ### Bundled fonts
 

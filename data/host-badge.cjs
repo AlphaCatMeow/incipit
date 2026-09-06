@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { fileURLToPath } = require('url');
 const { StringDecoder } = require('string_decoder');
 const { createToolDiffSource } = require('./tool-diff-source.cjs');
+const { createAgentActivitySource } = require('./agent-activity-source.cjs');
 
 const GLOBAL_KEY = '__cceBadge';
 let vscodeApi = null;
@@ -77,6 +78,7 @@ function getOrCreateState() {
   if (globalRef[GLOBAL_KEY]) return globalRef[GLOBAL_KEY];
   const state = createState();
   state.toolDiffSource = createToolDiffSource({ resolveTargetFromIdentity });
+  state.agentActivitySource = createAgentActivitySource({ resolveTargetFromIdentity });
   globalRef[GLOBAL_KEY] = state;
   return state;
 }
@@ -89,6 +91,7 @@ function createState() {
     ourFile: null,
     commIdentities: new Map(),
     toolDiffSource: null,
+    agentActivitySource: null,
     targetCache: new Map(),
     parsers: new Map(),
     timer: null,
@@ -115,6 +118,8 @@ function wrapShutdown(comm, state) {
   const original = comm.shutdown;
   comm.__cceBadgeWrapped = true;
   comm.shutdown = async function wrappedShutdown() {
+    for (const controller of comm.__incipitAgentActivityRequests?.values() || []) controller.abort();
+    comm.__incipitAgentActivityRequests?.clear();
     state.comms.delete(comm);
     state.commIdentities.delete(comm);
     if (comm.__incipitMessageDisposable && typeof comm.__incipitMessageDisposable.dispose === 'function') {
@@ -124,6 +129,7 @@ function wrapShutdown(comm, state) {
     if (state.comms.size === 0) {
       stopPolling(state);
       if (state.toolDiffSource) state.toolDiffSource.dispose();
+      if (state.agentActivitySource) state.agentActivitySource.dispose();
     }
     return original.apply(this, arguments);
   };
@@ -156,6 +162,14 @@ function handleWebviewMessage(comm, state, message) {
   }
   if (message.type === 'tool_diff_request') {
     handleToolDiffRequest(comm, state, message);
+    return;
+  }
+  if (message.type === 'agent_activity_request') {
+    handleAgentActivityRequest(comm, state, message);
+    return;
+  }
+  if (message.type === 'agent_activity_cancel') {
+    comm.__incipitAgentActivityRequests?.get(message.requestId)?.abort();
     return;
   }
   if (message.type === 'diff_line_info_request') {
@@ -303,6 +317,31 @@ function handleChangeReviewIdentityUpdate(comm, state, message) {
     return;
   }
   sendCurrentChangeReviewPayload(state, comm, target, sessionId);
+}
+
+async function handleAgentActivityRequest(comm, state, message) {
+  const reply = payload => {
+    try { comm.webview.postMessage({ __incipit: true, type: 'agent_activity_response', requestId: message.requestId, payload }); } catch (_) {}
+  };
+  const identity = state.commIdentities.get(comm);
+  const responseIdentity = { sessionId: message.sessionId, toolUseId: message.toolUseId, agentId: message.agentId || null };
+  if (!identity || identity.sessionId !== message.sessionId || identity.cwd !== message.cwd) {
+    reply({ ok: false, state: 'error', code: 'identity-mismatch', error: 'The activity request does not match the active session.', ...responseIdentity }); return;
+  }
+  try {
+    if (!state.agentActivitySource) state.agentActivitySource = createAgentActivitySource({ resolveTargetFromIdentity });
+    if (!comm.__incipitAgentActivityRequests) comm.__incipitAgentActivityRequests = new Map();
+    const controller = new AbortController();
+    comm.__incipitAgentActivityRequests.set(message.requestId, controller);
+    try {
+      const payload = await state.agentActivitySource.request(message, { signal: controller.signal });
+      const current = state.commIdentities.get(comm);
+      if (!controller.signal.aborted && state.comms.has(comm) && current?.sessionId === identity.sessionId && current.cwd === identity.cwd) reply(payload);
+    } finally { comm.__incipitAgentActivityRequests.delete(message.requestId); }
+  } catch (error) {
+    if (error.name === 'AbortError') return;
+    reply({ ok: false, state: 'error', code: 'source-failure', error: error.message || String(error), ...responseIdentity });
+  }
 }
 
 async function handleToolDiffRequest(comm, state, message) {

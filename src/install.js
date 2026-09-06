@@ -17,6 +17,7 @@ const vm = require('vm');
 
 const { atomicWrite } = require('./fs-atomic');
 const { patchTranscriptFollow } = require('./webview-scroll');
+const { patchTaskEvents, taskEventPreamble } = require('./webview-task-events');
 const { HOST_BADGE_COMM_ATTACH } = require('./badge-iife');
 const {
   buildInstallManifestPreamble,
@@ -63,6 +64,16 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'host-badge.cjs'),          'host-badge.cjs'],
   [path.join('data', 'tool-diff-source.cjs'),    'tool-diff-source.cjs'],
   [path.join('data', 'tool_cards.js'),           'tool_cards.js'],
+  [path.join('data', 'tool_headline.js'),        'tool_headline.js'],
+  [path.join('data', 'agent_activity.js'),       'agent_activity.js'],
+  [path.join('data', 'agent_activity_state.js'), 'agent_activity_state.js'],
+  [path.join('data', 'agent_activity_source.js'), 'agent_activity_source.js'],
+  [path.join('data', 'agent_activity_dom.js'),   'agent_activity_dom.js'],
+  [path.join('data', 'agent_history_view.js'),   'agent_history_view.js'],
+  [path.join('data', 'agent_rich_text.js'),      'agent_rich_text.js'],
+  [path.join('data', 'workflow_activity.js'),    'workflow_activity.js'],
+  [path.join('data', 'agent-activity-source.cjs'), 'agent-activity-source.cjs'],
+  [path.join('data', 'agent-journal.cjs'),        'agent-journal.cjs'],
   [path.join('data', 'activity_groups.js'),      'activity_groups.js'],
   [path.join('data', 'transcript_layout.js'),    'transcript_layout.js'],
   [path.join('data', 'transcript_scroll.js'),    'transcript_scroll.js'],
@@ -81,7 +92,7 @@ const IMPORT_MARKER =
   'import("./enhance.js").catch(e=>console.error("[incipit] enhance.js import failed",e));';
 // Local asset subtrees copied from `data/<name>/` to `webview/<name>/`.
 // Sync the whole subtree so math, highlighting, fonts, and mermaid work offline.
-const LOCAL_ASSET_TREES = ['katex', 'hljs', 'fonts', 'effort-brain', 'capability', 'legacy', 'mermaid', 'diff'];
+const LOCAL_ASSET_TREES = ['katex', 'hljs', 'fonts', 'effort-brain', 'capability', 'legacy', 'mermaid', 'diff', 'markdown'];
 const DORMANT_WEBVIEW_ASSET_FILES = Object.freeze({
   legacy: new Set(['session_status.js']),
 });
@@ -1410,6 +1421,7 @@ function buildWebviewConfigPreamble(features, theme, language, installContracts 
          `globalThis.__incipitMonacoDiffThemes = Object.freeze(${diffThemes});\n` +
          '(function(){try{var raw=globalThis.acquireVsCodeApi;if(typeof raw==="function"&&!globalThis.__incipitGetVsCodeApi){var cached=null;globalThis.__incipitGetVsCodeApi=function(){if(cached)return cached;cached=raw();return cached;};globalThis.acquireVsCodeApi=function(){return globalThis.__incipitGetVsCodeApi();};}}catch(_){}})();\n' +
          buildHostStateBridgePreamble() +
+         taskEventPreamble() +
          'globalThis.__incipitEnsureMonacoDiffTheme = function(monaco){try{if(!monaco||typeof monaco.defineTheme!=="function")return false;var ready=globalThis.__incipitMonacoDiffThemeNamespaces;if(!ready||typeof ready.has!=="function"||typeof ready.add!=="function"){ready=new WeakSet();globalThis.__incipitMonacoDiffThemeNamespaces=ready;}if(ready.has(monaco))return true;var themes=globalThis.__incipitMonacoDiffThemes||{};for(var name in themes)if(Object.prototype.hasOwnProperty.call(themes,name))monaco.defineTheme(name,themes[name]);ready.add(monaco);if(typeof document!=="undefined"&&document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){try{if(monaco&&typeof monaco.remeasureFonts==="function")monaco.remeasureFonts();}catch(_){}});}return true;}catch(e){try{console.warn("[incipit] Monaco diff theme setup failed",e);}catch(_){}return false;}};\n' +
          `globalThis.__incipitPickMonacoDiffTheme = function(monaco){var palette=globalThis.__incipitConfig&&globalThis.__incipitConfig.theme&&globalThis.__incipitConfig.theme.palette;var light=palette==="warm-white";var picked=light?"${MONACO_DIFF_LIGHT_THEME}":palette==="ink-black"?"${MONACO_DIFF_INK_THEME}":"${MONACO_DIFF_DARK_THEME}";var ok=globalThis.__incipitEnsureMonacoDiffTheme&&globalThis.__incipitEnsureMonacoDiffTheme(monaco);return ok?picked:(light?"vs":"vs-dark");};\n\n`;
 }
@@ -3185,6 +3197,10 @@ function patchWebviewIndex(content, features, theme, language, installContracts 
   let scrollIntentStatus;
   [updated, scrollIntentStatus] = patchTranscriptFollow(updated);
   statusLines.push(record('install.transcriptFollow', scrollIntentStatus));
+
+  let taskEventStatus;
+  [updated, taskEventStatus] = patchTaskEvents(updated);
+  statusLines.push(record('install.taskActivityEvents', taskEventStatus));
 
   let markdownStatus;
   [updated, markdownStatus] = patchMarkdownChildren(updated);

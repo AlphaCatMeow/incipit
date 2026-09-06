@@ -1227,3 +1227,7 @@ details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-vi
 [data-incipit-tool-toggle]:focus-visible {
   color: var(--ink-tool-toggle-focus-visible-fg-override);
 }
+[data-incipit-agent-card], [data-incipit-workflow] {
+  --incipit-agent-rule: rgba(13,13,13,0.14);
+  --incipit-agent-muted: #8c897e;
+}

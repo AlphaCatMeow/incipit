@@ -881,7 +881,11 @@
 [data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header="1"] {
   padding-top: 32px !important;
 }
-[data-incipit-activity-preparing] { display: none !important; }
+/* Keep the parent heading visible while its first tool is being prepared. */
+[data-incipit-activity-preparing] { display: grid !important; grid-template-rows: 0fr; padding-block: 0 !important; min-height: 0 !important; }
+[data-incipit-activity-preparing][data-incipit-activity-has-header="1"] { padding-top: 32px !important; }
+[data-incipit-activity-preparing] > :not([data-incipit-activity-header]),
+[data-incipit-activity-preparing]::after { display: none !important; }
 [data-incipit-activity-entering] { animation: incipit-activity-enter var(--incipit-fold-duration) var(--incipit-fold-easing) both; }
 @keyframes incipit-activity-enter {
   from { opacity: 0; transform: translateY(3px); }
@@ -7120,8 +7124,8 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 button[data-incipit-tool-file-link] { cursor: pointer; background-image: var(--ink-tool-file-link-image); background-size: 7px 2px; background-repeat: repeat-x; background-position: 0 100%; }
 button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file-link-focus-visible-outline); outline-offset: 2px; }
 [data-incipit-tool-toggle]:focus-visible { outline: var(--ink-tool-toggle-focus-visible-outline); outline-offset: 2px; }
-[data-incipit-tool-use][data-incipit-tool-expandable="false"] [data-incipit-tool-toggle] { cursor: default; }
-[data-incipit-tool-use][data-incipit-tool-expandable="false"] [data-incipit-tool-toggle]:hover { color: inherit; }
+[data-incipit-tool-use][data-incipit-tool-expandable="false"] > [data-incipit-tool-heading] [data-incipit-tool-toggle] { cursor: default; }
+[data-incipit-tool-use][data-incipit-tool-expandable="false"] > [data-incipit-tool-heading] [data-incipit-tool-toggle]:hover { color: inherit; }
 
 /* Glyph slot. Inside an activity row it moves into the rail column and paints
    the canvas color behind itself so the connector stops around the icon. */
@@ -7145,8 +7149,8 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
 }
 [data-incipit-tool-icon] svg { display: block; width: 16px; height: 16px; }
 [data-incipit-tool-row]:hover [data-incipit-tool-icon] { color: var(--ink-text-primary); }
-[data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon] svg { display: none; }
-[data-incipit-tool-use][data-incipit-tool-state="running"] [data-incipit-tool-icon]::before {
+[data-incipit-tool-use][data-incipit-tool-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon] svg { display: none; }
+[data-incipit-tool-use][data-incipit-tool-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon]::before {
   content: "";
   width: 8px;
   height: 8px;
@@ -7158,8 +7162,8 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
   0%, 100% { opacity: 1; }
   50% { opacity: 0.2; }
 }
-[data-incipit-tool-use][data-incipit-tool-state="error"] [data-incipit-tool-icon],
-[data-incipit-tool-use][data-incipit-tool-state="error"] [data-incipit-tool-state] { color: var(--app-error-foreground); }
+[data-incipit-tool-use][data-incipit-tool-state="error"] > [data-incipit-tool-heading] [data-incipit-tool-icon],
+[data-incipit-tool-use][data-incipit-tool-state="error"] > [data-incipit-tool-heading] [data-incipit-tool-state] { color: var(--app-error-foreground); }
 
 [data-incipit-tool-label] { flex: 0 0 auto; max-width: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 [data-incipit-tool-subject] { display: flex; flex: 0 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; }
@@ -7185,7 +7189,9 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
 [data-incipit-tool-row]:hover [data-incipit-tool-chevron],
 [data-incipit-tool-row]:focus-within [data-incipit-tool-chevron],
 [data-incipit-tool-row][data-incipit-expanded="true"] [data-incipit-tool-chevron] { opacity: 0.9; }
-[data-incipit-tool-use][data-incipit-tool-expandable="false"] [data-incipit-tool-chevron] { display: none; }
+[data-incipit-tool-use][data-incipit-tool-headline="1"] > [data-incipit-tool-heading] [data-incipit-tool-chevron] { transform: rotate(0deg); }
+[data-incipit-tool-use][data-incipit-tool-headline="1"] > [data-incipit-tool-heading] [data-incipit-tool-row][data-incipit-expanded="true"] > [data-incipit-tool-chevron] { transform: rotate(90deg); }
+[data-incipit-tool-use][data-incipit-tool-expandable="false"] > [data-incipit-tool-heading] [data-incipit-tool-chevron] { display: none; }
 @media (hover: none) {
   [data-incipit-tool-heading] [data-incipit-tool-chevron] { opacity: 0.9; }
 }
@@ -7321,4 +7327,182 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
 
 @media (max-width: 380px) {
   [data-incipit-diff-dialog] { width: calc(100vw - 16px); max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
+}
+
+/* Agent activity is a second reading level, not another chat surface. */
+[data-incipit-agent-card], [data-incipit-workflow] {
+  --incipit-agent-rule: rgba(248,246,240,0.14);
+  --incipit-agent-muted: #9c9c9a;
+  min-width: 0;
+}
+[data-incipit-agent-card] > :not([data-incipit-tool-heading]):not([data-incipit-agent-fold]) { display: none !important; }
+[data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-row] { padding-right: 4px; }
+[data-incipit-agent-card][data-incipit-agent-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon]::before { display: none; animation: none; }
+[data-incipit-agent-card][data-incipit-agent-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon] svg { display: none; }
+[data-incipit-agent-card][data-incipit-agent-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon]::after {
+  content: "";
+  box-sizing: border-box;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: incipit-agent-orbit 1.4s linear infinite;
+}
+@keyframes incipit-agent-orbit { to { transform: rotate(360deg); } }
+[data-incipit-agent-card][data-incipit-agent-state="queued"] > [data-incipit-tool-heading] [data-incipit-tool-icon],
+[data-incipit-agent-card][data-incipit-agent-state="unknown"] > [data-incipit-tool-heading] [data-incipit-tool-icon] { opacity: 0.55; }
+[data-incipit-agent-fold] { display: grid; grid-template-rows: 0fr; min-width: 0; }
+[data-incipit-agent-fold][hidden] { display: none !important; }
+[data-incipit-agent-fold][data-incipit-agent-open="1"] { grid-template-rows: 1fr; }
+[data-incipit-agent-fold][data-incipit-agent-animating] { transition: grid-template-rows var(--incipit-fold-duration) var(--incipit-fold-easing); }
+[data-incipit-agent-fold-inner] { min-height: 0; min-width: 0; overflow: hidden; }
+[data-incipit-agent-body] {
+  margin: 4px 0 10px;
+  padding: 0 0 0 12px;
+  border-left: 1px solid var(--incipit-agent-rule);
+  color: var(--app-primary-foreground);
+  font-family: var(--incipit-body-font);
+  font-size: var(--incipit-body-size, 13px);
+  line-height: 1.6;
+  min-width: 0;
+}
+[data-incipit-agent-toolbar], [data-incipit-agent-history-toolbar], [data-incipit-agent-record-actions] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-width: 0;
+  color: var(--incipit-agent-muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+[data-incipit-agent-toolbar] { justify-content: flex-end; padding-bottom: 5px; }
+[data-incipit-agent-toolbar][hidden] { display: none !important; }
+[data-incipit-agent-history-toolbar] { padding: 5px 0 8px; border-bottom: 1px solid var(--incipit-agent-rule); }
+[data-incipit-agent-page-label] { margin-right: auto; font-variant-numeric: tabular-nums; }
+[data-incipit-agent-action] {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+  transition: color 180ms ease, opacity 180ms ease;
+}
+[data-incipit-agent-action]:hover { color: var(--app-primary-foreground); }
+[data-incipit-agent-action]:disabled { opacity: 0.35; cursor: default; }
+[data-incipit-agent-action]:focus-visible,
+[data-incipit-workflow-phase-heading]:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; border-radius: 2px; }
+[data-incipit-agent-action][hidden], [data-incipit-agent-record-actions][hidden] { display: none !important; }
+[data-incipit-agent-notice], [data-incipit-agent-error] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  padding: 7px 0;
+  color: var(--incipit-agent-muted);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+}
+[data-incipit-agent-error], [data-incipit-agent-notice="error"], [data-incipit-agent-notice="permission"], [data-incipit-copy-error] { color: var(--app-error-foreground); }
+[data-incipit-agent-card-status]:empty, [data-incipit-agent-history-notice]:empty, [data-incipit-workflow-notice]:empty { display: none; }
+[data-incipit-agent-records] {
+  max-height: min(52vh, 34em);
+  overflow: auto;
+  overscroll-behavior: auto;
+  min-width: 0;
+  scrollbar-width: thin;
+  padding: 4px 4px 4px 0;
+}
+[data-incipit-agent-record] { min-width: 0; padding: 4px 0; }
+[data-incipit-agent-record-actions] { justify-content: flex-end; opacity: 0; transition: opacity 180ms ease; }
+[data-incipit-agent-record]:hover > [data-incipit-agent-record-actions],
+[data-incipit-agent-record]:focus-within > [data-incipit-agent-record-actions] { opacity: 1; }
+[data-incipit-agent-record][data-incipit-agent-role="user"] > [data-incipit-agent-action] { color: var(--incipit-agent-muted); font-size: 0.92em; }
+[data-incipit-agent-block], [data-incipit-agent-record-content] { min-width: 0; }
+[data-incipit-agent-tool], [data-incipit-agent-nested-call], [data-incipit-workflow-agent] { box-sizing: border-box; padding-left: 30px; min-width: 0; }
+[data-incipit-agent-tool] > [data-incipit-tool-heading] [data-incipit-tool-icon],
+[data-incipit-agent-nested-call] > [data-incipit-tool-heading] [data-incipit-tool-icon],
+[data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-icon] { margin-left: -30px; margin-right: 4px; background: transparent; }
+[data-incipit-agent-tool] > [data-incipit-agent-fold] > [data-incipit-agent-fold-inner] { padding-right: 2px; }
+[data-incipit-agent-tool-output] { padding: 5px 0 8px; }
+[data-incipit-agent-thinking] { gap: 8px; color: var(--incipit-agent-muted); padding: 4px 0; }
+[data-incipit-agent-thinking]::before { content: "✦"; font-size: 0.8em; opacity: 0.8; }
+[data-incipit-agent-thinking] + [data-incipit-agent-fold] { padding-left: 14px; }
+[data-incipit-agent-raw-details] { margin: 6px 0; min-width: 0; }
+[data-incipit-agent-raw-details] > summary { cursor: pointer; color: var(--incipit-agent-muted); font: inherit; font-size: 0.92em; }
+[data-incipit-agent-raw], [data-incipit-agent-prose] { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
+pre[data-incipit-agent-raw], [data-incipit-agent-prose] pre {
+  box-sizing: border-box;
+  min-width: 0 !important;
+  max-width: 100%;
+  padding: 10px !important;
+  margin: 6px 0 !important;
+  border: 1px solid var(--incipit-agent-rule);
+  border-radius: 6px;
+  background: transparent !important;
+  max-height: 26em;
+  overflow: auto;
+  font-family: var(--incipit-code-font) !important;
+  font-size: 0.92em !important;
+  line-height: 1.6 !important;
+  white-space: pre;
+}
+[data-incipit-agent-prose] { color: var(--app-primary-foreground); }
+[data-incipit-agent-prose] [data-incipit-agent-raw] { max-height: 26em; overflow: auto; }
+[data-incipit-agent-prose] > div { white-space: normal; }
+[data-incipit-agent-prose] p { margin: 0.45em 0 !important; }
+[data-incipit-agent-prose] p:first-child { margin-top: 0 !important; }
+[data-incipit-agent-prose] p:last-child { margin-bottom: 0 !important; }
+[data-incipit-agent-prose] h1, [data-incipit-agent-prose] h2, [data-incipit-agent-prose] h3, [data-incipit-agent-prose] h4 { font-size: 1em !important; font-family: var(--incipit-emphasis-font, var(--incipit-body-font)) !important; font-weight: 400 !important; margin: 0.9em 0 0.4em !important; }
+[data-incipit-agent-prose] ul, [data-incipit-agent-prose] ol { padding-left: 1.6em; margin: 0.5em 0; }
+[data-incipit-agent-prose] blockquote { margin: 0.6em 0; padding: 0 0 0 12px; border-left: 2px solid var(--incipit-agent-rule); color: var(--incipit-agent-muted); }
+[data-incipit-agent-prose] table { display: block; max-width: 100%; overflow: auto; border-collapse: collapse; }
+[data-incipit-agent-prose] td, [data-incipit-agent-prose] th { border: 1px solid var(--incipit-agent-rule); padding: 5px 8px; }
+[data-incipit-agent-prose] a { color: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+[data-incipit-agent-prose] code { font-family: var(--incipit-code-font); }
+[data-incipit-agent-prose] pre > code.hljs { padding: 0; background: transparent; overflow: visible; }
+[data-incipit-agent-image] { display: block; width: auto; max-width: 100%; max-height: 240px; object-fit: contain; margin: 8px 0; border-radius: 5px; }
+[data-incipit-workflow-summary] { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 1px 0 12px; margin-bottom: 1px; border-bottom: 1px solid var(--incipit-agent-rule); }
+[data-incipit-workflow-total] { color: var(--app-primary-foreground); }
+[data-incipit-workflow-usage] { margin-left: auto; color: var(--incipit-agent-muted); font-size: 0.9em; font-variant-numeric: tabular-nums; }
+[data-incipit-workflow-phase] { min-width: 0; padding: 7px 0; }
+[data-incipit-workflow-phase] + [data-incipit-workflow-phase] { border-top: 1px solid var(--incipit-agent-rule); }
+[data-incipit-workflow-phase-heading] {
+  display: flex; align-items: baseline; gap: 8px; width: 100%; min-width: 0;
+  padding: 3px 0 7px; border: 0; background: transparent; color: var(--app-primary-foreground); font: inherit; text-align: start; cursor: pointer;
+}
+[data-incipit-workflow-phase-number] { flex: 0 0 2ch; color: var(--incipit-agent-muted); font-size: 0.85em; font-variant-numeric: tabular-nums; }
+[data-incipit-workflow-phase-title] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-incipit-workflow-phase-stats] { margin-left: auto; flex: 0 1 auto; min-width: 0; color: var(--incipit-agent-muted); font-size: 0.85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-incipit-workflow-phase-state="error"] > [data-incipit-workflow-phase-heading] [data-incipit-workflow-phase-stats] { color: var(--app-error-foreground); }
+[data-incipit-workflow-caret] { flex: 0 0 6px; width: 6px; height: 6px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: translateY(-2px) rotate(45deg); opacity: 0.55; transition: transform 180ms ease, opacity 180ms ease; }
+[data-incipit-workflow-phase-heading][aria-expanded="false"] [data-incipit-workflow-caret] { transform: translateY(-2px) rotate(-45deg); }
+[data-incipit-workflow-phase-heading]:hover [data-incipit-workflow-caret] { opacity: 1; }
+[data-incipit-workflow-agent-list] { padding: 0 0 2px 12px; margin-left: 6px; border-left: 1px solid var(--incipit-agent-rule); }
+[data-incipit-workflow-agent] > [data-incipit-agent-fold] > [data-incipit-agent-fold-inner] { padding: 4px 0 8px; }
+[data-incipit-workflow-agent] [data-incipit-tool-fingerprint-text] { font-size: 0.88em; }
+[data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-toggle] { flex: 1 1 auto; max-width: 100%; }
+[data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-label] { max-width: none; }
+[data-incipit-workflow-result] { border-top: 1px solid var(--incipit-agent-rule); margin-top: 6px; }
+[data-incipit-workflow-result] [data-incipit-agent-prose] { max-height: min(52vh, 34em); overflow: auto; }
+[data-incipit-workflow-result]:empty { display: none; }
+@media (max-width: 480px) {
+  [data-incipit-agent-body] { padding-left: 8px; }
+  [data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-row] { flex-wrap: wrap; }
+  [data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-row][data-incipit-expanded="true"] [data-incipit-tool-subject="text"] { flex: 1 0 100%; order: 1; }
+  [data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-fingerprint-text] { display: none; }
+  [data-incipit-workflow-phase-heading] { flex-wrap: wrap; }
+  [data-incipit-workflow-phase-title] { flex: 1; }
+  [data-incipit-workflow-phase-stats] { flex-basis: calc(100% - 3ch); margin-left: 3ch; order: 4; }
+  [data-incipit-workflow-agent-list] { padding-left: 5px; margin-left: 3px; }
+  [data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-fingerprint-text] { display: none; }
+  [data-incipit-agent-body] [data-incipit-agent-body] { padding-left: 4px; margin-left: 0; }
 }
