@@ -1,0 +1,4 @@
+{
+  "//": "data/ holds the webview's browser ES modules. Node only infers that from syntax on 20+, so declaring it here lets tests import them on the engines floor (node >= 16). This file never reaches a patched host: the installer copies data/ through an explicit allowlist plus named asset subtrees, never the directory root.",
+  "type": "module"
+}
