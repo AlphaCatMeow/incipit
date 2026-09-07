@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} · node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # The declared engines floor is node >= 16, so it gets tested. Node 16
+          # and 18 pin ubuntu-22.04: their official builds predate the newer
+          # runner image's glibc.
+          - { node: '16', os: ubuntu-22.04 }
+          - { node: '18', os: ubuntu-22.04 }
+          - { node: '20', os: ubuntu-latest }
+          - { node: '22', os: ubuntu-latest }
+          - { node: '24', os: ubuntu-latest }
+          # incipit writes into a live VS Code install on all three platforms,
+          # so path handling, casing and atomic replace get one leg each.
+          - { node: '22', os: windows-latest }
+          - { node: '22', os: macos-latest }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm test
+
+      # A clean runner has no Claude Code installation and therefore no official
+      # restore points, so patch-contracts skips its host-compatibility half.
+      # Say so out loud: green here proves the source-level contracts and that
+      # the generated theme is reproducible — it proves nothing about whether a
+      # given upstream extension build still patches cleanly. That matrix lives
+      # on a developer machine and runs via `npm run test:release`.
+      - name: Note what this run does not cover
+        shell: bash
+        run: echo '::notice title=Host compatibility not covered::CI has no official Claude Code restore points, so patch-contracts skipped its host matrix. Run `npm run test:release` on a machine with restore points before tagging a release.'
