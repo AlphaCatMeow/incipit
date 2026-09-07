@@ -59,6 +59,8 @@ incipit restore   # restore the current target to official Claude Code files
 
 After every Claude Code update, the local patch is overwritten by the official files — run `incipit` again and re-apply. To upgrade incipit itself, use the same global install command.
 
+What changed in each version is in the [changelog](CHANGELOG.md).
+
 To uninstall only the incipit CLI:
 
 ```bash
@@ -234,7 +236,7 @@ Thanks to the [linuxdo](https://linux.do/) community for discussion, sharing, an
 
 ## License
 
-Starting with the next release, incipit is distributed under the GNU Affero General Public License v3.0 or later. Earlier published releases remain under the license they were published with. See [LICENSE](LICENSE).
+incipit is distributed under the GNU Affero General Public License v3.0 or later, from 0.1.7 onward. Releases up to 0.1.6 were published under the MIT License and remain so. See [LICENSE](LICENSE).
 
 ### Bundled syntax highlighting
 

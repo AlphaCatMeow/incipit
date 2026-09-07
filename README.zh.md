@@ -57,6 +57,8 @@ incipit restore   # 把当前目标恢复为官方 Claude Code 文件
 
 Claude Code 扩展每次更新后，本地补丁会被官方文件覆盖，重跑 `incipit` 并应用即可。更新 incipit 自身用同一条全局安装命令。
 
+每个版本改了什么，见[更新日志](CHANGELOG.zh.md)。
+
 卸载 incipit CLI：
 
 ```bash
@@ -230,7 +232,7 @@ VS Code 的扩展之间有严格的沙箱隔离，一个插件没有办法向另
 
 ## License
 
-从下一个版本开始，incipit 按 GNU Affero General Public License v3.0 or later 发布。此前已经发布的版本仍保留其发布时的许可。见 [LICENSE](LICENSE)。
+incipit 自 0.1.7 起按 GNU Affero General Public License v3.0 or later 发布。0.1.6 及更早的版本以 MIT 许可发布，并保持不变。见 [LICENSE](LICENSE)。
 
 ### 内置字体
 
