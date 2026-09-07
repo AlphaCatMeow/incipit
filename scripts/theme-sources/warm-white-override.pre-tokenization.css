@@ -1333,106 +1333,42 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   background: #DDDBD5;
 }
 
-/* ---------- Cache popup ---------- */
+/* ---------- Cache popup ----------
+   Same three lanes as warm-black; only the palette changes. Card fills and
+   inset hairlines are gone from both palettes now, so this block is pure
+   colour — no structural exceptions left to carry. */
 .cceStatPopup {
   background: #ffffff;
   border: 1px solid rgba(0,0,0,0.08);
   box-shadow: 0 12px 36px rgba(60,55,40,0.22), 0 2px 8px rgba(60,55,40,0.14);
   color: #0d0d0d;
 }
-.cceStatOverview {
-  gap: 0;
-  margin-bottom: 11px;
-  padding-bottom: 10px;
+.cceStatHeader {
   border-bottom: 1px solid rgba(60,55,40,0.10);
 }
-.cceStatHeading {
-  color: #0d0d0d;
-}
-.cceStatDivider {
-  background: rgba(0,0,0,0.08);
-}
-.cceStatMetric,
-.cceHitChartShell,
-.cceHitStat,
-.cceSelectedMetric {
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
-}
-.cceStatMetric {
-  padding: 0 10px 0 0;
-}
-.cceStatMetric + .cceStatMetric {
-  padding: 0 0 0 12px;
-  border-left: 1px solid rgba(60,55,40,0.10);
-}
-.cceHitChartShell {
-  padding: 2px 0 0;
-}
-.cceHitStats {
-  gap: 0;
-  margin-top: 8px;
-  padding-top: 7px;
-  border-top: 1px solid rgba(60,55,40,0.10);
-}
-.cceHitStat {
-  padding: 0 8px;
-}
-.cceHitStat:first-child {
-  padding-left: 0;
-}
-.cceHitStat + .cceHitStat {
-  border-left: 1px solid rgba(60,55,40,0.10);
-}
-.cceStatTotals {
-  gap: 12px;
-}
-.cceSelectedGrid {
-  gap: 8px 12px;
-}
-.cceSelectedMetric {
-  padding: 5px 0 0;
-  border-top: 1px solid rgba(60,55,40,0.10);
-}
-.cceStatMetricLabel,
-.cceHitChartMeta,
-.cceHitStat span,
-.cceSelectedMetric span,
-.cceFlowRangeTime {
+.cceStatNow {
   color: #797569;
 }
-.cceHitAxisLabel {
-  fill: #797569;
-}
-.cceStatMetricValue,
-.cceHitStat strong,
-.cceSelectedMetric strong {
+.cceStatNow strong {
   color: #0d0d0d;
 }
 .cceHitGrid {
   stroke: rgba(60,55,40,0.13);
 }
-.cceHitXAxis {
-  stroke: rgba(60,55,40,0.18);
+.cceHitMean {
+  stroke: rgba(168,137,110,0.55);
 }
 .cceHitXTick {
   stroke: rgba(60,55,40,0.20);
 }
+.cceHitAxisLabel,
+.cceHitTimeLabel {
+  fill: #797569;
+}
+.cceHitAxisLabelMean {
+  fill: #a8896e;
+}
 .cceHitLine {
-  stroke: #a8896e;
-}
-.cceRangeLine {
-  stroke: rgba(168,137,110,0.68);
-}
-.cceRangeTrack {
-  stroke: rgba(60,55,40,0.20);
-}
-.cceRangeWindow {
-  fill: rgba(168,137,110,0.12);
-  stroke: rgba(168,137,110,0.44);
-}
-.cceRangeHandle {
   stroke: #a8896e;
 }
 .cceHitPoint {
@@ -1463,42 +1399,50 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 .cceHitHoverTime {
   color: #797569;
 }
-.cceHitChartMeta span:nth-child(2) {
+.cceRangeLine {
+  stroke: rgba(168,137,110,0.68);
+}
+.cceRangeTrack {
+  stroke: rgba(60,55,40,0.20);
+}
+.cceRangeWindow {
+  fill: rgba(168,137,110,0.12);
+  stroke: rgba(168,137,110,0.44);
+}
+.cceRangeHandle {
+  stroke: #a8896e;
+}
+.cceStatSpend {
+  border-top: 1px solid rgba(60,55,40,0.10);
+}
+.cceSpendHead {
   color: #797569;
 }
-.cceFlowHeader span,
-.cceFlowLegend,
-.cceFlowLabel {
-  color: #797569;
-}
-.cceFlowHeader strong,
-.cceFlowValue {
-  color: #0d0d0d;
-}
-.cceContextStack {
+.cceSpendBar {
   background: #E6E4DE;
   box-shadow: inset 0 0 0 1px rgba(60,55,40,0.07);
 }
-.cceFlowBar {
-  background: #E6E4DE;
-}
-.cceContextSeg-fresh,
-.cceFlowRow-fresh .cceFlowBar span,
-.cceLegendFresh {
+.cceSpendSeg-fresh,
+.cceSpendDot-fresh {
   background: rgba(60,55,40,0.30);
 }
-.cceContextSeg-write,
-.cceFlowRow-write .cceFlowBar span,
-.cceLegendWrite {
+.cceSpendSeg-write,
+.cceSpendDot-write {
   background: rgba(168,137,110,0.48);
 }
-.cceContextSeg-read,
-.cceFlowRow-read .cceFlowBar span,
-.cceLegendRead {
+.cceSpendSeg-read,
+.cceSpendDot-read {
   background: rgba(168,137,110,0.82);
 }
-.cceFlowRow-output .cceFlowBar span {
+.cceSpendSeg-output,
+.cceSpendDot-output {
   background: rgba(121,117,105,0.70);
+}
+.cceSpendLegend {
+  color: #797569;
+}
+.cceSpendItem b {
+  color: #0d0d0d;
 }
 .cceStatEmpty {
   color: #b8b4a4;

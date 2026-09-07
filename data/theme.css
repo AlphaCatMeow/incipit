@@ -48,8 +48,6 @@
   --ink-cce-badge-active-bg-2: #3a3b3a;
   --ink-cce-badge-hover-bg: #3a3b3a;
   --ink-cce-badge-val-fg: #989898;
-  --ink-cce-context-stack-bg: rgba(18,18,18,0.28);
-  --ink-cce-context-stack-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
   --ink-cce-edit-cell-bg: rgba(248,246,240,0.055);
   --ink-cce-edit-cell-bg-2: rgba(168,137,110,0.26);
   --ink-cce-edit-cell-bg-3: rgba(168,137,110,0.42);
@@ -75,12 +73,7 @@
   --ink-cce-edit-status-fg: #c8b19d;
   --ink-cce-edit-tooltip-bg: rgba(31,31,30,0.92);
   --ink-cce-edit-tooltip-shadow: 0 2px 8px rgba(0,0,0,0.26);
-  --ink-cce-flow-bar-bg: rgba(195,194,183,0.74);
-  --ink-cce-flow-bar-bg-2: rgba(18,18,18,0.22);
-  --ink-cce-flow-header-fg: #e8e6dd;
-  --ink-cce-flow-value-fg: #e8e6dd;
-  --ink-cce-hit-chart-shell-bg: rgba(18,18,18,0.18);
-  --ink-cce-hit-chart-shell-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  --ink-cce-hit-axis-label-mean-fill: #a8896e;
   --ink-cce-hit-grid-stroke: rgba(245,242,232,0.10);
   --ink-cce-hit-hover-label-bg: rgba(31,31,30,0.88);
   --ink-cce-hit-hover-label-shadow: 0 2px 8px rgba(0,0,0,0.22);
@@ -89,19 +82,12 @@
   --ink-cce-hit-hover-point-stroke: #a8896e;
   --ink-cce-hit-hover-time-fg: #b8b7ad;
   --ink-cce-hit-line-stroke: #a8896e;
+  --ink-cce-hit-mean-stroke: rgba(168,137,110,0.55);
   --ink-cce-hit-point-fill: #2c2c2a;
   --ink-cce-hit-point-latest-fill: #2c2c2a;
   --ink-cce-hit-point-low-fill: #a8896e;
   --ink-cce-hit-point-stroke: #a8896e;
-  --ink-cce-hit-stat-bg: rgba(18,18,18,0.16);
-  --ink-cce-hit-stat-border-left-override: 1px solid rgba(60,55,40,0.10);
-  --ink-cce-hit-stat-fg: #e8e6dd;
-  --ink-cce-hit-stats-border-top-override: 1px solid rgba(60,55,40,0.10);
-  --ink-cce-hit-xaxis-stroke: rgba(245,242,232,0.16);
   --ink-cce-hit-xtick-stroke: rgba(245,242,232,0.18);
-  --ink-cce-legend-fresh-bg: rgba(245,242,232,0.42);
-  --ink-cce-legend-read-bg: rgba(168,137,110,0.82);
-  --ink-cce-legend-write-bg: rgba(168,137,110,0.48);
   --ink-cce-note-btn-active-bg: #3a3b3a;
   --ink-cce-note-btn-active-bg-override: #3a3b3a;
   --ink-cce-note-btn-fg: #f8f8f6;
@@ -117,18 +103,19 @@
   --ink-cce-range-track-stroke: rgba(245,242,232,0.18);
   --ink-cce-range-window-fill: rgba(168,137,110,0.12);
   --ink-cce-range-window-stroke: rgba(168,137,110,0.42);
-  --ink-cce-selected-metric-bg: rgba(18,18,18,0.16);
-  --ink-cce-selected-metric-border-top-override: 1px solid rgba(60,55,40,0.10);
-  --ink-cce-selected-metric-fg: #e8e6dd;
-  --ink-cce-stat-divider-bg: rgba(255,255,255,0.07);
+  --ink-cce-spend-bar-bg: rgba(18,18,18,0.28);
+  --ink-cce-spend-bar-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  --ink-cce-spend-dot-fresh-bg: rgba(245,242,232,0.42);
+  --ink-cce-spend-dot-output-bg: rgba(195,194,183,0.74);
+  --ink-cce-spend-dot-read-bg: rgba(168,137,110,0.82);
+  --ink-cce-spend-dot-write-bg: rgba(168,137,110,0.48);
+  --ink-cce-spend-item-fg: #e8e6dd;
   --ink-cce-stat-empty-fg: #6a6a64;
-  --ink-cce-stat-metric-bg: rgba(18,18,18,0.24);
-  --ink-cce-stat-metric-border-left-override: 1px solid rgba(60,55,40,0.10);
-  --ink-cce-stat-metric-shadow: inset 0 0 0 1px rgba(255,255,255,0.045);
-  --ink-cce-stat-overview-border-bottom-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-stat-header-border-bottom: 1px solid rgba(255,255,255,0.07);
   --ink-cce-stat-popup-border: 1px solid rgba(255,255,255,0.08);
   --ink-cce-stat-popup-fg: #e8e6dd;
   --ink-cce-stat-popup-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-cce-stat-spend-border-top: 1px solid rgba(255,255,255,0.07);
   --ink-change-review-counts-fg: rgba(248,248,246,0.5);
   --ink-change-review-error-bg: rgba(217,119,87,0.12);
   --ink-change-review-error-fg: #e6a08c;
@@ -5950,18 +5937,23 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 
 /* ============================================================
    Cache badge popup.
+
+   Three lanes, no cards: the live reading, the hit-rate history with its
+   brush, and the brushed range's token spend. Every figure appears once —
+   the chart's own axis reports the range extremes and its dashed rule the
+   mean, so nothing below the plot restates what the plot already draws.
    ============================================================ */
 .cceStatPopup {
   position: fixed;
   z-index: 99999;
   display: none;
   box-sizing: border-box;
-  width: min(560px, calc(100vw - 16px));
+  width: min(480px, calc(100vw - 16px));
   min-width: 0;
-  max-width: min(560px, calc(100vw - 16px));
+  max-width: min(480px, calc(100vw - 16px));
   max-height: calc(100vh - 16px);
   overflow: auto;
-  padding: 12px 14px;
+  padding: 12px 13px;
   background: var(--ink-surface-panel);
   border: var(--ink-cce-stat-popup-border);
   border-radius: 8px;
@@ -5976,65 +5968,50 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceStatPopup.cceStatOpen {
   display: block;
 }
-.cceStatSection {
-  display: block;
+
+/* Live reading. One baseline-aligned line: the value carries the weight,
+   the noun stays a caption beside it. */
+.cceStatHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 9px;
+  border-bottom: var(--ink-cce-stat-header-border-bottom);
 }
-.cceStatOverview {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.cceStatMetric {
+.cceStatNow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
   min-width: 0;
-  padding: 7px 8px;
-  background: var(--ink-cce-stat-metric-bg);
-  border-radius: 6px;
-  box-shadow: var(--ink-cce-stat-metric-shadow);
-}
-.cceStatMetricLabel {
-  margin-bottom: 2px;
   color: var(--ink-text-tertiary);
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
-.cceStatMetricValue {
+.cceStatNow strong {
   color: var(--ink-text-primary);
   font-family: var(--incipit-emphasis-font);
   font-size: 15px;
-  line-height: 1.2;
-}
-.cceStatHeading {
-  font-family: var(--incipit-emphasis-font);
-  font-size: 11px;
   font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ink-text-primary);        /* Match the badge text as the popup focal color. */
-  margin-bottom: 8px;
-}
-.cceStatDivider {
-  height: 1px;
-  background: var(--ink-cce-stat-divider-bg);
-  margin: 10px 0;
+  line-height: 1.15;
 }
 
 /* Cache hit history: a fixed-viewBox SVG line chart, no external chart runtime. */
 .cceHitChart {
   display: block;
 }
+/* The top lane is reserved for the hover readout so it never covers the line. */
 .cceHitChartShell {
   position: relative;
-  padding: 8px 8px 7px;
-  background: var(--ink-cce-hit-chart-shell-bg);
-  border-radius: 6px;
-  box-shadow: var(--ink-cce-hit-chart-shell-shadow);
+  padding: 14px 0 0;
 }
+/* No aspect-ratio: the viewBox is authored in CSS pixels, so the intrinsic
+   ratio it carries already gives the chart its height at any popup width. */
 .cceHitSvg {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 500 / 184;
   overflow: visible;
   shape-rendering: geometricPrecision;
 }
@@ -6043,9 +6020,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
-.cceHitXAxis {
-  stroke: var(--ink-cce-hit-xaxis-stroke);
+/* Mean of the brushed range. Shares the accent with its gutter label so the
+   two read as one statement. */
+.cceHitMean {
+  stroke: var(--ink-cce-hit-mean-stroke);
   stroke-width: 1;
+  stroke-dasharray: 3 3;
   vector-effect: non-scaling-stroke;
 }
 .cceHitXTick {
@@ -6058,6 +6038,21 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   font-family: var(--incipit-body-font);
   font-size: 11px;
   letter-spacing: 0;
+}
+.cceHitAxisLabelMean {
+  fill: var(--ink-cce-hit-axis-label-mean-fill);
+}
+.cceHitTimeLabel {
+  fill: var(--ink-text-tertiary);
+  font-family: var(--incipit-body-font);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.cceHitTimeLabelMid {
+  text-anchor: middle;
+}
+.cceHitTimeLabelEnd {
+  text-anchor: end;
 }
 .cceHitLine {
   fill: none;
@@ -6101,17 +6096,17 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 .cceHitHoverLabel {
   position: absolute;
-  top: 5px;
+  top: 0;
   left: 0;
   transform: translateX(-50%);
-  padding: 2px 6px;
+  padding: 0 6px;
   border-radius: 4px;
   background: var(--ink-cce-hit-hover-label-bg);
   box-shadow: var(--ink-cce-hit-hover-label-shadow);
   color: var(--ink-text-primary);
   font-family: var(--incipit-body-font);
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: 11px;
+  line-height: 1.45;
   opacity: 0;
   pointer-events: none;
   white-space: nowrap;
@@ -6121,44 +6116,19 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   opacity: 1;
 }
 .cceHitHoverPct {
-  display: block;
   color: var(--ink-text-primary);
-  font-size: 12px;
-  line-height: 1.18;
 }
 .cceHitHoverTime {
-  display: block;
-  margin-top: 1px;
+  margin-left: 6px;
   color: var(--ink-cce-hit-hover-time-fg);
-  font-size: 10px;
-  line-height: 1.15;
-}
-.cceHitChartMeta {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 8px;
-  margin-top: 2px;
-  color: var(--ink-text-tertiary);
-  font-size: 12px;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-.cceHitChartMeta span:nth-child(2) {
-  text-align: center;
-  color: var(--ink-text-tertiary);
-}
-.cceHitChartMeta span:last-child {
-  text-align: right;
 }
 .cceHitRange {
-  margin-top: 7px;
+  margin-top: 8px;
 }
 .cceRangeSvg {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 500 / 44;
   overflow: visible;
   touch-action: none;
 }
@@ -6201,195 +6171,87 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceRangeHandleHit {
   cursor: ew-resize;
 }
-.cceHitStats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 6px;
-}
-.cceHitStat {
-  min-width: 0;
-  padding: 5px 7px;
-  background: var(--ink-cce-hit-stat-bg);
-  border-radius: 5px;
-}
-.cceHitStat span {
-  display: block;
-  color: var(--ink-text-tertiary);
-  font-size: 11px;
-  line-height: 1.2;
-}
-.cceHitStat strong {
-  display: block;
-  margin-top: 1px;
-  color: var(--ink-cce-hit-stat-fg);
-  font-family: var(--incipit-emphasis-font);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.2;
-}
 
-/* Session flow: current context composition + cumulative token flow. */
-.cceStatTotals {
-  display: grid;
-  gap: 10px;
+/* Token spend for the brushed range: one bar over every billed class,
+   one legend entry per class carrying the value. */
+.cceStatSpend {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: var(--ink-cce-stat-spend-border-top);
 }
-.cceFlowContext,
-.cceFlowTotals {
-  min-width: 0;
+.cceStatSpend:empty {
+  display: none;
 }
-.cceFlowHeader {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+.cceSpendHead {
   margin-bottom: 6px;
-}
-.cceFlowHeader span {
-  color: var(--ink-text-tertiary);
-  font-size: 12px;
-  white-space: nowrap;
-}
-.cceFlowHeader strong {
-  min-width: 0;
-  color: var(--ink-cce-flow-header-fg);
-  font-family: var(--incipit-emphasis-font);
-  font-size: 12px;
-  font-weight: 400;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.cceFlowRangeTime {
-  margin: -2px 0 6px;
   color: var(--ink-text-tertiary);
   font-size: 11px;
   line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-.cceContextStack {
+.cceSpendBar {
   display: flex;
   width: 100%;
   height: 8px;
   overflow: hidden;
   border-radius: 999px;
-  background: var(--ink-cce-context-stack-bg);
-  box-shadow: var(--ink-cce-context-stack-shadow);
+  background: var(--ink-cce-spend-bar-bg);
+  box-shadow: var(--ink-cce-spend-bar-shadow);
 }
-.cceContextSeg {
+.cceSpendSeg {
   display: block;
   min-width: 0;
 }
-.cceContextSeg:not([style*="width:0"]) {
+/* A class that spent anything at all stays visible as a sliver; only an
+   exact zero collapses. Match the whole attribute — `width:0` as a substring
+   would also swallow `width:0.4%`. */
+.cceSpendSeg:not([style="width:0%"]) {
   min-width: 2px;
 }
-.cceContextSeg-fresh,
-.cceFlowRow-fresh .cceFlowBar span,
-.cceLegendFresh {
-  background: var(--ink-cce-legend-fresh-bg);
+.cceSpendSeg-fresh,
+.cceSpendDot-fresh {
+  background: var(--ink-cce-spend-dot-fresh-bg);
 }
-.cceContextSeg-write,
-.cceFlowRow-write .cceFlowBar span,
-.cceLegendWrite {
-  background: var(--ink-cce-legend-write-bg);
+.cceSpendSeg-write,
+.cceSpendDot-write {
+  background: var(--ink-cce-spend-dot-write-bg);
 }
-.cceContextSeg-read,
-.cceFlowRow-read .cceFlowBar span,
-.cceLegendRead {
-  background: var(--ink-cce-legend-read-bg);
+.cceSpendSeg-read,
+.cceSpendDot-read {
+  background: var(--ink-cce-spend-dot-read-bg);
 }
-.cceFlowRow-output .cceFlowBar span {
-  background: var(--ink-cce-flow-bar-bg);
+.cceSpendSeg-output,
+.cceSpendDot-output {
+  background: var(--ink-cce-spend-dot-output-bg);
 }
-.cceFlowLegend {
+.cceSpendLegend {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 12px;
-  margin-top: 6px;
+  gap: 4px 14px;
+  margin-top: 7px;
   color: var(--ink-text-tertiary);
   font-size: 11px;
-  line-height: 1.2;
+  line-height: 1.3;
 }
-.cceFlowLegend span {
+.cceSpendItem {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   white-space: nowrap;
 }
-.cceFlowLegend i {
+.cceSpendDot {
   display: inline-block;
   width: 7px;
   height: 7px;
   border-radius: 999px;
 }
-.cceFlowTotals {
-  display: grid;
-  gap: 5px;
-}
-.cceFlowRow {
-  display: grid;
-  grid-template-columns: 6.3em minmax(0, 1fr) 4.6em;
-  align-items: center;
-  gap: 8px;
-}
-.cceFlowLabel {
-  color: var(--ink-text-tertiary);
-  font-size: 12px;
-  white-space: nowrap;
-}
-.cceFlowValue {
-  color: var(--ink-cce-flow-value-fg);
-  font-family: var(--incipit-emphasis-font);
-  font-size: 12px;
-  line-height: 1.2;
-  text-align: right;
-  white-space: nowrap;
-}
-.cceFlowBar {
-  display: block;
-  width: 100%;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--ink-cce-flow-bar-bg-2);
-}
-.cceFlowBar span {
-  display: block;
-  height: 100%;
-  min-width: 0;
-  border-radius: inherit;
-}
-.cceSelectedGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(94px, 1fr));
-  gap: 6px;
-}
-.cceSelectedMetric {
-  min-width: 0;
-  padding: 5px 7px;
-  background: var(--ink-cce-selected-metric-bg);
-  border-radius: 5px;
-}
-.cceSelectedMetric span {
-  display: block;
-  color: var(--ink-text-tertiary);
-  font-size: 11px;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-.cceSelectedMetric strong {
-  display: block;
-  margin-top: 1px;
-  color: var(--ink-cce-selected-metric-fg);
+.cceSpendItem b {
+  color: var(--ink-cce-spend-item-fg);
   font-family: var(--incipit-emphasis-font);
   font-size: 12px;
   font-weight: 400;
-  line-height: 1.2;
-  white-space: nowrap;
 }
 .cceStatEmpty {
+  padding: 10px 0;
   color: var(--ink-cce-stat-empty-fg);
   font-size: 12px;
   font-style: italic;

@@ -48,8 +48,6 @@
   --ink-cce-badge-active-bg-2: #dddbd5;
   --ink-cce-badge-hover-bg: #dddbd5;
   --ink-cce-badge-val-fg: #a39f8e;
-  --ink-cce-context-stack-bg: #e6e4de;
-  --ink-cce-context-stack-shadow: inset 0 0 0 1px rgba(60,55,40,0.07);
   --ink-cce-edit-cell-bg: #e6e4de;
   --ink-cce-edit-cell-bg-2: rgba(168,137,110,0.32);
   --ink-cce-edit-cell-bg-3: rgba(168,137,110,0.50);
@@ -75,12 +73,7 @@
   --ink-cce-edit-status-fg: #8d725b;
   --ink-cce-edit-tooltip-bg: rgba(255,255,255,0.94);
   --ink-cce-edit-tooltip-shadow: 0 2px 8px rgba(60,55,40,0.16);
-  --ink-cce-flow-bar-bg: rgba(121,117,105,0.70);
-  --ink-cce-flow-bar-bg-2: #e6e4de;
-  --ink-cce-flow-header-fg: #0d0d0d;
-  --ink-cce-flow-value-fg: #0d0d0d;
-  --ink-cce-hit-chart-shell-bg: transparent;
-  --ink-cce-hit-chart-shell-shadow: none;
+  --ink-cce-hit-axis-label-mean-fill: #a8896e;
   --ink-cce-hit-grid-stroke: rgba(60,55,40,0.13);
   --ink-cce-hit-hover-label-bg: rgba(255,255,255,0.92);
   --ink-cce-hit-hover-label-shadow: 0 2px 8px rgba(60,55,40,0.16);
@@ -89,19 +82,12 @@
   --ink-cce-hit-hover-point-stroke: #a8896e;
   --ink-cce-hit-hover-time-fg: #797569;
   --ink-cce-hit-line-stroke: #a8896e;
+  --ink-cce-hit-mean-stroke: rgba(168,137,110,0.55);
   --ink-cce-hit-point-fill: #ffffff;
   --ink-cce-hit-point-latest-fill: #ffffff;
   --ink-cce-hit-point-low-fill: #a8896e;
   --ink-cce-hit-point-stroke: #a8896e;
-  --ink-cce-hit-stat-bg: transparent;
-  --ink-cce-hit-stat-border-left-override: 1px solid rgba(60,55,40,0.10);
-  --ink-cce-hit-stat-fg: #0d0d0d;
-  --ink-cce-hit-stats-border-top-override: 1px solid rgba(60,55,40,0.10);
-  --ink-cce-hit-xaxis-stroke: rgba(60,55,40,0.18);
   --ink-cce-hit-xtick-stroke: rgba(60,55,40,0.20);
-  --ink-cce-legend-fresh-bg: rgba(60,55,40,0.30);
-  --ink-cce-legend-read-bg: rgba(168,137,110,0.82);
-  --ink-cce-legend-write-bg: rgba(168,137,110,0.48);
   --ink-cce-note-btn-active-bg: #3a3b3a;
   --ink-cce-note-btn-active-bg-override: #e6e4de;
   --ink-cce-note-btn-fg: #f8f8f6;
@@ -117,18 +103,19 @@
   --ink-cce-range-track-stroke: rgba(60,55,40,0.20);
   --ink-cce-range-window-fill: rgba(168,137,110,0.12);
   --ink-cce-range-window-stroke: rgba(168,137,110,0.44);
-  --ink-cce-selected-metric-bg: transparent;
-  --ink-cce-selected-metric-border-top-override: 1px solid rgba(60,55,40,0.10);
-  --ink-cce-selected-metric-fg: #0d0d0d;
-  --ink-cce-stat-divider-bg: rgba(0,0,0,0.08);
+  --ink-cce-spend-bar-bg: #e6e4de;
+  --ink-cce-spend-bar-shadow: inset 0 0 0 1px rgba(60,55,40,0.07);
+  --ink-cce-spend-dot-fresh-bg: rgba(60,55,40,0.30);
+  --ink-cce-spend-dot-output-bg: rgba(121,117,105,0.70);
+  --ink-cce-spend-dot-read-bg: rgba(168,137,110,0.82);
+  --ink-cce-spend-dot-write-bg: rgba(168,137,110,0.48);
+  --ink-cce-spend-item-fg: #0d0d0d;
   --ink-cce-stat-empty-fg: #b8b4a4;
-  --ink-cce-stat-metric-bg: transparent;
-  --ink-cce-stat-metric-border-left-override: 1px solid rgba(60,55,40,0.10);
-  --ink-cce-stat-metric-shadow: none;
-  --ink-cce-stat-overview-border-bottom-override: 1px solid rgba(60,55,40,0.10);
+  --ink-cce-stat-header-border-bottom: 1px solid rgba(60,55,40,0.10);
   --ink-cce-stat-popup-border: 1px solid rgba(0,0,0,0.08);
   --ink-cce-stat-popup-fg: #0d0d0d;
   --ink-cce-stat-popup-shadow: 0 12px 36px rgba(60,55,40,0.22),0 2px 8px rgba(60,55,40,0.14);
+  --ink-cce-stat-spend-border-top: 1px solid rgba(60,55,40,0.10);
   --ink-change-review-counts-fg: rgba(13,13,13,0.48);
   --ink-change-review-error-bg: rgba(199,104,73,0.12);
   --ink-change-review-error-fg: #b4543a;
@@ -1023,55 +1010,6 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 [class*="permissionRequestContainer_"]:has([class*="questionsContainer_"])
   [class*="option_"]:focus {
   box-shadow: none !important;
-}
-.cceStatOverview {
-  gap: 0;
-  margin-bottom: 11px;
-  padding-bottom: 10px;
-  border-bottom: var(--ink-cce-stat-overview-border-bottom-override);
-}
-.cceStatMetric,
-.cceHitChartShell,
-.cceHitStat,
-.cceSelectedMetric {
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
-}
-.cceStatMetric {
-  padding: 0 10px 0 0;
-}
-.cceStatMetric + .cceStatMetric {
-  padding: 0 0 0 12px;
-  border-left: var(--ink-cce-stat-metric-border-left-override);
-}
-.cceHitChartShell {
-  padding: 2px 0 0;
-}
-.cceHitStats {
-  gap: 0;
-  margin-top: 8px;
-  padding-top: 7px;
-  border-top: var(--ink-cce-hit-stats-border-top-override);
-}
-.cceHitStat {
-  padding: 0 8px;
-}
-.cceHitStat:first-child {
-  padding-left: 0;
-}
-.cceHitStat + .cceHitStat {
-  border-left: var(--ink-cce-hit-stat-border-left-override);
-}
-.cceStatTotals {
-  gap: 12px;
-}
-.cceSelectedGrid {
-  gap: 8px 12px;
-}
-.cceSelectedMetric {
-  padding: 5px 0 0;
-  border-top: var(--ink-cce-selected-metric-border-top-override);
 }
 
 /* ---------- Effort slider / thinking toggle / usage bar ----------
