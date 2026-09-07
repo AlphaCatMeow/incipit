@@ -78,7 +78,10 @@ jobs:
         run: npm publish --provenance --access public
 
       # The annotated tag message is the release notes, so `git tag -a vX.Y.Z`
-      # with the notes in its message is the whole publishing ritual.
+      # with the notes in its message is the whole publishing ritual. Create it
+      # with `--cleanup=verbatim`: git's default cleanup strips every line
+      # starting with `#`, which silently eats the markdown headings and leaves
+      # the release body a run of orphaned bullets.
       - name: Create the GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
