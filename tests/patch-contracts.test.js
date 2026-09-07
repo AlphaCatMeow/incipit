@@ -1591,9 +1591,26 @@ assertHostStateBridgePatchVariants();
 assertAtMentionCommandPatchVariants();
 assertMonacoDiffSpanPatchVariants();
 
+// The host-compatibility half of this file can only run against real official
+// restore points, which live on the developer's machine and can never exist in
+// a clean CI checkout. Skipping quietly is right there — but it is exactly
+// wrong on a release gate, where a green run would then be read as proof of
+// host compatibility it never checked. `--require-fixtures` (or
+// INCIPIT_REQUIRE_FIXTURES=1) turns the skip into a failure. 2026-09-07
+const requireFixtures = process.argv.includes('--require-fixtures') ||
+  /^(1|true|yes)$/i.test(String(process.env.INCIPIT_REQUIRE_FIXTURES || ''));
+
 const fixtures = collectFixtureRoots();
 if (!fixtures.length) {
-  console.log('patch-contracts: skipped (no Claude Code official restore fixture found)');
+  const reason = 'no Claude Code official restore fixture found under '
+    + path.join(os.homedir(), '.incipit', 'official-restore-points-v1')
+    + ' (set INCIPIT_CONTRACT_FIXTURE to point elsewhere)';
+  if (requireFixtures) {
+    console.error(`patch-contracts: FAILED — fixtures required but ${reason}`);
+    process.exit(1);
+  }
+  console.log(`patch-contracts: skipped (${reason})`);
+  console.log('patch-contracts: source-level contracts ran; HOST COMPATIBILITY WAS NOT VERIFIED');
   process.exit(0);
 }
 
