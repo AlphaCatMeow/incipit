@@ -55,4 +55,4 @@ Then run **Reload Window** in VS Code.
 
 ---
 
-From 0.2.0 on, releases are built and published from CI on a signed tag, with npm provenance attached. Releases before 0.2.0 are recorded in the git history.
+From 0.2.0 on, releases are built and published from CI when an annotated tag is pushed, with an npm provenance attestation attached. Releases before 0.2.0 are recorded in the git history.

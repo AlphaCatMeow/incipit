@@ -55,4 +55,4 @@ incipit apply
 
 ---
 
-从 0.2.0 起，发布由 CI 在打 tag 后构建并推送，附带 npm provenance 证明。0.2.0 之前的版本记录在 git 历史里。
+从 0.2.0 起，发布由 CI 在 annotated tag 推送后构建并发出，附带 npm provenance 证明。0.2.0 之前的版本记录在 git 历史里。
