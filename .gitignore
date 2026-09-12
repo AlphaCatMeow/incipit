@@ -28,3 +28,8 @@ dist/
 __pycache__/
 *.pyc
 *.spec
+
+# Merge/patch leftovers — these are 1:1 copies of tracked sources and have
+# been committed by accident before.
+*.orig
+*.rej
