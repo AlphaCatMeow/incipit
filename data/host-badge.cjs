@@ -121,6 +121,8 @@ function wrapShutdown(comm, state) {
   comm.shutdown = async function wrappedShutdown() {
     for (const controller of comm.__incipitAgentActivityRequests?.values() || []) controller.abort();
     comm.__incipitAgentActivityRequests?.clear();
+    for (const controller of comm.__incipitToolDiffRequests?.values() || []) controller.abort();
+    comm.__incipitToolDiffRequests?.clear();
     for (const controller of comm.__incipitReviewRequests?.values() || []) controller.abort();
     comm.__incipitReviewRequests?.clear();
     state.comms.delete(comm);
@@ -166,6 +168,10 @@ function handleWebviewMessage(comm, state, message) {
   }
   if (message.type === 'tool_diff_request') {
     handleToolDiffRequest(comm, state, message);
+    return;
+  }
+  if (message.type === 'tool_diff_cancel') {
+    comm.__incipitToolDiffRequests?.get(message.requestId)?.abort();
     return;
   }
   if (message.type === 'agent_activity_request') {
@@ -245,12 +251,14 @@ function handleBadgeIdentityUpdate(comm, state, message) {
   const incomingCwd = typeof message.cwd === 'string' && message.cwd ? message.cwd : null;
   const cwd = incomingCwd || (previous && previous.sessionId === sessionId ? previous.cwd : null);
   if (previous && previous.sessionId === sessionId && previous.cwd === cwd && previous.target) {
+    if (message.bindOnly === true) return;
     sendCurrentBadgePayload(state, comm, previous.target, sessionId, includeHistory);
     return;
   }
   const target = resolveTargetFromIdentity(sessionId, cwd);
   const identity = { sessionId, cwd, target };
   state.commIdentities.set(comm, identity);
+  if (message.bindOnly === true) return;
   if (!target) {
     sendPayload(comm, emptyBadgePayload(sessionId, null));
     return;
@@ -364,11 +372,17 @@ async function handleToolDiffRequest(comm, state, message) {
       reply({ ok: false, state: 'error', code: 'identity-mismatch', error: 'Request identity does not match the active webview session.', sessionId: message && message.sessionId, toolUseId: message && message.toolUseId, filePath: message && message.filePath });
       return;
     }
-    const payload = await state.toolDiffSource.request(message || {});
-    const current = state.commIdentities.get(comm);
-    if (!state.comms.has(comm) || !current || current.sessionId !== message.sessionId || current.cwd !== message.cwd) return;
-    reply(payload);
+    if (!comm.__incipitToolDiffRequests) comm.__incipitToolDiffRequests = new Map();
+    const controller = new AbortController();
+    comm.__incipitToolDiffRequests.set(requestId, controller);
+    try {
+      const payload = await state.toolDiffSource.request(message || {}, { signal: controller.signal });
+      const current = state.commIdentities.get(comm);
+      if (controller.signal.aborted || !state.comms.has(comm) || !current || current.sessionId !== message.sessionId || current.cwd !== message.cwd) return;
+      reply(payload);
+    } finally { comm.__incipitToolDiffRequests.delete(requestId); }
   } catch (error) {
+    if (error.name === 'AbortError') return;
     state.log(`tool diff source error: ${error && error.message ? error.message : error}`);
     reply({ ok: false, state: 'error', code: 'source-failure', error: String(error && error.message ? error.message : error), sessionId: message && message.sessionId, toolUseId: message && message.toolUseId, filePath: message && message.filePath });
   }

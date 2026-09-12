@@ -124,23 +124,11 @@ function createRowViewport(parent, model, options = {}) {
     previous.disabled = page === 0; next.disabled = page === last; pager.hidden = last === 0;
     label.textContent = (start + 1) + '–' + end + ' of ' + model.rows.length;
     viewport.setAttribute('aria-busy', 'true');
-    syntaxNotice.textContent = 'Loading code…'; syntaxNotice.hidden = false; syntaxRetry.hidden = true;
-    let markup = new Map();
-    try {
-      const colored = await colorDiffRows(model.rows.slice(start, end), options.language || getFileLanguage(model.filePath), colorController.signal);
-      markup = colored.markup;
-      if (disposed || token !== renderGeneration) return;
-      syntaxNotice.textContent = colored.notice; syntaxNotice.hidden = !colored.notice;
-    } catch (error) {
-      if (disposed || token !== renderGeneration || error.name === 'AbortError') return;
-      syntaxNotice.textContent = 'Code is shown without syntax color.'; syntaxNotice.title = error.message;
-      syntaxNotice.hidden = false; syntaxRetry.hidden = false;
-    }
-    if (disposed || token !== renderGeneration) return;
+    syntaxNotice.textContent = 'Loading syntax color…'; syntaxNotice.hidden = false; syntaxRetry.hidden = true;
     let deadline = performance.now() + 4;
     let fragment = document.createDocumentFragment();
     for (let i = start; i < end; i++) {
-      fragment.appendChild(renderRow(model.rows[i], i, markup.get(i - start)));
+      fragment.appendChild(renderRow(model.rows[i], i));
       if (performance.now() >= deadline) {
         await new Promise(resolve => setTimeout(resolve, 0));
         if (disposed || token !== renderGeneration) return;
@@ -155,6 +143,29 @@ function createRowViewport(parent, model, options = {}) {
         target.setAttribute('data-incipit-diff-match', '');
         viewport.scrollTop = target.offsetTop - body.offsetTop;
       }
+    }
+    // Publish readable rows before loading or running a language grammar.
+    colorPage(start, end, token, colorController.signal);
+  }
+  async function colorPage(start, end, token, signal) {
+    try {
+      const colored = await colorDiffRows(model.rows.slice(start, end), options.language || getFileLanguage(model.filePath), signal);
+      if (disposed || token !== renderGeneration) return;
+      let deadline = performance.now() + 4;
+      for (const [offset, markup] of colored.markup) {
+        const code = body.children[offset]?.querySelector('code');
+        if (code) { code.innerHTML = markup; annotateCharacters(code, model.rows[start + offset]); }
+        if (performance.now() >= deadline) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+          if (disposed || token !== renderGeneration) return;
+          deadline = performance.now() + 4;
+        }
+      }
+      syntaxNotice.textContent = colored.notice; syntaxNotice.hidden = !colored.notice;
+    } catch (error) {
+      if (disposed || token !== renderGeneration || error.name === 'AbortError') return;
+      syntaxNotice.textContent = 'Code is shown without syntax color.'; syntaxNotice.title = error.message;
+      syntaxNotice.hidden = false; syntaxRetry.hidden = false;
     }
   }
   const ready = setPage(options.initialState?.page || 0).then(() => {
@@ -293,6 +304,7 @@ export function createDiffPreview(container, options) {
   footer.append(notice, retry, complete);
   container.replaceChildren(content, footer);
   let model = null, rowView = null, controller = null, visible = false, disposed = false, generation = 0, savedPosition = null, positionCaptured = false;
+  let retryTimer = null, retryAttempt = 0;
   function setNotice(text) {
     notice.textContent = text || '';
     notice.title = text || '';
@@ -306,6 +318,7 @@ export function createDiffPreview(container, options) {
   }
   async function load(refresh = false) {
     if (!visible || disposed || (model && !refresh)) return;
+    clearTimeout(retryTimer); retryTimer = null;
     controller?.abort(); controller = new AbortController();
     const token = ++generation;
     container.dataset.incipitDiffState = 'loading'; setNotice('Loading…'); retry.hidden = true; complete.hidden = true;
@@ -316,18 +329,24 @@ export function createDiffPreview(container, options) {
       options.onStats?.(model.statsScope === 'complete' && model.quality !== 'coarse' ? model.stats : null);
       setNotice(model.notice || '');
       container.dataset.incipitDiffState = 'ready'; complete.hidden = false;
+      retryAttempt = 0;
     } catch (error) {
-      if (error.name === 'AbortError' || disposed || generation !== token) return;
+      if (disposed || generation !== token || !visible) return;
       container.dataset.incipitDiffState = error.code === 'permission-denied' ? 'permission' : 'error';
       setNotice(error.message || 'The historical diff could not be loaded.'); retry.hidden = false;
+      if (error.retryable && retryAttempt < 6) retryTimer = setTimeout(() => load(true), 400 * 2 ** retryAttempt++);
     }
   }
   return {
+    cancel() { controller?.abort(); generation++; clearTimeout(retryTimer); retryTimer = null; },
+    refresh() { if (visible && !disposed) load(true); },
     rememberPosition() { if (rowView) { savedPosition = rowView.snapshot(); positionCaptured = true; } },
     setVisible(value) {
+      if (value && visible && container.dataset.incipitDiffState === 'loading' && !controller?.signal.aborted) return;
       visible = value;
       if (visible) { if (model) showRows(); else load(); }
       else {
+        clearTimeout(retryTimer); retryTimer = null; retryAttempt = 0;
         controller?.abort(); generation++;
         if (rowView && !positionCaptured) savedPosition = rowView.snapshot();
         positionCaptured = false;
@@ -335,8 +354,8 @@ export function createDiffPreview(container, options) {
         model = null; complete.hidden = true;
       }
     },
-    invalidate() { model = null; savedPosition = null; complete.hidden = true; controller?.abort(); generation++; rowView?.dispose(); rowView = null; content.replaceChildren(); if (visible) load(); },
-    dispose() { disposed = true; generation++; controller?.abort(); rowView?.dispose(); },
+    invalidate() { model = null; savedPosition = null; complete.hidden = true; clearTimeout(retryTimer); retryTimer = null; retryAttempt = 0; controller?.abort(); generation++; rowView?.dispose(); rowView = null; content.replaceChildren(); if (visible) load(); },
+    dispose() { disposed = true; generation++; clearTimeout(retryTimer); controller?.abort(); rowView?.dispose(); },
   };
 }
 

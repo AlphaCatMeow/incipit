@@ -105,6 +105,7 @@ function createFileCard(root, initial, options) {
   let open = foldChoices.get(key) === true;
   let disposed = false, closeTimer = null, transitionGeneration = 0, revision = 0;
   let sourcePayload = null, sourcePromise = null, sourceController = null, view = null, sourceKnown = false;
+  let waitingForSource = false;
   // Exact input-derived counts show at once; the historical patch replaces
   // them when it arrives, and a result that has not been saved yet is polled
   // with backoff instead of waiting for an unrelated mutation.
@@ -140,55 +141,69 @@ function createFileCard(root, initial, options) {
     retryExhausted = pendingAttempts >= PENDING_RETRY_MS.length;
     retryCounts.hidden = !!(verifiedCounts || provisional) || !retryExhausted;
     if (retryExhausted || !controller.intersecting) return;
-    pendingTimer = setTimeout(() => { pendingTimer = null; controller.prefetch(); }, PENDING_RETRY_MS[pendingAttempts++]);
+    pendingTimer = setTimeout(() => {
+      pendingTimer = null;
+      if (open && waitingForSource) view?.refresh();
+      else controller.prefetch();
+    }, PENDING_RETRY_MS[pendingAttempts++]);
   }
 
-  async function loadSource(signal, refresh = false) {
-    if (sourcePayload && !refresh) return sourcePayload;
-    if (sourcePromise && !refresh) return sourcePromise;
-    sourceController?.abort(); sourceController = new AbortController();
-    const controller = sourceController;
+  async function loadSource(signal, refresh = false, statsOnly = false) {
+    if (sourcePayload && !refresh && !statsOnly) return sourcePayload;
+    if (!sourceController || sourceController.signal.aborted) sourceController = new AbortController();
+    const lifetime = sourceController.signal;
+    const reader = new AbortController();
     const epoch = revision;
     const current = identity();
-    const abort = () => controller.abort();
+    const abort = () => reader.abort();
     signal?.addEventListener('abort', abort, { once: true });
-    if (signal?.aborted) controller.abort();
+    lifetime.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted || lifetime.aborted) reader.abort();
     const promise = fetchToolDiff({ sessionId: current.sessionId, cwd: current.cwd,
-      toolUseId: data.block.id, filePath: data.block.input.file_path }, { signal: controller.signal })
+      toolUseId: data.block.id, filePath: data.block.input.file_path }, { signal: reader.signal, statsOnly })
       .then(payload => {
-        if (disposed || epoch !== revision || controller.signal.aborted || publicState(data) === 'error') throw Object.assign(new Error('Diff view changed.'), { name: 'AbortError' });
+        if (disposed || epoch !== revision || reader.signal.aborted || publicState(data) === 'error') throw Object.assign(new Error('Diff view changed.'), { name: 'AbortError' });
         if (payload.state === 'ready') {
-          sourceKnown = true;
-          if (open) sourcePayload = payload;
-          verifiedCounts = payload.quality === 'coarse' ? null : payload.stats;
+          if (statsOnly || payload.stats) sourceKnown = true;
+          if (open && !statsOnly) sourcePayload = payload;
+          if (payload.stats) verifiedCounts = payload.quality === 'coarse' ? null : payload.stats;
           headline.setCounts(verifiedCounts || provisional);
           retryCounts.hidden = !!(verifiedCounts || provisional);
+          if (statsOnly && open && waitingForSource) view?.refresh();
         } else schedulePendingRetry();
         return payload;
       }).finally(() => {
         signal?.removeEventListener('abort', abort);
-        if (sourcePromise === promise) sourcePromise = null;
+        lifetime.removeEventListener('abort', abort);
       });
-    sourcePromise = promise;
     return promise;
   }
 
   async function loadModel({ signal, refresh }) {
     if (publicState(data) === 'error') throw new Error('This tool failed; there is no completed file change.');
-    const payload = await loadSource(signal, refresh);
-    if (!payload.ok) throw Object.assign(new Error(payload.error || payload.notice || 'The historical diff is unavailable.'), { code: payload.code });
-    if (payload.state === 'pending') throw new Error('The result is still being saved. Retry in a moment.');
+    let payload;
+    try {
+      payload = publicState(data) === 'running'
+        ? { state: 'pending', notice: 'The file operation is still running.' }
+        : await loadSource(signal, refresh);
+    }
+    catch (error) {
+      if (error.name === 'AbortError') throw error;
+      schedulePendingRetry();
+      payload = { state: 'unavailable', notice: error.message };
+    }
+    waitingForSource = payload.state !== 'ready';
     if (payload.state !== 'ready') {
       const input = data.block.input;
       const edits = Array.isArray(input.edits) ? input.edits.map(edit => ({ oldText: edit.old_string, newText: edit.new_string })) :
         [{ oldText: input.old_string, newText: input.new_string }];
       if (edits.every(edit => typeof edit.oldText === 'string' && typeof edit.newText === 'string')) {
         return getDiffModel({ source: 'tool-input', filePath: input.file_path, edits, lineNumbers: 'relative',
-          notice: 'No saved context; showing the replacement only.' }, { signal });
+          notice: 'Showing the replacement while saved context is unavailable. ' + (payload.error || payload.notice || '') }, { signal });
       }
       if (data.block.name === 'Write' && typeof input.content === 'string') {
         return getDiffModel({ source: 'tool-input', filePath: input.file_path, proposedText: input.content,
-          notice: 'No saved original; showing the requested contents, so line counts are unverified.' }, { signal });
+          notice: 'Showing the requested contents while the saved original is unavailable; line counts are unverified. ' + (payload.error || payload.notice || '') }, { signal });
       }
       throw new Error('No saved file snapshot. Open the current file to inspect it.');
     }
@@ -198,7 +213,11 @@ function createFileCard(root, initial, options) {
   function ensureView() {
     if (view) return;
     view = createDiffPreview(diff, { filePath: data.block.input.file_path, loadModel,
-      onStats: stats => headline.setCounts(verifiedCounts || stats || provisional) });
+      onStats: stats => {
+        if (stats && !waitingForSource) verifiedCounts = stats;
+        headline.setCounts(verifiedCounts || stats || provisional);
+        if (verifiedCounts || stats || provisional) retryCounts.hidden = true;
+      } });
   }
 
   function setOpen(value) {
@@ -208,6 +227,7 @@ function createFileCard(root, initial, options) {
     clearTimeout(closeTimer);
     if (!value) {
       view?.rememberPosition();
+      view?.cancel();
       if (body.contains(document.activeElement)) headline.toggle.focus({ preventScroll: true });
     }
     headline.setOpen(value);
@@ -218,6 +238,7 @@ function createFileCard(root, initial, options) {
     } else {
       if (body.contains(document.activeElement)) headline.toggle.focus({ preventScroll: true });
       body.inert = true; body.dataset.incipitExpanded = '0';
+      if (controller.intersecting) controller.prefetch();
       const finish = () => { if (token === transitionGeneration) { body.hidden = true; view?.setVisible(false); sourcePayload = null; } };
       closeTimer = setTimeout(finish, 260);
     }
@@ -234,7 +255,12 @@ function createFileCard(root, initial, options) {
     },
     toolId: data.block.id,
     intersecting: !visibilityObserver,
-    releaseSource() { if (!open) sourcePayload = null; },
+    releaseSource() {
+      if (!open) {
+        sourcePayload = null; sourceController?.abort(); sourcePromise = null;
+        clearTimeout(pendingTimer); pendingTimer = null;
+      }
+    },
     refreshCounts() {
       if (sourceKnown || !controller.intersecting) return;
       clearTimeout(pendingTimer); pendingTimer = null; pendingAttempts = 0; retryExhausted = false; controller.prefetch();
@@ -242,12 +268,13 @@ function createFileCard(root, initial, options) {
     prefetch() {
       if (disposed || publicState(data) !== 'complete' || sourceKnown || sourcePromise || pendingTimer || retryExhausted) return;
       retryCounts.hidden = true;
-      loadSource().catch(error => {
+      const pending = loadSource(undefined, false, true).catch(error => {
         if (error.name !== 'AbortError') {
           schedulePendingRetry();
           globalThis.__incipitHealth?.set?.('tool.diffSource', 'degraded', { reason: error.message });
         }
-      });
+      }).finally(() => { if (sourcePromise === pending) sourcePromise = null; });
+      sourcePromise = pending;
     },
     update(next) {
       const previousState = renderedState;

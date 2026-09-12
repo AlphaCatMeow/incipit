@@ -161,7 +161,7 @@ async function middleSplit(old, next, a0, a1, b0, b1, work) {
   return null;
 }
 
-async function snapshotRows(oldText, newText, work) {
+async function snapshotRows(oldText, newText, work, counts = null) {
   const old = await textLines(oldText, work);
   const next = await textLines(newText, work);
   const rows = [];
@@ -170,6 +170,7 @@ async function snapshotRows(oldText, newText, work) {
     const task = tasks.pop();
     let { a0, a1, b0, b1 } = task;
     if (task.context) {
+      if (counts) continue;
       for (; a0 < a1; a0++, b0++) {
         rows.push(makeRow('ctx', old[a0].text, a0 + 1, b0 + 1, !old[a0].newline));
         if (work.due()) await work.yield();
@@ -177,7 +178,7 @@ async function snapshotRows(oldText, newText, work) {
       continue;
     }
     while (a0 < a1 && b0 < b1 && equalLine(old[a0], next[b0])) {
-      rows.push(makeRow('ctx', old[a0].text, a0 + 1, b0 + 1, !old[a0].newline));
+      if (!counts) rows.push(makeRow('ctx', old[a0].text, a0 + 1, b0 + 1, !old[a0].newline));
       a0++; b0++;
       if (work.due()) await work.yield();
     }
@@ -188,6 +189,7 @@ async function snapshotRows(oldText, newText, work) {
     }
     if (a1 < oldEnd) tasks.push({ a0: a1, a1: oldEnd, b0: b1, b1: newEnd, context: true });
     if (a0 === a1 || b0 === b1) {
+      if (counts) { counts.removed += a1 - a0; counts.added += b1 - b0; continue; }
       for (let i = a0; i < a1; i++) { rows.push(makeRow('del', old[i].text, i + 1, null, !old[i].newline)); if (work.due()) await work.yield(); }
       for (let j = b0; j < b1; j++) { rows.push(makeRow('add', next[j].text, null, j + 1, !next[j].newline)); if (work.due()) await work.yield(); }
       continue;
@@ -209,11 +211,35 @@ async function snapshotRows(oldText, newText, work) {
       tasks.push({ a0: split[0], a1, b0: split[1], b1 });
       tasks.push({ a0, a1: split[0], b0, b1: split[1] });
     } else {
+      if (counts) { counts.removed += a1 - a0; counts.added += b1 - b0; continue; }
       for (let i = a0; i < a1; i++) { rows.push(makeRow('del', old[i].text, i + 1, null, !old[i].newline)); if (work.due()) await work.yield(); }
       for (let j = b0; j < b1; j++) { rows.push(makeRow('add', next[j].text, null, j + 1, !next[j].newline)); if (work.due()) await work.yield(); }
     }
   }
   return rows;
+}
+
+/** Count changed lines without allocating display rows, hunks or character marks. */
+export async function countSnapshotLines(oldText, newText, options = {}) {
+  if (typeof oldText !== 'string' || typeof newText !== 'string') throw new TypeError('Both diff texts must be strings.');
+  const work = workBudget(options), stats = { added: 0, removed: 0 };
+  work.check();
+  if (oldText === newText) return { stats, quality: 'exact' };
+  if (!oldText || !newText) {
+    const text = oldText || newText;
+    let count = 0, start = 0;
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      if (code === 10 || code === 13) {
+        count++; if (code === 13 && text.charCodeAt(i + 1) === 10) i++;
+        start = i + 1;
+      }
+      if (work.due()) await work.yield();
+    }
+    if (start < text.length) count++;
+    stats[oldText ? 'removed' : 'added'] = count;
+  } else await snapshotRows(oldText, newText, work, stats);
+  return { stats, quality: work.coarse ? 'coarse' : 'exact' };
 }
 
 async function nativeRows(hunks, work) {
