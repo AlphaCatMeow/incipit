@@ -1,0 +1,48 @@
+{
+  "package": "markdown-it",
+  "version": "15.0.1",
+  "tarball": "https://registry.npmjs.org/markdown-it/-/markdown-it-15.0.1.tgz",
+  "integrity": "sha512-9/7gE95FNPkfUWrjJIoHZza2iLmuJlPD0UNMxPi7bxUrbCR525YZY0r+zyfes0dZI5ZZ/uNIXUJca0pJvtw41g==",
+  "source": "dist/browser/markdown-it.umd.min.js",
+  "sourceSha256": "f9f377ca892291fbe32904e77a00c6e27e8f95c14f435a54c8cb6859b3d97692",
+  "file": "markdown-it.min.js",
+  "sha256": "ffaea2b51b65d1f29e056b45e36a75612f58d32318f87d196a4710258e41a65b",
+  "transform": "Remove sourceMappingURL; source map is not bundled.",
+  "packages": [
+    {
+      "name": "argparse",
+      "version": "3.0.1",
+      "license": "PSF-2.0"
+    },
+    {
+      "name": "entities",
+      "version": "8.0.0",
+      "license": "BSD-2-Clause"
+    },
+    {
+      "name": "linkify-it",
+      "version": "6.1.0",
+      "license": "MIT"
+    },
+    {
+      "name": "markdown-it",
+      "version": "15.0.1",
+      "license": "MIT"
+    },
+    {
+      "name": "mdurl",
+      "version": "2.1.0",
+      "license": "MIT"
+    },
+    {
+      "name": "punycode.js",
+      "version": "2.3.1",
+      "license": "MIT"
+    },
+    {
+      "name": "uc.micro",
+      "version": "3.0.0",
+      "license": "MIT"
+    }
+  ]
+}

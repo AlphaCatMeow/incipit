@@ -57,6 +57,8 @@ incipit restore   # 把当前目标恢复为官方 Claude Code 文件
 
 Claude Code 扩展每次更新后，本地补丁会被官方文件覆盖，重跑 `incipit` 并应用即可。更新 incipit 自身用同一条全局安装命令。
 
+每个版本改了什么，见[更新日志](CHANGELOG.zh.md)。
+
 卸载 incipit CLI：
 
 ```bash
@@ -119,7 +121,11 @@ incipit 会把本地 Claude Code 转录里的编辑活动汇总成项目视角�
 
 ## diff
 
-Edit / Write 的 diff 不保留宿主默认的双栏 Monaco：文件名 + `+N −M` 位于头部，删除行铺一层暗红底色，新增行铺一层暗绿，行号克制，字符级差异在行内再做一次同色相但更显的二次着色。短 diff 直接展开，长 diff 折成卡片，点 `Click to expand` 在浮层里看完整。
+工具调用按 claude.ai 的活动列表呈现：左侧字形栏与连接线，按时态写的行如 `Edited tool_cards.js +3 −2`、`Ran command`，组标题（`Read 7 files, edited 5 files · 1 failed`）可以把整组连同 thinking 一起收起。Claude 在工具之间说的话保持普通正文，并从那里开始新的一组。箭头悬浮时渐显，进行中的工具在字形位置闪点，失败的变红。
+
+Edit / MultiEdit / Write 的预览默认折叠在各自的行上。点击展开后，可在同一个滚动区域阅读当次历史补丁、上下文、行号、整行的增删底色和多个修改段；脚注一行承载提示、分页与 `Full diff`，后者打开可搜索的完整视图，所有修改行都能到达。颜色沿用所选主题，长文件名按可用空间省略，完整路径通过文件名的悬浮提示取得。
+
+历史上下文来自保存的工具结果；来源缺失时明确展示已知替换片段或请求写入的内容，不用今天的文件猜测过去的修改。大视图按页渲染并复用有上限的 diff 缓存。正文、compact、修改审查和输入区共用一套阅读列，从窄侧栏到宽编辑器面板连续适配。
 
 <p align="center">
   <img src="docs/screenshots/diff-warm-black.png" width="360" alt="incipit diff 暖黑主题：酒红 / 森林绿底色，字符级行内二次着色" />
@@ -226,7 +232,7 @@ VS Code 的扩展之间有严格的沙箱隔离，一个插件没有办法向另
 
 ## License
 
-从下一个版本开始，incipit 按 GNU Affero General Public License v3.0 or later 发布。此前已经发布的版本仍保留其发布时的许可。见 [LICENSE](LICENSE)。
+incipit 自 0.1.7 起按 GNU Affero General Public License v3.0 or later 发布。0.1.6 及更早的版本以 MIT 许可发布，并保持不变。见 [LICENSE](LICENSE)。
 
 ### 内置字体
 

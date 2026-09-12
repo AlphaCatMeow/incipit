@@ -183,7 +183,25 @@
   --incipit-code-font: 'Rec Mono Linear', 'Noto Sans SC',
                'Microsoft YaHei UI', 'Microsoft YaHei',
                Consolas, Monaco, 'Courier New', monospace;
-  --incipit-conversation-column-width: 570px;
+  /* 46 body-size ems: the reading measure of claude.ai's transcript column
+     (48rem minus its 1rem side insets), so the line length stays constant
+     when the configured body size changes. */
+  --incipit-conversation-column-width: calc(var(--incipit-body-size, 13px) * 46);
+  /* Side insets once the pane is narrower than the column: never below 28px
+     so a sidebar-width pane keeps real air on both sides of the text. */
+  --incipit-conversation-gutter: clamp(28px, 5vw, 36px);
+  /* Activity rows: 20px glyph column plus 10px gap; glyph centre sits one
+     row padding (4px) plus half a 1.55 line (10px) below the 4px row inset. */
+  --incipit-activity-rail: 30px;
+  --incipit-activity-glyph-top: 18px;
+  /* One fold curve for every expand/collapse: tool bodies, diff previews,
+     thinking content and activity groups. Height moves on grid tracks or
+     max-height for the duration only; `activity_groups.js` mirrors the
+     duration as FOLD_MS. Folds and hover fades always run: incipit's motion
+     is small, local and interaction-triggered, so it is not gated on the
+     platform's reduced-motion preference. */
+  --incipit-fold-duration: 220ms;
+  --incipit-fold-easing: cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 /* ============================================================
@@ -200,26 +218,225 @@
   background-image: none !important;
   isolation: auto !important;
   contain: none !important;
+  padding-inline: var(--incipit-conversation-gutter) !important;
 }
 
 /*
-  Centered conversation column.
-
-  PR #1 correctly removed the inner 64ch cap from paragraphs/lists so flow
-  content can use its container. The missing outer piece is that, in the
-  fullscreen conversation editor, the message containers themselves expand to
-  the whole viewport: assistant prose sticks to the far left, while user
-  bubbles run to the far right. Keep the inner blocks fluid, but cap and center
-  the actual conversation rows so wide windows read like a stable page.
+  Unified reading column. The width is derived from the real webview inline
+  size, so intermediate pane widths and browser zoom remain fluid.
 */
 [data-incipit-message],
 [data-incipit-user-message-container],
-[data-incipit-spinner-row] {
+[data-incipit-spinner-row],
+[data-incipit-turn],
+[data-incipit-compact-message],
+[data-incipit-system-message] {
   box-sizing: border-box !important;
   width: 100% !important;
   max-width: var(--incipit-conversation-column-width) !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+  margin-inline: auto !important;
+  min-width: 0 !important;
+}
+
+[data-incipit-composer-shell] {
+  left: var(--incipit-conversation-gutter) !important;
+  right: calc(var(--incipit-conversation-gutter) + var(--incipit-layout-scrollbar, 0px)) !important;
+}
+[data-incipit-composer-wrapper],
+[data-incipit-permission-surface] {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: var(--incipit-conversation-column-width) !important;
+  margin-inline: auto !important;
+  min-width: 0 !important;
+}
+[data-incipit-composer-rail],
+[data-incipit-change-review-turn] {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+[data-incipit-message],
+[data-incipit-compact-message],
+[data-incipit-system-message] {
+  padding-inline: 0 !important;
+  overflow-wrap: anywhere;
+}
+/* The host timeline dot and connector are replaced by the activity rail
+   below; prose rows carry neither, activity rows draw their own connector. */
+[data-incipit-message]::before,
+[data-incipit-message]:not([data-incipit-activity])::after {
+  display: none !important;
+  content: none !important;
+}
+[data-incipit-user-message-container] > [data-incipit-user-bubble] {
+  margin-inline-start: auto !important;
+  margin-inline-end: 0 !important;
+}
+
+/* ============================================================
+   Activity rail.
+
+   Turns are host flex columns of message rows. `activity_groups.js` stamps
+   `data-incipit-activity` (tool | thinking) and an edge position on
+   consecutive rows; CSS draws the reference activity list: a 20px glyph
+   column inside a 30px inset, a 1px connector between glyphs, and a summary
+   header inside the first row of a run. Assistant prose between runs stays
+   a normal message. No host node moves; every mark is an attribute or a
+   pseudo-element. Hover feedback fades over 180ms on color and opacity only,
+   so it never triggers layout.
+   ============================================================ */
+[data-incipit-message][data-incipit-activity] {
+  position: relative !important;
+  /* A one-column grid: the block sits in an fr track that the collapse
+     transition can drive to zero, which a flex column cannot. */
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 1fr;
+  justify-items: stretch;
+  padding: 4px 0 4px var(--incipit-activity-rail) !important;
+}
+[data-incipit-message][data-incipit-activity] > * {
+  min-width: 0;
+  min-height: 0;
+}
+[data-incipit-message][data-incipit-activity-edge="first"],
+[data-incipit-message][data-incipit-activity-edge="only"] {
+  padding-top: 36px !important;
+}
+/* The connector paints below the glyph slots (z 1) and glyphs (z 2), so every
+   icon interrupts the line instead of being crossed by it. */
+[data-incipit-message][data-incipit-activity]::after {
+  content: "" !important;
+  display: block !important;
+  position: absolute !important;
+  z-index: 0;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 9.5px !important;
+  width: 1px !important;
+  height: auto !important;
+  opacity: 1 !important;
+  background-color: rgba(245, 242, 232, 0.16) !important;
+  pointer-events: none;
+}
+[data-incipit-message][data-incipit-activity-edge="first"]::after {
+  top: calc(var(--incipit-activity-glyph-top) + 32px) !important;
+}
+[data-incipit-message][data-incipit-activity-edge="last"]::after {
+  bottom: 4px !important;
+}
+[data-incipit-message][data-incipit-activity-edge="only"]::after,
+[data-incipit-message][data-incipit-activity-collapsed]::after {
+  display: none !important;
+}
+
+/* Group summary: mounted as the first child of the run's first row and pulled
+   back to the rail edge like the reference header pill. */
+[data-incipit-activity-header] {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-sizing: border-box;
+  max-width: 100%;
+  height: 28px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #9c9c9a;
+  font-family: var(--incipit-body-font);
+  font-size: calc(var(--incipit-body-size, 13px) - 1px);
+  line-height: 20px;
+  text-align: start;
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+[data-incipit-activity-header]:hover,
+[data-incipit-activity-header]:focus-visible {
+  color: #f8f8f6;
+}
+[data-incipit-activity-header]:focus-visible {
+  outline: 1px solid rgba(217,119,87,0.6);
+  outline-offset: 2px;
+}
+[data-incipit-activity-header-text] {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-incipit-activity-header-caret] {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  background-color: currentColor;
+  opacity: 0;
+  transform: rotate(90deg);
+  transition: opacity 180ms ease, transform 180ms ease;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 14px 14px;
+  mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: 14px 14px;
+}
+[data-incipit-activity-header]:hover [data-incipit-activity-header-caret],
+[data-incipit-activity-header]:focus-visible [data-incipit-activity-header-caret] {
+  opacity: 0.9;
+}
+[data-incipit-activity-header][aria-expanded="false"] [data-incipit-activity-header-caret] {
+  transform: none;
+}
+/* Collapsed run: the block track closes to zero and the row padding goes with
+   it, so the header row keeps only its header and the other rows take no
+   space. Hidden blocks leave the accessibility tree; a rare second block in
+   the same host row snaps. The transition lives on a transient attribute that
+   `activity_groups.js` sets only around a user toggle, so a row that joins a
+   collapsed run while streaming never animates. */
+[data-incipit-message][data-incipit-activity-collapsed] {
+  grid-template-rows: 0fr;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  overflow: hidden;
+}
+[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header="1"] {
+  padding-top: 32px !important;
+}
+/* Keep the parent heading visible while its first tool is being prepared. */
+[data-incipit-activity-preparing] { display: grid !important; grid-template-rows: 0fr; padding-block: 0 !important; min-height: 0 !important; }
+[data-incipit-activity-preparing][data-incipit-activity-has-header="1"] { padding-top: 32px !important; }
+[data-incipit-activity-preparing] > :not([data-incipit-activity-header]),
+[data-incipit-activity-preparing]::after { display: none !important; }
+[data-incipit-activity-entering] { animation: incipit-activity-enter var(--incipit-fold-duration) var(--incipit-fold-easing) both; }
+@keyframes incipit-activity-enter {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: none; }
+}
+[data-incipit-message][data-incipit-activity-collapsed] > :not([data-incipit-activity-header]) {
+  visibility: hidden;
+}
+[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header="1"]) > :nth-child(n+2),
+[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header="1"] > :nth-child(n+3) {
+  display: none;
+}
+[data-incipit-message][data-incipit-activity-animating] {
+  overflow: hidden;
+  transition: grid-template-rows var(--incipit-fold-duration) var(--incipit-fold-easing),
+              padding-top var(--incipit-fold-duration) var(--incipit-fold-easing),
+              padding-bottom var(--incipit-fold-duration) var(--incipit-fold-easing);
+}
+[data-incipit-message][data-incipit-activity-animating] > * {
+  transition: visibility var(--incipit-fold-duration);
+}
+@media (hover: none) {
+  [data-incipit-activity-header-caret] { opacity: 0.9; }
 }
 
 /* ============================================================
@@ -243,46 +460,104 @@
   overflow-x: clip !important;
 }
 
-/* Calibrate the timeline marker dot and connector for the adjusted message
-   typography. Different message shapes need slightly different top offsets. */
-
-/* Default offset for compact single-line items such as tool calls. */
-[data-incipit-message]::before {
-  top: 15px !important;
-}
-
-/* Replies and thinking blocks start with a paragraph and sit slightly lower. */
-[data-incipit-message]:has(> [data-incipit-markdown-root] > p)::before,
-[data-incipit-message]:has(> [data-incipit-markdown-root] span > p)::before,
-[data-incipit-message]:has([data-incipit-thinking-content])::before,
-[data-incipit-message]:has([data-incipit-thinking-summary])::before {
-  top: 16px !important;
-}
-
 /* The host's thinking SVG is re-rendered during streaming and can drift out
    of sync with the frozen `<details>` state, so hide it and render our own
-   arrow from a stable pseudo-element instead. */
+   caret from a stable pseudo-element instead. The row follows the activity
+   vocabulary: glyph in the rail, tool-row grey that lifts to body white on
+   hover, a 14px caret only on hover, focus or open. The static block the
+   host renders for empty thinking shares the layout but has no caret, no
+   hover lift and no pointer cursor, like a non-expandable tool row. */
 details[data-incipit-thinking] > summary[data-incipit-thinking-summary] svg[data-incipit-thinking-toggle] {
   display: none !important;
 }
-details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after {
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary],
+[data-incipit-thinking-static] > [data-incipit-thinking-summary] {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 4px 0;
+  line-height: 1.55;
+  color: #9c9c9a;
+  opacity: 1 !important;
+  transition: color 180ms ease;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:hover,
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
+  color: #f8f8f6;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
+  outline: 1px solid rgba(217,119,87,0.6);
+  outline-offset: 2px;
+}
+[data-incipit-thinking-static] > [data-incipit-thinking-summary] {
+  cursor: default;
+}
+[data-incipit-activity="thinking"] details[data-incipit-thinking],
+[data-incipit-activity="thinking"] [data-incipit-thinking-static] {
+  position: relative;
+}
+/* The glyph patch is relative to the thinking block, which already follows
+   the row's heading padding. Adding that offset again covers the next message
+   instead of the connector behind the glyph (2026-09-05). */
+[data-incipit-activity="thinking"] details[data-incipit-thinking]::before,
+[data-incipit-activity="thinking"] [data-incipit-thinking-static]::before {
   content: "";
-  display: inline-block;
-  flex: 0 0 16px;
-  width: 16px;
-  height: 16px;
+  position: absolute;
+  z-index: 1;
+  left: calc(-1 * var(--incipit-activity-rail));
+  top: 4px;
+  width: 20px;
+  height: 20px;
+  background-color: #1e1e1e;
+  pointer-events: none;
+}
+[data-incipit-activity="thinking"] details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::before,
+[data-incipit-activity="thinking"] [data-incipit-thinking-static] > [data-incipit-thinking-summary]::before {
+  content: "";
+  display: block;
+  position: relative;
+  z-index: 2;
+  flex: 0 0 20px;
+  width: 20px;
+  height: 1.55em;
+  margin-left: calc(-1 * var(--incipit-activity-rail));
+  margin-right: 4px;
   background-color: currentColor;
-  opacity: 0.92;
-  transform-origin: 50% 50%;
-  transition: transform 0.15s ease;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  opacity: 0.9;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z' fill='black'/%3E%3Cpath d='M18.5 14.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z' fill='black'/%3E%3C/svg%3E");
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: 16px 16px;
-  mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 2.5l1.9 5.6 5.6 1.9-5.6 1.9L12 17.5l-1.9-5.6L4.5 10l5.6-1.9z' fill='black'/%3E%3Cpath d='M18.5 14.5l.9 2.6 2.6.9-2.6.9-.9 2.6-.9-2.6-2.6-.9 2.6-.9z' fill='black'/%3E%3C/svg%3E");
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: 16px 16px;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after {
+  content: "";
+  display: block;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  background-color: currentColor;
+  opacity: 0;
+  transform-origin: 50% 50%;
+  transition: opacity 180ms ease, transform 180ms ease;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 14px 14px;
+  mask-image: url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M7.12771 5.16489C7.28926 4.98544 7.55225 4.95072 7.75273 5.0682L7.83477 5.12778L12.835 9.62788C12.9402 9.72264 12.9999 9.85833 13 9.99995C13 10.1063 12.9667 10.2093 12.9053 10.2939L12.835 10.372L7.83477 14.8721C7.62952 15.0567 7.31242 15.0402 7.12771 14.835C6.94336 14.6298 6.95983 14.3126 7.16482 14.128L11.7519 9.99995L7.16482 5.87193L7.09744 5.79674C6.95939 5.60969 6.96617 5.34444 7.12771 5.16489Z' fill='black'/%3E%3C/svg%3E");
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: 14px 14px;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:hover::after,
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible::after,
+details[data-incipit-thinking][open] > summary[data-incipit-thinking-summary]::after {
+  opacity: 0.9;
 }
 details[data-incipit-thinking][open] > summary[data-incipit-thinking-summary]::after {
   transform: rotate(90deg);
@@ -290,14 +565,34 @@ details[data-incipit-thinking][open] > summary[data-incipit-thinking-summary]::a
 details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summary]::after {
   transform: none;
 }
-
-
-/* Thicken the connector to 2px and keep it centered under the marker dot. */
-[data-incipit-message]::after {
-  width: 2px !important;
-  left: 11.5px !important;
-  background-color: rgba(255, 255, 255, 0.18) !important;
+@media (hover: none) {
+  details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::after { opacity: 0.9; }
 }
+/* Thinking content unfolds and folds on a grid track. `enhance_thinking.js`
+   sets the opening/closing attributes only around a user click, so a block
+   that React remounts while open never replays the animation. */
+details[data-incipit-thinking] > [data-incipit-thinking-content] {
+  display: grid;
+  grid-template-rows: 1fr;
+  overflow: hidden;
+}
+details[data-incipit-thinking] > [data-incipit-thinking-content] > * {
+  min-width: 0;
+  min-height: 0;
+}
+details[data-incipit-thinking][data-incipit-thinking-opening="1"] > [data-incipit-thinking-content] {
+  animation: incipit-unfold var(--incipit-fold-duration) var(--incipit-fold-easing);
+}
+details[data-incipit-thinking][data-incipit-thinking-closing="1"] > [data-incipit-thinking-content] {
+  animation: incipit-fold var(--incipit-fold-duration) var(--incipit-fold-easing) forwards;
+}
+@keyframes incipit-unfold {
+  from { grid-template-rows: 0fr; }
+}
+@keyframes incipit-fold {
+  to { grid-template-rows: 0fr; }
+}
+
 
 
 /*
@@ -455,6 +750,13 @@ details[data-incipit-thinking]:not([open]) > summary[data-incipit-thinking-summa
   outline: 1px solid rgba(217,119,87,0.6);
   outline-offset: 2px;
   border-radius: 2px;
+}
+[data-incipit-message] a[data-incipit-file-reference="unavailable"],
+[data-incipit-markdown-root] a[data-incipit-file-reference="unavailable"] {
+  background-image: none !important;
+  background-color: transparent !important;
+  cursor: text;
+  outline: none;
 }
 
 /* ============================================================
@@ -904,11 +1206,11 @@ pre.incipit-mermaid-source {
      collapse; otherwise the chevron can open while the diff stays display:none. */
   display: block !important;
   overflow: hidden;
-  transition: max-height 0.22s ease,
-              margin-top 0.22s ease,
-              margin-bottom 0.22s ease,
-              padding-top 0.22s ease,
-              padding-bottom 0.22s ease;
+  transition: max-height var(--incipit-fold-duration) var(--incipit-fold-easing),
+              margin-top var(--incipit-fold-duration) var(--incipit-fold-easing),
+              margin-bottom var(--incipit-fold-duration) var(--incipit-fold-easing),
+              padding-top var(--incipit-fold-duration) var(--incipit-fold-easing),
+              padding-bottom var(--incipit-fold-duration) var(--incipit-fold-easing);
 }
 [data-incipit-tool-use][data-incipit-tool-collapsed="true"] [data-incipit-tool-body] {
   max-height: 0;
@@ -922,6 +1224,10 @@ pre.incipit-mermaid-source {
   padding-bottom: 0;
   border-top-width: 0;
   border-bottom-width: 0;
+}
+[data-incipit-tool-use][data-incipit-tool-collapsed="true"] [data-incipit-tool-body]:not([data-incipit-fold-animating]) {
+  content-visibility: hidden;
+  contain-intrinsic-size: 0 0;
 }
 
 /* Hide the host `secondaryLine` ("Modified" / "Added N lines") only when we
@@ -1505,6 +1811,7 @@ pre.incipit-mermaid-source {
    prevents non-diff modals (settings dialog etc.) from picking up
    diff-flavoured colours. */
 :where(
+  [data-incipit-diff-island],
   [data-incipit-write-diff],
   [data-incipit-write-diff-modal-content],
   [class*="diffEditorWrapper"],
@@ -3032,6 +3339,40 @@ fieldset[class*="inputContainer_"][data-permission-mode]:focus-within,
      background, so shadow here does not change the editor scroll box. */
   box-shadow: 0 2px 10px rgba(0,0,0,0.20),
               0 1px 3px rgba(0,0,0,0.15) !important;
+}
+
+/* Composer mirror scroll headroom.
+
+   The host composer is two stacked layers inside `messageInputContainer_*`:
+   the transparent contenteditable (`messageInput_*`, the only real scroller,
+   max-height 200px) and the visible mention mirror (position:absolute;
+   inset:0; overflow:hidden), which the host keeps aligned by copying the
+   editor's scrollTop onto the mirror on every `scroll` event.
+
+   Chromium's editing engine leaves a placeholder `<br>` at the end of the
+   editable once a trailing line has been deleted, and keeps it there. The
+   mirror is rendered from React state built from `textContent`, which cannot
+   see that `<br>`, so from then on every trailing empty line makes the editor
+   one line taller than the mirror. At the bottom of a long input the copied
+   scrollTop exceeds the mirror's own maximum, the mirror clamps, and the
+   visible text sits up to one line above the caret: text that Backspace
+   "cannot delete", a caret on the wrong line. Reproduced against the
+   unpatched 2.1.258 composer in headless Chromium, see
+   dev-notes/2026-09-01-composer-mirror-clamp-investigation.md.
+
+   The fix is a zero-content block after the mirror text that extends the
+   mirror's scrollable range by a full composer viewport. mirror.scrollHeight
+   then always covers editor.scrollHeight for any placeholder deficit, so the
+   host's scrollTop copy is never clamped and the layers stay aligned. Nothing
+   visible changes: the mirror box is inset-derived, the block is clipped by
+   overflow:hidden, and at scrollTop 0 the paint is identical. incipit still
+   never reads or writes composer text, selection, or scroll; this is a static
+   guarantee about the mirror's range, not a sync (R-12). Keep this the only
+   rule that touches the mirror. */
+[class*="messageInputContainer_"] > [class*="mentionMirror_"]::after {
+  content: "";
+  display: block;
+  height: 200px;
 }
 
 /* File drag reference hint.
@@ -4702,40 +5043,11 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   padding: 0;
   animation: incipit-inline-edit-fade-in 120ms ease-out;
 }
-/* AI: draft card reuses the in-message code-block surface so the
-   editor reads as the same family of "embedded content surface" as
-   <pre> blocks — one step lighter than the chat background. Light
-   padding + small radius give it the same shape as a code block. */
-[data-incipit-inline-edit-shell="assistant"] {
-  background: #272727;
-  padding: 8px 10px;
-  border-radius: 4px;
-}
 /* User: no shell chrome of its own — the (expanded) bubble carries
    the visual identity. */
 [data-incipit-inline-edit-shell="user"] {
   background: transparent;
   padding: 0;
-}
-
-/* Edit hover preview — when the user hovers the AI's pencil icon,
-   paint the markdown root with the same draft-card background the
-   inline-edit shell uses on click. Acts as a "dry run": you see
-   exactly what region edit-mode will turn into a draft card before
-   committing. JS toggles `data-incipit-edit-hover-preview` on the
-   markdown root in mouseenter/mouseleave on the edit button. The
-   transition smooths the colour appear/disappear so rapid mouse-overs
-   across the three icons read as a soft pulse, not a hard blink.
-   No padding here on purpose: padding would shift layout while the
-   icon row toggles, and the visible colour change alone is plenty of
-   affordance. User bubbles already carry the draft-card colour at
-   rest, so this rule does not need a user-side counterpart. */
-[data-incipit-markdown-root] {
-  transition: background-color 0.18s ease;
-  border-radius: 4px;
-}
-[data-incipit-markdown-root][data-incipit-edit-hover-preview] {
-  background-color: #272727;
 }
 
 @keyframes incipit-inline-edit-fade-in {
@@ -5182,18 +5494,23 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 
 /* ============================================================
    Cache badge popup.
+
+   Three lanes, no cards: the live reading, the hit-rate history with its
+   brush, and the brushed range's token spend. Every figure appears once —
+   the chart's own axis reports the range extremes and its dashed rule the
+   mean, so nothing below the plot restates what the plot already draws.
    ============================================================ */
 .cceStatPopup {
   position: fixed;
   z-index: 99999;
   display: none;
   box-sizing: border-box;
-  width: min(560px, calc(100vw - 16px));
+  width: min(480px, calc(100vw - 16px));
   min-width: 0;
-  max-width: min(560px, calc(100vw - 16px));
+  max-width: min(480px, calc(100vw - 16px));
   max-height: calc(100vh - 16px);
   overflow: auto;
-  padding: 12px 14px;
+  padding: 12px 13px;
   background: #2c2c2a;
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 8px;
@@ -5208,65 +5525,50 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceStatPopup.cceStatOpen {
   display: block;
 }
-.cceStatSection {
-  display: block;
+
+/* Live reading. One baseline-aligned line: the value carries the weight,
+   the noun stays a caption beside it. */
+.cceStatHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 9px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
 }
-.cceStatOverview {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.cceStatMetric {
+.cceStatNow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
   min-width: 0;
-  padding: 7px 8px;
-  background: rgba(18,18,18,0.24);
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.045);
-}
-.cceStatMetricLabel {
-  margin-bottom: 2px;
   color: #989898;
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
-.cceStatMetricValue {
+.cceStatNow strong {
   color: #f8f8f6;
   font-family: var(--incipit-emphasis-font);
   font-size: 15px;
-  line-height: 1.2;
-}
-.cceStatHeading {
-  font-family: var(--incipit-emphasis-font);
-  font-size: 11px;
   font-weight: 400;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #f8f8f6;        /* Match the badge text as the popup focal color. */
-  margin-bottom: 8px;
-}
-.cceStatDivider {
-  height: 1px;
-  background: rgba(255,255,255,0.07);
-  margin: 10px 0;
+  line-height: 1.15;
 }
 
 /* Cache hit history: a fixed-viewBox SVG line chart, no external chart runtime. */
 .cceHitChart {
   display: block;
 }
+/* The top lane is reserved for the hover readout so it never covers the line. */
 .cceHitChartShell {
   position: relative;
-  padding: 8px 8px 7px;
-  background: rgba(18,18,18,0.18);
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  padding: 14px 0 0;
 }
+/* No aspect-ratio: the viewBox is authored in CSS pixels, so the intrinsic
+   ratio it carries already gives the chart its height at any popup width. */
 .cceHitSvg {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 500 / 184;
   overflow: visible;
   shape-rendering: geometricPrecision;
 }
@@ -5275,9 +5577,12 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
-.cceHitXAxis {
-  stroke: rgba(245,242,232,0.16);
+/* Mean of the brushed range. Shares the accent with its gutter label so the
+   two read as one statement. */
+.cceHitMean {
+  stroke: rgba(168,137,110,0.55);
   stroke-width: 1;
+  stroke-dasharray: 3 3;
   vector-effect: non-scaling-stroke;
 }
 .cceHitXTick {
@@ -5290,6 +5595,21 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   font-family: var(--incipit-body-font);
   font-size: 11px;
   letter-spacing: 0;
+}
+.cceHitAxisLabelMean {
+  fill: #a8896e;
+}
+.cceHitTimeLabel {
+  fill: #989898;
+  font-family: var(--incipit-body-font);
+  font-size: 11px;
+  letter-spacing: 0;
+}
+.cceHitTimeLabelMid {
+  text-anchor: middle;
+}
+.cceHitTimeLabelEnd {
+  text-anchor: end;
 }
 .cceHitLine {
   fill: none;
@@ -5333,17 +5653,17 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 }
 .cceHitHoverLabel {
   position: absolute;
-  top: 5px;
+  top: 0;
   left: 0;
   transform: translateX(-50%);
-  padding: 2px 6px;
+  padding: 0 6px;
   border-radius: 4px;
   background: rgba(31,31,30,0.88);
   box-shadow: 0 2px 8px rgba(0,0,0,0.22);
   color: #f8f8f6;
   font-family: var(--incipit-body-font);
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: 11px;
+  line-height: 1.45;
   opacity: 0;
   pointer-events: none;
   white-space: nowrap;
@@ -5353,44 +5673,19 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   opacity: 1;
 }
 .cceHitHoverPct {
-  display: block;
   color: #f8f8f6;
-  font-size: 12px;
-  line-height: 1.18;
 }
 .cceHitHoverTime {
-  display: block;
-  margin-top: 1px;
+  margin-left: 6px;
   color: #b8b7ad;
-  font-size: 10px;
-  line-height: 1.15;
-}
-.cceHitChartMeta {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 8px;
-  margin-top: 2px;
-  color: #989898;
-  font-size: 12px;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-.cceHitChartMeta span:nth-child(2) {
-  text-align: center;
-  color: #989898;
-}
-.cceHitChartMeta span:last-child {
-  text-align: right;
 }
 .cceHitRange {
-  margin-top: 7px;
+  margin-top: 8px;
 }
 .cceRangeSvg {
   display: block;
   width: 100%;
   height: auto;
-  aspect-ratio: 500 / 44;
   overflow: visible;
   touch-action: none;
 }
@@ -5433,75 +5728,24 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceRangeHandleHit {
   cursor: ew-resize;
 }
-.cceHitStats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 6px;
-}
-.cceHitStat {
-  min-width: 0;
-  padding: 5px 7px;
-  background: rgba(18,18,18,0.16);
-  border-radius: 5px;
-}
-.cceHitStat span {
-  display: block;
-  color: #989898;
-  font-size: 11px;
-  line-height: 1.2;
-}
-.cceHitStat strong {
-  display: block;
-  margin-top: 1px;
-  color: #e8e6dd;
-  font-family: var(--incipit-emphasis-font);
-  font-size: 12px;
-  font-weight: 400;
-  line-height: 1.2;
-}
 
-/* Session flow: current context composition + cumulative token flow. */
-.cceStatTotals {
-  display: grid;
-  gap: 10px;
+/* Token spend for the brushed range: one bar over every billed class,
+   one legend entry per class carrying the value. */
+.cceStatSpend {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.07);
 }
-.cceFlowContext,
-.cceFlowTotals {
-  min-width: 0;
+.cceStatSpend:empty {
+  display: none;
 }
-.cceFlowHeader {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
+.cceSpendHead {
   margin-bottom: 6px;
-}
-.cceFlowHeader span {
-  color: #989898;
-  font-size: 12px;
-  white-space: nowrap;
-}
-.cceFlowHeader strong {
-  min-width: 0;
-  color: #e8e6dd;
-  font-family: var(--incipit-emphasis-font);
-  font-size: 12px;
-  font-weight: 400;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.cceFlowRangeTime {
-  margin: -2px 0 6px;
   color: #989898;
   font-size: 11px;
   line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
-.cceContextStack {
+.cceSpendBar {
   display: flex;
   width: 100%;
   height: 8px;
@@ -5510,118 +5754,61 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   background: rgba(18,18,18,0.28);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
 }
-.cceContextSeg {
+.cceSpendSeg {
   display: block;
   min-width: 0;
 }
-.cceContextSeg:not([style*="width:0"]) {
+/* A class that spent anything at all stays visible as a sliver; only an
+   exact zero collapses. Match the whole attribute — `width:0` as a substring
+   would also swallow `width:0.4%`. */
+.cceSpendSeg:not([style="width:0%"]) {
   min-width: 2px;
 }
-.cceContextSeg-fresh,
-.cceFlowRow-fresh .cceFlowBar span,
-.cceLegendFresh {
+.cceSpendSeg-fresh,
+.cceSpendDot-fresh {
   background: rgba(245,242,232,0.42);
 }
-.cceContextSeg-write,
-.cceFlowRow-write .cceFlowBar span,
-.cceLegendWrite {
+.cceSpendSeg-write,
+.cceSpendDot-write {
   background: rgba(168,137,110,0.48);
 }
-.cceContextSeg-read,
-.cceFlowRow-read .cceFlowBar span,
-.cceLegendRead {
+.cceSpendSeg-read,
+.cceSpendDot-read {
   background: rgba(168,137,110,0.82);
 }
-.cceFlowRow-output .cceFlowBar span {
+.cceSpendSeg-output,
+.cceSpendDot-output {
   background: rgba(195,194,183,0.74);
 }
-.cceFlowLegend {
+.cceSpendLegend {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 12px;
-  margin-top: 6px;
+  gap: 4px 14px;
+  margin-top: 7px;
   color: #989898;
   font-size: 11px;
-  line-height: 1.2;
+  line-height: 1.3;
 }
-.cceFlowLegend span {
+.cceSpendItem {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   white-space: nowrap;
 }
-.cceFlowLegend i {
+.cceSpendDot {
   display: inline-block;
   width: 7px;
   height: 7px;
   border-radius: 999px;
 }
-.cceFlowTotals {
-  display: grid;
-  gap: 5px;
-}
-.cceFlowRow {
-  display: grid;
-  grid-template-columns: 6.3em minmax(0, 1fr) 4.6em;
-  align-items: center;
-  gap: 8px;
-}
-.cceFlowLabel {
-  color: #989898;
-  font-size: 12px;
-  white-space: nowrap;
-}
-.cceFlowValue {
-  color: #e8e6dd;
-  font-family: var(--incipit-emphasis-font);
-  font-size: 12px;
-  line-height: 1.2;
-  text-align: right;
-  white-space: nowrap;
-}
-.cceFlowBar {
-  display: block;
-  width: 100%;
-  height: 6px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(18,18,18,0.22);
-}
-.cceFlowBar span {
-  display: block;
-  height: 100%;
-  min-width: 0;
-  border-radius: inherit;
-}
-.cceSelectedGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(94px, 1fr));
-  gap: 6px;
-}
-.cceSelectedMetric {
-  min-width: 0;
-  padding: 5px 7px;
-  background: rgba(18,18,18,0.16);
-  border-radius: 5px;
-}
-.cceSelectedMetric span {
-  display: block;
-  color: #989898;
-  font-size: 11px;
-  line-height: 1.2;
-  white-space: nowrap;
-}
-.cceSelectedMetric strong {
-  display: block;
-  margin-top: 1px;
+.cceSpendItem b {
   color: #e8e6dd;
   font-family: var(--incipit-emphasis-font);
   font-size: 12px;
   font-weight: 400;
-  line-height: 1.2;
-  white-space: nowrap;
 }
 .cceStatEmpty {
+  padding: 10px 0;
   color: #6a6a64;
   font-size: 12px;
   font-style: italic;
@@ -6297,4 +6484,448 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 [class*="menuHeaderHint"] kbd[data-incipit-kbd-svg="1"] svg,
 [class*="keys_"] kbd[data-incipit-kbd-svg="1"] svg {
   stroke: none !important;
+}
+
+/* ============================================================
+   Tool rows (incipit heading).
+
+   Owned only after a validated host record is available. The host summary,
+   and for file tools the host body and its "Modified" secondary line, hide
+   behind incipit's own row. The row follows the reference activity list:
+   glyph in the rail column, body face, tense-aware label plus basename or
+   description, counts, a caret only on hover or focus, expansion below.
+   ============================================================ */
+[data-incipit-tool-headline="1"] [class*="toolSummary"],
+[data-incipit-file-tool="1"] [class*="toolBody_"],
+[data-incipit-tool-headline="1"] > [class*="secondaryLine_"],
+[data-incipit-tool-headline="1"] > :not([class*="toolBody_"]) > [class*="secondaryLine_"] {
+  display: none !important;
+}
+[data-incipit-tool-headline="1"] {
+  display: block;
+  min-width: 0;
+  width: 100%;
+}
+[data-incipit-tool-heading] {
+  min-width: 0;
+  width: 100%;
+  color: #9c9c9a;
+  font-family: var(--incipit-body-font) !important;
+  font-size: var(--incipit-body-size, 13px) !important;
+  line-height: 1.55;
+}
+[data-incipit-tool-row] {
+  /* Percentage label limits need the available row width. A shrink-to-fit row
+     truncates even a short standalone action such as Fetched (2026-09-05). */
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 0 6px;
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  vertical-align: top;
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+[data-incipit-tool-row]:hover,
+[data-incipit-tool-row]:focus-within { color: #f8f8f6; }
+[data-incipit-tool-toggle] { display: inline-flex; align-items: flex-start; gap: 6px; flex: 0 0 auto; max-width: 60%; min-width: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: start; cursor: inherit; }
+[data-incipit-tool-toggle]:disabled { opacity: 1; cursor: default; }
+[data-incipit-tool-toggle] [data-incipit-tool-label] { flex-shrink: 1; }
+[data-incipit-tool-file-link] { display: inline-flex; min-width: 0; flex: 0 1 auto; padding: 0; margin: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: start; }
+button[data-incipit-tool-file-link] { cursor: pointer; background-image: radial-gradient(circle, rgba(217,119,87,0.92) 1px, transparent 1.6px); background-size: 7px 2px; background-repeat: repeat-x; background-position: 0 100%; }
+button[data-incipit-tool-file-link]:focus-visible { outline: 1px solid rgba(217,119,87,0.6); outline-offset: 2px; }
+[data-incipit-tool-toggle]:focus-visible { outline: 1px solid rgba(217,119,87,0.6); outline-offset: 2px; }
+[data-incipit-tool-use][data-incipit-tool-expandable="false"] > [data-incipit-tool-heading] [data-incipit-tool-toggle] { cursor: default; }
+[data-incipit-tool-use][data-incipit-tool-expandable="false"] > [data-incipit-tool-heading] [data-incipit-tool-toggle]:hover { color: inherit; }
+
+/* Glyph slot. Inside an activity row it moves into the rail column and paints
+   the canvas color behind itself so the connector stops around the icon. */
+[data-incipit-tool-icon] {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 1.55em;
+  color: #9c9c9a;
+  opacity: 0.9;
+  transition: color 180ms ease;
+}
+[data-incipit-activity] [data-incipit-tool-icon] {
+  margin-left: calc(-1 * var(--incipit-activity-rail));
+  margin-right: 4px;
+  background-color: #1e1e1e;
+}
+[data-incipit-tool-icon] svg { display: block; width: 16px; height: 16px; }
+[data-incipit-tool-row]:hover [data-incipit-tool-icon] { color: #f8f8f6; }
+[data-incipit-tool-use][data-incipit-tool-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon] svg { display: none; }
+[data-incipit-tool-use][data-incipit-tool-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon]::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #f8f8f6;
+  animation: incipit-activity-blink 1s linear infinite;
+}
+@keyframes incipit-activity-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+[data-incipit-tool-use][data-incipit-tool-state="error"] > [data-incipit-tool-heading] [data-incipit-tool-icon],
+[data-incipit-tool-use][data-incipit-tool-state="error"] > [data-incipit-tool-heading] [data-incipit-tool-state] { color: var(--app-error-foreground); }
+
+[data-incipit-tool-label] { flex: 0 0 auto; max-width: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-incipit-tool-subject] { display: flex; flex: 0 1 auto; min-width: 0; overflow: hidden; white-space: nowrap; }
+[data-incipit-tool-subject][hidden] { display: none; }
+[data-incipit-tool-subject="text"] { display: block; text-overflow: ellipsis; }
+[data-incipit-tool-subject="text"] > [data-incipit-tool-filename-stem] { display: inline; overflow: visible; white-space: inherit; }
+/* An open row shows its whole description in place instead of a second copy. */
+[data-incipit-tool-row][data-incipit-expanded="true"] [data-incipit-tool-subject="text"] { white-space: normal; overflow: visible; overflow-wrap: anywhere; }
+[data-incipit-tool-filename-stem] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-incipit-tool-filename-extension] { flex: 0 0 auto; }
+[data-incipit-tool-counts] { display: inline-flex; flex: 0 0 auto; gap: 5px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+[data-incipit-tool-counts-retry] { flex: 0 0 auto; padding: 1px 4px; border: 0; border-radius: 4px; color: inherit; background: transparent; font: inherit; font-size: 0.9em; opacity: 0.7; cursor: pointer; }
+[data-incipit-tool-counts-retry]:hover, [data-incipit-tool-counts-retry]:focus-visible { opacity: 1; text-decoration: underline; }
+[data-incipit-tool-counts-retry][hidden] { display: none !important; }
+[data-incipit-tool-fingerprint-text] { flex: 0 1 auto; min-width: 0; max-width: 22em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; opacity: 0.8; }
+[data-incipit-tool-state] { flex: 0 0 auto; white-space: nowrap; }
+[data-incipit-tool-heading] [data-incipit-tool-chevron] {
+  flex: 0 0 14px;
+  width: 14px;
+  height: 1.55em;
+  opacity: 0;
+  transition: opacity 180ms ease, transform 180ms ease;
+  -webkit-mask-size: 14px 14px;
+  mask-size: 14px 14px;
+}
+[data-incipit-tool-row]:hover [data-incipit-tool-chevron],
+[data-incipit-tool-row]:focus-within [data-incipit-tool-chevron],
+[data-incipit-tool-row][data-incipit-expanded="true"] [data-incipit-tool-chevron] { opacity: 0.9; }
+[data-incipit-tool-use][data-incipit-tool-headline="1"] > [data-incipit-tool-heading] [data-incipit-tool-chevron] { transform: rotate(0deg); }
+[data-incipit-tool-use][data-incipit-tool-headline="1"] > [data-incipit-tool-heading] [data-incipit-tool-row][data-incipit-expanded="true"] > [data-incipit-tool-chevron] { transform: rotate(90deg); }
+[data-incipit-tool-use][data-incipit-tool-expandable="false"] > [data-incipit-tool-heading] [data-incipit-tool-chevron] { display: none; }
+@media (hover: none) {
+  [data-incipit-tool-heading] [data-incipit-tool-chevron] { opacity: 0.9; }
+}
+[data-incipit-tool-counts][hidden], [data-incipit-tool-state][hidden], [data-incipit-tool-fingerprint-text][hidden],
+[data-incipit-tool-error][hidden] { display: none !important; }
+[data-incipit-tool-error] {
+  color: var(--app-error-foreground); white-space: pre-wrap; overflow-wrap: anywhere; padding: 2px 0 6px;
+  font-size: calc(var(--incipit-body-size, 13px) - 1px);
+}
+[data-incipit-file-tool-body] { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--incipit-fold-duration) var(--incipit-fold-easing); }
+[data-incipit-file-tool-body][data-incipit-expanded="1"] { grid-template-rows: 1fr; }
+[data-incipit-file-tool-body][hidden] { display: none !important; }
+[data-incipit-file-tool-inner] { min-height: 0; min-width: 0; overflow: hidden; }
+[data-incipit-file-tool-inner] > [data-incipit-diff-view] { margin: 2px 0 8px; }
+
+/* ============================================================
+   Diff preview.
+
+   The tool row already names the file and carries the counts, so the preview
+   is one outlined code viewport plus a single footer line for the notice,
+   paging and the complete view. The viewport sits directly on the message
+   canvas: no surface fill, no gutter fill, no code-block tint, so the only
+   backgrounds inside it are the whole-line green/red rows with their 3px
+   edge bar and the character-level tints on paired replacements.
+   ============================================================ */
+[data-incipit-diff-view] {
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  background-color: transparent;
+  box-shadow: none;
+}
+[data-incipit-diff-viewport] {
+  box-sizing: border-box;
+  max-height: min(20em, 50vh);
+  overflow: auto;
+  border: 1px solid var(--incipit-diff-border);
+  border-radius: 6px;
+  /* No reserved scrollbar gutter: the whole-line tints must reach the border,
+     and a page either overflows from its first frame or never does. */
+  scrollbar-gutter: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--incipit-diff-scrollbar-thumb) transparent;
+  background: transparent;
+}
+[data-incipit-diff-viewport]:hover { scrollbar-color: var(--incipit-diff-scrollbar-thumb-hover) transparent; }
+[data-incipit-diff-viewport]:focus-visible { outline: 1px solid rgba(217,119,87,0.6); outline-offset: 1px; }
+[data-incipit-diff-viewport] [data-incipit-diff-island-body] { width: max-content; min-width: 100%; overflow: visible; padding: 3px 0; background: transparent; }
+[data-incipit-diff-viewport] [data-incipit-diff-island-row] { grid-template-columns: 40px 14px minmax(0, 1fr); min-height: 1.55em; }
+[data-incipit-diff-viewport] [data-incipit-diff-island-row="ctx"],
+[data-incipit-diff-viewport] [data-incipit-diff-island-row="gap"] { background: transparent; }
+/* The preview lives inside the host markdown root, where fenced code gets the
+   `#272727` block tint; the diff `pre` must stay on the canvas. */
+[data-incipit-message] pre[data-incipit-diff-island-pre],
+[data-incipit-message] pre[data-incipit-diff-island-pre] code {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+[data-incipit-diff-viewport] [data-incipit-diff-island-row="add"] { background: var(--incipit-diff-add-line) !important; box-shadow: inset 3px 0 0 var(--incipit-diff-add-bar); }
+[data-incipit-diff-viewport] [data-incipit-diff-island-row="del"] { background: var(--incipit-diff-del-line) !important; box-shadow: inset 3px 0 0 var(--incipit-diff-del-bar); }
+[data-incipit-diff-viewport] [data-incipit-diff-island-pre] { grid-column: 3; min-height: 1.55em; }
+[data-incipit-diff-sign] { user-select: none; text-align: center; color: var(--incipit-diff-muted); }
+[data-incipit-diff-island-row="add"] [data-incipit-diff-sign] { color: var(--incipit-diff-add-fg); }
+[data-incipit-diff-island-row="del"] [data-incipit-diff-sign] { color: var(--incipit-diff-del-fg); }
+[data-incipit-diff-gap] { grid-column: 1 / -1; padding: 3px 10px; color: var(--incipit-diff-muted); font: 11px/1.6 var(--incipit-code-font); }
+[data-incipit-diff-eof] { display: inline-block; margin-left: 8px; color: var(--incipit-diff-muted); font-size: .85em; user-select: none; }
+[data-incipit-diff-match] { outline: 1px solid var(--incipit-diff-header-text); outline-offset: -1px; }
+[data-incipit-diff-footer] {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 3px 2px 0;
+  color: var(--incipit-diff-muted);
+  font: 11px/1.6 var(--incipit-body-font);
+}
+[data-incipit-diff-footer] [data-incipit-diff-notice] { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-incipit-diff-pages] { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 6px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+[data-incipit-diff-full] { margin-left: auto; }
+[data-incipit-diff-view] [data-incipit-diff-footer] button {
+  flex: 0 0 auto; margin: 0; padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer;
+  text-decoration: underline dotted; text-underline-offset: 3px; white-space: nowrap;
+}
+[data-incipit-diff-view] [data-incipit-diff-footer] [data-incipit-diff-full] { margin-left: auto; }
+[data-incipit-diff-view] [data-incipit-diff-footer] button:hover { color: var(--incipit-diff-header-text); }
+[data-incipit-diff-view] [data-incipit-diff-footer] button:disabled { opacity: .5; cursor: default; text-decoration: none; }
+[data-incipit-diff-pages][hidden], [data-incipit-diff-notice][hidden], [data-incipit-diff-retry][hidden],
+[data-incipit-diff-full][hidden], [data-incipit-diff-counts][hidden] { display: none !important; }
+[data-incipit-diff-empty] { padding: 6px 10px; border: 1px solid var(--incipit-diff-border); border-radius: 6px; color: var(--incipit-diff-muted); font: 12px/1.5 var(--incipit-body-font); }
+[data-incipit-diff-state="error"] [data-incipit-diff-notice],
+[data-incipit-diff-state="permission"] [data-incipit-diff-notice] { color: var(--incipit-diff-del-fg); }
+
+/* Complete view: a modal with its own header, path, search toolbar and footer. */
+[data-incipit-diff-dialog] { border: 1px solid var(--incipit-diff-border); }
+[data-incipit-diff-dialog] [data-incipit-diff-header] { height: auto; min-height: 32px; pointer-events: auto; padding: 5px 9px; }
+[data-incipit-diff-dialog] button {
+  color: inherit; font: inherit; font-size: 12px; cursor: pointer;
+  background: transparent; border: 0; padding: 3px 5px; border-radius: 3px;
+}
+[data-incipit-diff-dialog] button:hover { background: var(--incipit-diff-button-bg-hover); }
+[data-incipit-diff-dialog] button:disabled { opacity: .5; cursor: default; }
+[data-incipit-diff-dialog] [data-incipit-diff-title] { flex: 1 1 auto; min-width: 0; text-align: start; }
+[data-incipit-diff-close] { flex: 0 0 auto; white-space: nowrap; }
+[data-incipit-diff-dialog] [data-incipit-diff-viewport] { border: 0; border-radius: 0; }
+[data-incipit-diff-dialog] [data-incipit-diff-notice] { padding: 6px 10px; color: var(--incipit-diff-muted); font: 12px/1.5 var(--incipit-body-font); overflow-wrap: anywhere; }
+[data-incipit-diff-dialog] [data-incipit-diff-footer] { padding: 5px 10px; border-top: 1px solid var(--incipit-diff-divider); }
+[data-incipit-diff-dialog] [data-incipit-diff-footer]:empty { display: none; }
+[data-incipit-diff-dialog] {
+  box-sizing: border-box;
+  position: fixed;
+  inset: 0;
+  width: min(1100px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  height: auto;
+  margin: auto;
+  padding: 0;
+  color: var(--incipit-diff-text);
+  background: var(--incipit-diff-surface);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px var(--incipit-diff-shadow);
+  overflow: hidden;
+}
+[data-incipit-diff-dialog][open] { display: flex; flex-direction: column; }
+[data-incipit-diff-dialog]::backdrop { background: rgba(0, 0, 0, 0.45); }
+[data-incipit-diff-full-content] { display: flex; flex-direction: column; min-height: 0; }
+[data-incipit-diff-full-content] [data-incipit-diff-viewport] { flex: 1 1 auto; min-height: 0; max-height: calc(100vh - 210px); overscroll-behavior: contain; }
+[data-incipit-diff-full-path] { padding: 6px 10px; max-height: 4.5em; overflow: auto; color: var(--incipit-diff-muted); font: 11px/1.5 var(--incipit-code-font); overflow-wrap: anywhere; }
+[data-incipit-diff-toolbar] { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; padding: 5px 8px; border-block: 1px solid var(--incipit-diff-divider); color: var(--incipit-diff-header-text); }
+[data-incipit-diff-find] { min-width: 100px; flex: 1 1 140px; background: var(--incipit-diff-surface); color: var(--incipit-diff-text); border: 1px solid var(--incipit-diff-border); padding: 5px 7px; font: 12px var(--incipit-code-font); }
+[data-incipit-diff-search-status] { font-size: 11px; }
+
+@media (max-width: 380px) {
+  [data-incipit-diff-dialog] { width: calc(100vw - 16px); max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
+}
+
+/* Agent activity is a second reading level, not another chat surface. */
+[data-incipit-agent-card], [data-incipit-workflow] {
+  --incipit-agent-rule: rgba(248,246,240,0.14);
+  --incipit-agent-muted: #9c9c9a;
+  min-width: 0;
+}
+[data-incipit-agent-card] > :not([data-incipit-tool-heading]):not([data-incipit-agent-fold]) { display: none !important; }
+[data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-row] { padding-right: 4px; }
+[data-incipit-agent-card][data-incipit-agent-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon]::before { display: none; animation: none; }
+[data-incipit-agent-card][data-incipit-agent-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon] svg { display: none; }
+[data-incipit-agent-card][data-incipit-agent-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon]::after {
+  content: "";
+  box-sizing: border-box;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: incipit-agent-orbit 1.4s linear infinite;
+}
+@keyframes incipit-agent-orbit { to { transform: rotate(360deg); } }
+[data-incipit-agent-card][data-incipit-agent-state="queued"] > [data-incipit-tool-heading] [data-incipit-tool-icon],
+[data-incipit-agent-card][data-incipit-agent-state="unknown"] > [data-incipit-tool-heading] [data-incipit-tool-icon] { opacity: 0.55; }
+[data-incipit-agent-fold] { display: grid; grid-template-rows: 0fr; min-width: 0; }
+[data-incipit-agent-fold][hidden] { display: none !important; }
+[data-incipit-agent-fold][data-incipit-agent-open="1"] { grid-template-rows: 1fr; }
+[data-incipit-agent-fold][data-incipit-agent-animating] { transition: grid-template-rows var(--incipit-fold-duration) var(--incipit-fold-easing); }
+[data-incipit-agent-fold-inner] { min-height: 0; min-width: 0; overflow: hidden; }
+[data-incipit-agent-body] {
+  margin: 4px 0 10px;
+  padding: 0 0 0 12px;
+  border-left: 1px solid var(--incipit-agent-rule);
+  color: var(--app-primary-foreground);
+  font-family: var(--incipit-body-font);
+  font-size: var(--incipit-body-size, 13px);
+  line-height: 1.6;
+  min-width: 0;
+}
+[data-incipit-agent-toolbar], [data-incipit-agent-history-toolbar], [data-incipit-agent-record-actions] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-width: 0;
+  color: var(--incipit-agent-muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+[data-incipit-agent-toolbar] { justify-content: flex-end; padding-bottom: 5px; }
+[data-incipit-agent-toolbar][hidden] { display: none !important; }
+[data-incipit-agent-history-toolbar] { padding: 5px 0 8px; border-bottom: 1px solid var(--incipit-agent-rule); }
+[data-incipit-agent-page-label] { margin-right: auto; font-variant-numeric: tabular-nums; }
+[data-incipit-agent-action] {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+  transition: color 180ms ease, opacity 180ms ease;
+}
+[data-incipit-agent-action]:hover { color: var(--app-primary-foreground); }
+[data-incipit-agent-action]:disabled { opacity: 0.35; cursor: default; }
+[data-incipit-agent-action]:focus-visible,
+[data-incipit-workflow-phase-heading]:focus-visible { outline: 1px solid currentColor; outline-offset: 3px; border-radius: 2px; }
+[data-incipit-agent-action][hidden], [data-incipit-agent-record-actions][hidden] { display: none !important; }
+[data-incipit-agent-notice], [data-incipit-agent-error] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 12px;
+  padding: 7px 0;
+  color: var(--incipit-agent-muted);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+}
+[data-incipit-agent-error], [data-incipit-agent-notice="error"], [data-incipit-agent-notice="permission"], [data-incipit-copy-error] { color: var(--app-error-foreground); }
+[data-incipit-agent-card-status]:empty, [data-incipit-agent-history-notice]:empty, [data-incipit-workflow-notice]:empty { display: none; }
+[data-incipit-agent-records] {
+  max-height: min(52vh, 34em);
+  overflow: auto;
+  overscroll-behavior: auto;
+  min-width: 0;
+  scrollbar-width: thin;
+  padding: 4px 4px 4px 0;
+}
+[data-incipit-agent-record] { min-width: 0; padding: 4px 0; }
+[data-incipit-agent-record-actions] { justify-content: flex-end; opacity: 0; transition: opacity 180ms ease; }
+[data-incipit-agent-record]:hover > [data-incipit-agent-record-actions],
+[data-incipit-agent-record]:focus-within > [data-incipit-agent-record-actions] { opacity: 1; }
+[data-incipit-agent-record][data-incipit-agent-role="user"] > [data-incipit-agent-action] { color: var(--incipit-agent-muted); font-size: 0.92em; }
+[data-incipit-agent-block], [data-incipit-agent-record-content] { min-width: 0; }
+[data-incipit-agent-tool], [data-incipit-agent-nested-call], [data-incipit-workflow-agent] { box-sizing: border-box; padding-left: 30px; min-width: 0; }
+[data-incipit-agent-tool] > [data-incipit-tool-heading] [data-incipit-tool-icon],
+[data-incipit-agent-nested-call] > [data-incipit-tool-heading] [data-incipit-tool-icon],
+[data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-icon] { margin-left: -30px; margin-right: 4px; background: transparent; }
+[data-incipit-agent-tool] > [data-incipit-agent-fold] > [data-incipit-agent-fold-inner] { padding-right: 2px; }
+[data-incipit-agent-tool-output] { padding: 5px 0 8px; }
+[data-incipit-agent-thinking] { gap: 8px; color: var(--incipit-agent-muted); padding: 4px 0; }
+[data-incipit-agent-thinking]::before { content: "✦"; font-size: 0.8em; opacity: 0.8; }
+[data-incipit-agent-thinking] + [data-incipit-agent-fold] { padding-left: 14px; }
+[data-incipit-agent-raw-details] { margin: 6px 0; min-width: 0; }
+[data-incipit-agent-raw-details] > summary { cursor: pointer; color: var(--incipit-agent-muted); font: inherit; font-size: 0.92em; }
+[data-incipit-agent-raw], [data-incipit-agent-prose] { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
+pre[data-incipit-agent-raw], [data-incipit-agent-prose] pre {
+  box-sizing: border-box;
+  min-width: 0 !important;
+  max-width: 100%;
+  padding: 10px !important;
+  margin: 6px 0 !important;
+  border: 1px solid var(--incipit-agent-rule);
+  border-radius: 6px;
+  background: transparent !important;
+  max-height: 26em;
+  overflow: auto;
+  font-family: var(--incipit-code-font) !important;
+  font-size: 0.92em !important;
+  line-height: 1.6 !important;
+  white-space: pre;
+}
+[data-incipit-agent-prose] { color: var(--app-primary-foreground); }
+[data-incipit-agent-prose] [data-incipit-agent-raw] { max-height: 26em; overflow: auto; }
+[data-incipit-agent-prose] > div { white-space: normal; }
+[data-incipit-agent-prose] p { margin: 0.45em 0 !important; }
+[data-incipit-agent-prose] p:first-child { margin-top: 0 !important; }
+[data-incipit-agent-prose] p:last-child { margin-bottom: 0 !important; }
+[data-incipit-agent-prose] h1, [data-incipit-agent-prose] h2, [data-incipit-agent-prose] h3, [data-incipit-agent-prose] h4 { font-size: 1em !important; font-family: var(--incipit-emphasis-font, var(--incipit-body-font)) !important; font-weight: 400 !important; margin: 0.9em 0 0.4em !important; }
+[data-incipit-agent-prose] ul, [data-incipit-agent-prose] ol { padding-left: 1.6em; margin: 0.5em 0; }
+[data-incipit-agent-prose] blockquote { margin: 0.6em 0; padding: 0 0 0 12px; border-left: 2px solid var(--incipit-agent-rule); color: var(--incipit-agent-muted); }
+[data-incipit-agent-prose] table { display: block; max-width: 100%; overflow: auto; border-collapse: collapse; }
+[data-incipit-agent-prose] td, [data-incipit-agent-prose] th { border: 1px solid var(--incipit-agent-rule); padding: 5px 8px; }
+[data-incipit-agent-prose] a { color: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+[data-incipit-agent-prose] code { font-family: var(--incipit-code-font); }
+[data-incipit-agent-prose] pre > code.hljs { padding: 0; background: transparent; overflow: visible; }
+[data-incipit-agent-image] { display: block; width: auto; max-width: 100%; max-height: 240px; object-fit: contain; margin: 8px 0; border-radius: 5px; }
+[data-incipit-workflow-summary] { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 1px 0 12px; margin-bottom: 1px; border-bottom: 1px solid var(--incipit-agent-rule); }
+[data-incipit-workflow-total] { color: var(--app-primary-foreground); }
+[data-incipit-workflow-usage] { margin-left: auto; color: var(--incipit-agent-muted); font-size: 0.9em; font-variant-numeric: tabular-nums; }
+[data-incipit-workflow-phase] { min-width: 0; padding: 7px 0; }
+[data-incipit-workflow-phase] + [data-incipit-workflow-phase] { border-top: 1px solid var(--incipit-agent-rule); }
+[data-incipit-workflow-phase-heading] {
+  display: flex; align-items: baseline; gap: 8px; width: 100%; min-width: 0;
+  padding: 3px 0 7px; border: 0; background: transparent; color: var(--app-primary-foreground); font: inherit; text-align: start; cursor: pointer;
+}
+[data-incipit-workflow-phase-number] { flex: 0 0 2ch; color: var(--incipit-agent-muted); font-size: 0.85em; font-variant-numeric: tabular-nums; }
+[data-incipit-workflow-phase-title] { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+[data-incipit-workflow-phase-stats] { margin-left: auto; flex: 0 1 auto; min-width: 0; color: var(--incipit-agent-muted); font-size: 0.85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+[data-incipit-workflow-phase-state="error"] > [data-incipit-workflow-phase-heading] [data-incipit-workflow-phase-stats] { color: var(--app-error-foreground); }
+[data-incipit-workflow-caret] { flex: 0 0 6px; width: 6px; height: 6px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: translateY(-2px) rotate(45deg); opacity: 0.55; transition: transform 180ms ease, opacity 180ms ease; }
+[data-incipit-workflow-phase-heading][aria-expanded="false"] [data-incipit-workflow-caret] { transform: translateY(-2px) rotate(-45deg); }
+[data-incipit-workflow-phase-heading]:hover [data-incipit-workflow-caret] { opacity: 1; }
+[data-incipit-workflow-agent-list] { padding: 0 0 2px 12px; margin-left: 6px; border-left: 1px solid var(--incipit-agent-rule); }
+[data-incipit-workflow-agent] > [data-incipit-agent-fold] > [data-incipit-agent-fold-inner] { padding: 4px 0 8px; }
+[data-incipit-workflow-agent] [data-incipit-tool-fingerprint-text] { font-size: 0.88em; }
+[data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-toggle] { flex: 1 1 auto; max-width: 100%; }
+[data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-label] { max-width: none; }
+[data-incipit-workflow-result] { border-top: 1px solid var(--incipit-agent-rule); margin-top: 6px; }
+[data-incipit-workflow-result] [data-incipit-agent-prose] { max-height: min(52vh, 34em); overflow: auto; }
+[data-incipit-workflow-result]:empty { display: none; }
+@media (max-width: 480px) {
+  [data-incipit-agent-body] { padding-left: 8px; }
+  [data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-row] { flex-wrap: wrap; }
+  [data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-row][data-incipit-expanded="true"] [data-incipit-tool-subject="text"] { flex: 1 0 100%; order: 1; }
+  [data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-fingerprint-text] { display: none; }
+  [data-incipit-workflow-phase-heading] { flex-wrap: wrap; }
+  [data-incipit-workflow-phase-title] { flex: 1; }
+  [data-incipit-workflow-phase-stats] { flex-basis: calc(100% - 3ch); margin-left: 3ch; order: 4; }
+  [data-incipit-workflow-agent-list] { padding-left: 5px; margin-left: 3px; }
+  [data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-fingerprint-text] { display: none; }
+  [data-incipit-agent-body] [data-incipit-agent-body] { padding-left: 4px; margin-left: 0; }
 }

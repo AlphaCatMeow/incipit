@@ -1,4 +1,5 @@
 'use strict';
+import { observeTranscriptLayout } from './transcript_layout.js';
 
 export const ATTR = Object.freeze({
   attachedFiles: 'data-incipit-attached-files',
@@ -8,6 +9,13 @@ export const ATTR = Object.freeze({
   commandLabel: 'data-incipit-command-label',
   commandList: 'data-incipit-command-list',
   commandRef: 'data-incipit-command-ref',
+  compactMessage: 'data-incipit-compact-message',
+  systemMessage: 'data-incipit-system-message',
+  composerRoot: 'data-incipit-composer-root',
+  composerShell: 'data-incipit-composer-shell',
+  composerWrapper: 'data-incipit-composer-wrapper',
+  turn: 'data-incipit-turn',
+  permissionSurface: 'data-incipit-permission-surface',
   dropdown: 'data-incipit-dropdown',
   effortLabel: 'data-incipit-effort-label',
   effortLevelInline: 'data-incipit-effort-level-inline',
@@ -33,6 +41,7 @@ export const ATTR = Object.freeze({
   thinkingToggle: 'data-incipit-thinking-toggle',
   thinkingContent: 'data-incipit-thinking-content',
   thinkingSummary: 'data-incipit-thinking-summary',
+  thinkingStatic: 'data-incipit-thinking-static',
   toolArgs: 'data-incipit-tool-args',
   toolBody: 'data-incipit-tool-body',
   toolCommand: 'data-incipit-tool-command',
@@ -65,6 +74,15 @@ const STATIC_PROBES = Object.freeze([
   ['[class*="commandLabel"]', ATTR.commandLabel],
   ['[class*="commandList"]', ATTR.commandList],
   ['[class*="commandRef"]', ATTR.commandRef],
+  ['details[class*="compact_"]', ATTR.compactMessage],
+  ['[class*="messagesContainer_"] [class*="metaMessage_"]', ATTR.systemMessage],
+  ['[class*="messagesContainer_"] [class*="divider_"]:has(> [class*="wave_"])', ATTR.systemMessage],
+  ['[class*="messagesContainer_"] > [class*="turn_"]', ATTR.turn],
+  ['[class*="chatContainer_"] > [class*="inputContainer_"]', ATTR.composerShell],
+  ['[class*="inputWrapper_"]:has([class*="messageInput_"][contenteditable])', ATTR.composerWrapper],
+  ['[class*="chatContainer_"] > [class*="inputContainer_"] > [class*="permissionsContainer_"]', ATTR.permissionSurface],
+  ['fieldset[class*="inputContainer_"]', ATTR.composerRoot],
+  ['[class*="inputContainer_"]:has(> [class*="inputContainerBackground"])', ATTR.composerRoot],
   ['[class*="dropdown"]', ATTR.dropdown],
   ['[class*="dropdown_"]', ATTR.dropdown],
   ['[class*="filePath"]', ATTR.toolPath],
@@ -95,6 +113,10 @@ const STATIC_PROBES = Object.freeze([
   ['[class*="Attachments"]', ATTR.userAttachments],
   ['details[class*="thinking"]', ATTR.thinking],
   ['summary[class*="thinkingSummary"]', ATTR.thinkingSummary],
+  // Empty or redacted thinking renders as a static div with the same summary
+  // class and no disclosure; it joins the activity rail but never toggles.
+  ['div[class*="thinking_"]', ATTR.thinkingStatic],
+  ['div[class*="thinkingSummary"]', ATTR.thinkingSummary],
 ]);
 
 const CSS_ALWAYS_WARMUP_MS = 5000;
@@ -103,6 +125,13 @@ const CSS_CAPABILITIES = Object.freeze([
   { attr: ATTR.markdownRoot, name: 'runtime.cssClass.markdownRoot', presence: 'always', selectors: ['[class*="root_"]'], featureOwner: 'markdown' },
   { attr: ATTR.messagesContainer, name: 'runtime.cssClass.messagesContainer', presence: 'always', selectors: ['[class*="messagesContainer_"]'], featureOwner: 'messages' },
   { attr: ATTR.inputFooter, name: 'runtime.cssClass.inputFooter', presence: 'always', selectors: ['[class*="inputFooter"]'], featureOwner: 'composer' },
+  { attr: ATTR.composerRoot, name: 'runtime.cssClass.composerRoot', presence: 'always', selectors: ['fieldset[class*="inputContainer_"]', '[class*="inputContainer_"]:has(> [class*="inputContainerBackground"])'], featureOwner: 'composer' },
+  { attr: ATTR.composerShell, name: 'runtime.cssClass.composerShell', presence: 'always', selectors: ['[class*="chatContainer_"] > [class*="inputContainer_"]'], featureOwner: 'composer' },
+  { attr: ATTR.composerWrapper, name: 'runtime.cssClass.composerWrapper', presence: 'afterSeen', selectors: ['[class*="inputWrapper_"]:has([class*="messageInput_"][contenteditable])'], featureOwner: 'composer' },
+  { attr: ATTR.permissionSurface, name: 'runtime.cssClass.permissionSurface', presence: 'afterSeen', selectors: ['[class*="permissionsContainer_"]'], featureOwner: 'composer' },
+  { attr: ATTR.turn, name: 'runtime.cssClass.turn', presence: 'afterSeen', selectors: ['[class*="messagesContainer_"] > [class*="turn_"]'], featureOwner: 'messages' },
+  { attr: ATTR.compactMessage, name: 'runtime.cssClass.compactMessage', presence: 'afterSeen', selectors: ['details[class*="compact_"]'], featureOwner: 'messages' },
+  { attr: ATTR.systemMessage, name: 'runtime.cssClass.systemMessage', presence: 'afterSeen', selectors: ['[class*="metaMessage_"]', '[class*="divider_"]:has(> [class*="wave_"])'], featureOwner: 'messages' },
   { attr: ATTR.sendButton, name: 'runtime.cssClass.sendButton', presence: 'always', selectors: ['[class*="sendButton"]'], featureOwner: 'composer' },
 
   { attr: ATTR.message, name: 'runtime.cssClass.message', presence: 'afterSeen', selectors: ['[class*="timelineMessage"]'], featureOwner: 'messages' },
@@ -398,6 +427,7 @@ export function tagHostTree(root) {
   // editor model from the DOM, causing character corruption (e.g. a
   // period typed after CJK text gets stranded in an unselectable region).
   if (root.nodeType === 1 && root.isContentEditable) return;
+  if (root.nodeType === 1 && !root.firstElementChild && !looksLikeHostLeaf(root)) return;
   tagStaticSelectors(root);
   syncFooterHosts(root);
   syncUserMessageNodes(root);
@@ -430,6 +460,7 @@ function handleMutations(mutations) {
   if (editorFocused && isComposing) return;
 
   let hasOutsideMutation = false;
+  const added = new Set();
   for (const mutation of mutations) {
     const targetInsideEditor = !!(editorFocused && active.contains(mutation.target));
     if (editorFocused && !targetInsideEditor) {
@@ -437,15 +468,25 @@ function handleMutations(mutations) {
     }
     if (mutation.type === 'attributes') {
       if (!targetInsideEditor) markDirtyRegion(mutation.target);
+      if (!targetInsideEditor && mutation.attributeName === 'class' && looksLikeHostLeaf(mutation.target)) tagStaticElement(mutation.target);
       continue;
     }
     if (!targetInsideEditor) markDirtyRegion(mutation.target);
     for (const node of mutation.addedNodes) {
       if (node.nodeType !== 1) continue;
       if (editorFocused && active.contains(node)) continue;
-      tagHostTree(node);
+      added.add(node);
       if (!(editorFocused && active.contains(node))) markDirtyRegion(node);
     }
+  }
+  for (const node of added) {
+    let ancestor = node.parentElement;
+    let covered = false;
+    while (ancestor && ancestor !== document.body) {
+      if (added.has(ancestor)) { covered = true; break; }
+      ancestor = ancestor.parentElement;
+    }
+    if (!covered) tagHostTree(node);
   }
   // Skip the rescan only when ALL mutations are inside the contenteditable
   // editor. But if any mutation landed outside (e.g. send button state
@@ -469,13 +510,41 @@ function ensureAttr(el, attr, value = '') {
   noteCssCapability(attr, el);
 }
 
+const STATIC_PROBE_SELECTOR = STATIC_PROBES.map(([selector]) => selector).join(', ');
+const STATIC_PROBE_RULES = STATIC_PROBES.map(([selector, attr]) => {
+  const subject = selector.split(':has')[0].trim().split(/\s+>\s+|\s+/).pop();
+  const match = subject.match(/\[class\*="([^"]+)"\]/);
+  return { selector, attr, hint: match ? match[1] : null };
+});
+const HOST_CLASS_HINTS = [...new Set(STATIC_PROBE_RULES.map(rule => rule.hint).filter(Boolean)),
+  'collapseButton', 'buttonContainer', 'showMore', 'sendButton', 'effortLabel', 'spinnerRow'];
+
+function looksLikeHostLeaf(element) {
+  const classes = elementClassText(element);
+  return HOST_CLASS_HINTS.some(hint => classes.includes(hint)) ||
+    (element.tagName === 'SPAN' && element.closest?.('[class*="footerButton"]'));
+}
+
+function tagStaticElement(element) {
+  if (element.isContentEditable) return;
+  const classes = elementClassText(element);
+  for (const rule of STATIC_PROBE_RULES) {
+    if ((!rule.hint || classes.includes(rule.hint)) && element.matches(rule.selector)) {
+      ensureAttr(element, rule.attr);
+      if (rule.attr === ATTR.messagesContainer) observeTranscriptLayout(element);
+    }
+  }
+}
+
 function tagStaticSelectors(root) {
   if (root.nodeType !== 1) return;
-  for (const [selector, attr] of STATIC_PROBES) {
-    if (root.matches?.(selector) && !root.isContentEditable) ensureAttr(root, attr);
-    root.querySelectorAll?.(selector).forEach(element => {
-      if (!element.isContentEditable) ensureAttr(element, attr);
-    });
+  // Discover the subtree once; matching each candidate in memory avoids one
+  // querySelectorAll traversal per probe while preserving selector semantics.
+  const candidates = [];
+  if (root.matches?.(STATIC_PROBE_SELECTOR)) candidates.push(root);
+  root.querySelectorAll?.(STATIC_PROBE_SELECTOR).forEach(element => candidates.push(element));
+  for (const element of candidates) {
+    tagStaticElement(element);
   }
 }
 

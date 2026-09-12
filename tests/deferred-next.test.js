@@ -19,7 +19,9 @@
 //   · the official composer text layer is fully host-owned: incipit only feeds
 //     host input foreground tokens (+ retints reference chips); it never edits
 //     text/selection, styles the text layers, or syncs mirror scroll geometry
-//     (a manual sync races the host on paste/insert and desyncs the layers)
+//     (a manual sync races the host on paste/insert and desyncs the layers).
+//     The single sanctioned mirror rule is static scroll headroom (an empty
+//     `::after` block) so the host's own scrollTop copy can never clamp.
 
 const assert = require('assert');
 const fs = require('fs');
@@ -28,6 +30,7 @@ const path = require('path');
 const legacy = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_legacy.js'), 'utf8').replace(/\r\n/g, '\n');
 const theme = fs.readFileSync(path.join(__dirname, '..', 'data', 'theme.css'), 'utf8').replace(/\r\n/g, '\n');
 const warm = fs.readFileSync(path.join(__dirname, '..', 'data', 'warm-white-override.css'), 'utf8').replace(/\r\n/g, '\n');
+const ink = fs.readFileSync(path.join(__dirname, '..', 'data', 'ink-black-override.css'), 'utf8').replace(/\r\n/g, '\n');
 const shared = fs.readFileSync(path.join(__dirname, '..', 'data', 'enhance_shared.js'), 'utf8').replace(/\r\n/g, '\n');
 const hostProbe = fs.readFileSync(path.join(__dirname, '..', 'data', 'host_probe.js'), 'utf8').replace(/\r\n/g, '\n');
 const runtime = fs.readFileSync(path.join(__dirname, '..', 'data', 'runtime_kernel.js'), 'utf8').replace(/\r\n/g, '\n');
@@ -273,234 +276,8 @@ function cssRuleBody(selector) {
   ok('shared composer rail: Ask hides all, deferred queue remains closest to input');
 })();
 
-(function changeReviewComposerMiniBarIsRemoved() {
-  const state = functionBody('setupChangeReviewFileReview', 1800);
-  const blocks = functionBody('renderChangeReviewTurnBlocks', 1500);
-  const updateBlock = functionBody('updateChangeReviewTurnBlock', 3500);
-  const format = functionBody('formatChangeReviewSummary', 700);
-  const stats = functionBody('appendChangeReviewLineStats', 700);
-  const row = functionBody('renderChangeReviewFileRow', 1800);
-  const summaryRow = functionBody('renderChangeReviewSummaryRow', 1400);
-  const moreRow = functionBody('renderChangeReviewMoreRow', 1200);
-  const delegateFn = functionBody('bindChangeReviewBlockDelegation', 2800);
-  const buttonFn = functionBody('changeReviewButton', 600);
-  assert.ok(!legacy.includes('function renderChangeReviewCard()') &&
-    !legacy.includes('function ensureChangeReviewCard()') &&
-    !legacy.includes('function changeReviewActiveTurn()') &&
-    !legacy.includes('scheduleChangeReviewRender') &&
-    !legacy.includes('changeReviewExpanded') &&
-    !legacy.includes('changeReviewPayload && changeReviewPayload.activeTurn') &&
-    !theme.includes('[data-incipit-change-review-card]') &&
-    !theme.includes('[data-incipit-change-review-summary]') &&
-    !theme.includes('[data-incipit-change-review-toggle]') &&
-    !theme.includes('[data-incipit-change-review-files]'),
-    'composer change-review mini bar must be removed from webview JS/CSS');
-  assert.ok(!state.includes('setupDeferredNextVisibilityObserver()') &&
-    !state.includes('scheduleChangeReviewRender()'),
-    'change-review setup must not mount or refresh composer rail UI');
-  assert.ok(format.includes('return label;') &&
-    stats.includes("add.setAttribute('data-incipit-tool-added', '')") &&
-    stats.includes("del.setAttribute('data-incipit-tool-removed', '')") &&
-    updateBlock.includes('if (changeReviewTotalsHaveLineStats(turn))') &&
-    updateBlock.includes('appendChangeReviewLineStats(title, totals.added, totals.removed)') &&
-    row.includes('changeReviewFileHasLineStats(file)') &&
-    row.includes('appendChangeReviewLineStats(counts, file.added, file.removed)') &&
-    row.includes("row.setAttribute('data-incipit-change-review-source', 'main')") &&
-    row.includes("row.setAttribute('data-incipit-change-review-clickable', '1')"),
-    'unknown line stats must not render as misleading +0/-0 counts, while known stats use semantic +/- spans');
-  assert.ok(summaryRow.includes("row.setAttribute('data-incipit-change-review-source', summary && summary.source || 'subagent')") &&
-    summaryRow.includes("badge.setAttribute('data-incipit-change-review-subagent-badge', '')") &&
-    summaryRow.includes('formatChangeReviewSummaryFileLabel(summary)') &&
-    summaryRow.includes('appendChangeReviewLineStats(counts, summary.added, summary.removed)') &&
-    !summaryRow.includes('openChangeReviewDiff'),
-    'Agent/subagent summary rows must be visibly labeled and must not offer a fake diff');
-  assert.ok(legacy.includes('const CHANGE_REVIEW_VISIBLE_FILE_LIMIT = 3;') &&
-    updateBlock.includes('files.slice(0, CHANGE_REVIEW_VISIBLE_FILE_LIMIT)') &&
-    updateBlock.includes('renderChangeReviewMoreRow(block, turn, hiddenCount, expanded)') &&
-    moreRow.includes("row.setAttribute('data-incipit-change-review-more', '')") &&
-    // ALL block interactions must be DELEGATED to the stable turn block,
-    // never bound on per-render buttons: a payload-changing rebuild can
-    // destroy a per-button handler mid-click — the "expand / reject /
-    // open-diff sometimes does nothing" race. Guard
-    // both sides: the render fns must not bind, the delegate must route.
-    !moreRow.includes('addEventListener') &&
-    !row.includes('addEventListener') &&
-    !row.includes('openChangeReviewDiff') &&
-    !buttonFn.includes('addEventListener') &&
-    delegateFn.includes("closest('[data-incipit-change-review-more]')") &&
-    delegateFn.includes("closest('[data-incipit-change-review-reject-turn]')") &&
-    delegateFn.includes("closest('[data-incipit-change-review-reject-file]')") &&
-    delegateFn.includes('openChangeReviewDiff(file)') &&
-    delegateFn.includes("block.dataset.incipitChangeReviewExpanded = '1'") &&
-    delegateFn.includes('delete block.dataset.incipitChangeReviewExpanded') &&
-    blocks.includes('bindChangeReviewBlockDelegation(block)') &&
-    theme.includes('[data-incipit-change-review-more]') &&
-    warm.includes('[data-incipit-change-review-more]'),
-    'finalized review shows ≤3 files then reveals on demand; ALL interactions (show-more, reject turn/file, open diff) are delegated to the stable block — surviving the host-poll rebuild — not bound on per-render buttons');
-  // The block rebuild must be IDEMPOTENT: build off-DOM, then swap only on
-  // an actual diff. The block lives in the messages container watched by the
-  // typography MutationObserver; an unconditional textContent='' rebuild
-  // emits a childList mutation → noteTranscriptActionMutation → settle scan →
-  // reconcile → placeAssistantActionRow → scheduleChangeReviewTurnBlocksRender
-  // → back here, a ~360ms self-feeding loop that tore the hovered child down
-  // every cycle (the review-block hover flicker). The HTML compare short-
-  // circuits the no-op render, breaking the loop and preserving the hovered
-  // node. Regressing to an unconditional rebuild reopens the loop.
-  assert.ok(updateBlock.includes('if (next.innerHTML === block.innerHTML) return;') &&
-    updateBlock.includes('next.appendChild(header)') &&
-    !updateBlock.includes('block.appendChild(header)'),
-    'change-review block rebuild must be idempotent (build off-DOM + HTML-diff swap) so the no-op re-render emits no mutation — otherwise it self-feeds the action-row settle scan into a ~360ms hover-flicker loop');
-  assert.ok(theme.includes('[data-incipit-change-review-subagent-badge]') &&
-    theme.includes('[data-incipit-change-review-source="subagent"]') &&
-    theme.includes('margin: 8px 0 16px') &&
-    theme.includes('[data-incipit-change-review-counts] [data-incipit-tool-added]'),
-    'change-review CSS must style subagent rows, breathing room, and semantic +/- counters');
-  assert.ok(blocks.includes('placeChangeReviewTurnBlock(host, block)') &&
-    !legacy.includes('data-incipit-change-review-card'),
-    'full per-turn review belongs only in the transcript body, never above the input');
-  ok('change-review composer mini bar removed; finalized transcript block remains');
-})();
 
-(function changeReviewTranscriptBlocksWaitForFinalizedTurn() {
-  const setup = functionBody('setupChangeReviewFileReview', 3000);
-  const channel = functionBody('setupChangeReviewChannel', 1800);
-  const startNotify = functionBody('notifyChangeReviewTurnStarted', 900);
-  const notify = functionBody('notifyChangeReviewTurnFinalized', 1000);
-  const lifecycle = functionBody('postChangeReviewTurnLifecycle', 1000);
-  const key = functionBody('changeReviewTurnKeyForLastAssistant', 1200);
-  const latestUser = functionBody('changeReviewTurnKeyForLatestRealUser', 1300);
-  const findRecord = functionBody('findAssistantRecordForTurn', 900);
-  const hasText = functionBody('transcriptHasText', 450);
-  const renderBlocks = functionBody('renderChangeReviewTurnBlocks', 1500);
-  const placement = functionBody('placeChangeReviewTurnBlock', 1200);
-  const actionPlacement = functionBody('placeAssistantActionRow', 900);
-  const conversationBusy = functionBody('conversationIsBusy', 1200);
-  const legacyBusyProbe = functionBody('legacyCompositeBusyProbe', 1200);
-  const reconcile = functionBody('reconcileAssistantTranscriptActions', 2300);
-  const sweep = functionBody('sweepStreamingDisableState', 600);
-  assert.ok(!legacy.includes('function scheduleChangeReviewRender()'),
-    'ordinary composer review render path must not exist');
-  assert.ok(setup.includes("subscribeRuntime('messagesChanged'") &&
-    !setup.slice(setup.indexOf("subscribeRuntime('messagesChanged'"), setup.indexOf("subscribeRuntime('busyChanged'")).includes('scheduleChangeReviewTurnBlocksRender'),
-    'messagesChanged may refresh payload but must not append transcript review blocks mid-stream');
-  assert.ok(setup.includes("subscribeRuntime('assistantTurnFinalized'") &&
-    setup.includes('if (changeReviewBusySafe())') &&
-    setup.includes('removeCurrentBusyChangeReviewTurnBlocks();') &&
-    setup.includes('notifyChangeReviewTurnFinalized();') &&
-    setup.includes('scheduleChangeReviewTurnBlocksRender();'),
-    'transcript review blocks are appended after assistantTurnFinalized only when composite busy is false');
-  assert.ok(conversationBusy.includes('return conversationBusyTriState() === true;') &&
-    !conversationBusy.includes('return !!kernelConversationIsBusy();') &&
-    legacy.includes('function conversationBusyTriState()') &&
-    /function conversationBusyTriState\(\)[\s\S]{0,400}?return kernelConversationIsBusy\(\) === true;/.test(legacy) &&
-    legacyBusyProbe.includes("if (domState === 'stop') return true") &&
-    legacyBusyProbe.includes('activeSessionHasPartialTail()') &&
-    legacy.includes("registerRuntimeBusyProbe('legacy.compositeBusy', legacyCompositeBusyProbe)") &&
-    runtime.includes('function compositeBusyState(state = hostState)') &&
-    runtime.includes('let lastCompositeBusy = null;') &&
-    runtime.includes('function maintainCompositeBusyRecheck(compositeBusy, reason)') &&
-    runtime.includes('const compositeChanged = !sessionChanged') &&
-    runtime.includes("if (state && state.pendingInput === true) return true;") &&
-    runtime.includes("if (state && state.partialTail === true) return true;") &&
-    runtime.includes("emit(compositeBusy ? 'streamStarted' : 'streamSettled', payload);") &&
-    runtime.includes("emit('assistantTurnFinalized'"),
-    'bridge busy=false must not by itself mark the assistant turn complete; kernel + legacy share composite stop/partial probes and emit settle only after composite transition');
-  assert.ok(typography.includes('conversationIsBusy as kernelConversationIsBusy') &&
-    typography.includes('if (conversationIsBusy()) return; // streaming: settle event will re-trigger') &&
-    typography.includes('if (conversationIsBusy()) return;') &&
-    !typography.includes('return !!kernelConversationIsBusy();'),
-    'typography/mermaid/table passes must be gated by the composite runtime busy state, not raw bridge false');
-  assert.ok(notify.includes("change_review_turn_finalized") &&
-    lifecycle.includes('type,') &&
-    lifecycle.includes('turnKey') &&
-    startNotify.includes("change_review_turn_started") &&
-    latestUser.includes("m.type === 'user'") &&
-    latestUser.includes("m.type === 'assistant'") &&
-    latestUser.includes('transcriptHasText(m)') &&
-    latestUser.includes("return ''") &&
-    key.includes("m.type !== 'assistant'") &&
-    key.includes('transcriptHasToolResult(prev)') &&
-    key.includes('return recordUuid(prev)'),
-    'stream start/finalized must notify host with the real user turn key, never the previous completed user');
-  assert.ok(findRecord.includes("m.type === 'assistant' && transcriptHasText(m)") &&
-    hasText.includes("content.trim().length > 0") &&
-    hasText.includes("block.text.trim().length > 0"),
-    'turn review placement must anchor to the final text assistant, never the thinking/tool sibling');
-  assert.ok(setup.includes('if (evt && evt.busy === true) armChangeReviewTurnStarted();') &&
-    setup.includes('if (changeReviewBusySafe()) scheduleChangeReviewTurnStarted(20);') &&
-    !setup.includes('busy === true) notifyChangeReviewTurnStarted()'),
-    'busy=true must arm a delayed current-user probe, not immediately unfinalize the previous completed turn');
-  assert.ok(channel.includes('if (!changeReviewBusySafe()) scheduleChangeReviewTurnBlocksRender();'),
-    'initial/historical payload can render transcript blocks only when the session is not busy');
-  assert.ok(renderBlocks.includes('if (changeReviewBusySafe())') &&
-    renderBlocks.includes('removeCurrentBusyChangeReviewTurnBlocks();') &&
-    renderBlocks.includes('findAssistantReviewPlacement(record)') &&
-    renderBlocks.includes('placeChangeReviewTurnBlock(host, block)') &&
-    !renderBlocks.includes('host.insertBefore(block, actionRow || null)') &&
-    placement.includes("host.querySelector(':scope > .incipit-assistant-action-row')") &&
-    placement.includes('actionRow.nextSibling') &&
-    placement.includes('host.insertBefore(block, actionRow.nextSibling)') &&
-    !placement.includes('host.insertBefore(block, actionRow)') &&
-    !placement.includes('host.appendChild(block)'),
-    'transcript review blocks must wait for the incipit action row and sit after it');
-  assert.ok(actionPlacement.includes('host.insertBefore(row, anchor.nextSibling)') &&
-    actionPlacement.includes('let moved = false') &&
-    actionPlacement.includes('moved = true') &&
-    actionPlacement.includes('if (moved && changeReviewTurns().length && !changeReviewBusySafe()) scheduleChangeReviewTurnBlocksRender();') &&
-    !actionPlacement.includes("hasAttribute('data-incipit-change-review-turn')"),
-    'assistant action row must stay directly after output, then trigger review block rendering only after a real row move while idle');
-  assert.ok(typography.includes("const TRANSCRIPT_ACTION_MUTATION_IGNORED_SELECTOR = [") &&
-    typography.includes("'[data-incipit-change-review-turn]'") &&
-    typography.includes('function mutationTouchesIgnoredTranscriptActionSurface(mutation)') &&
-    typography.includes('if (!isTranscriptActionIgnoredMutationNode(node)) return false;') &&
-    typography.includes('mutationTouchesIgnoredTranscriptActionSurface(m)') &&
-    typography.includes('if (mutationTouchesIgnoredTranscriptActionSurface(m)) continue;'),
-    'typography observer must ignore incipit-owned change-review mutations so review renders cannot feed the transcript action settle loop');
-  assert.ok(sweep.includes('removeCurrentBusyAssistantTerminalDecorations();') &&
-    reconcile.includes('recordBelongsToCurrentBusyTurn(existingRecord)') &&
-    reconcile.includes('existingRow.remove();') &&
-    legacy.includes('function removeCurrentBusyChangeReviewTurnBlocks()') &&
-    legacy.includes("block.getAttribute('data-incipit-change-review-turn')") &&
-    legacy.includes('latestRealUserTurnKey()'),
-    'busy resuming after a false gap must remove current-turn assistant action rows and review blocks');
-  ok('change-review transcript block: finalized/historical only, not stream-time');
-})();
 
-(function changeReviewDiffIsOnDemandAndReusesWriteDiffModal() {
-  const request = functionBody('openChangeReviewDiff', 900);
-  const modal = functionBody('openChangeReviewDiffModal', 2200);
-  const register = functionBody('registerChangeReviewWriteDiffRenderer', 500);
-  assert.ok(request.includes("postChangeReviewRequest('change_review_diff_request', { fileId: file.id }, 12000)"),
-    'diff text must be requested on demand per file, not shipped in the ordinary payload');
-  assert.ok(register.includes('changeReviewWriteDiffRenderer = { openModal, languageClassForPath };') &&
-    legacy.includes('registerChangeReviewWriteDiffRenderer(openWriteDiffModal, languageClassForFilePath)'),
-    'the existing write-diff modal renderer must be registered for change-review reuse');
-  assert.ok(modal.includes('const renderer = changeReviewWriteDiffRenderer') &&
-    modal.includes('renderer.languageClassForPath(filePath)') &&
-    modal.includes('if (diff && Array.isArray(diff.rows)) payload.rows = diff.rows;') &&
-    modal.includes('oldStartLine: diff.oldStartLine || diff.startLine || 1') &&
-    modal.includes('closeChangeReviewModal();') &&
-    modal.includes('renderer.openModal(payload, block, stats, languageClass, lineInfo)') &&
-    !modal.includes('data-incipit-change-review-diff-grid') &&
-    !modal.includes('fillChangeReviewDiffBody'),
-    'change-review successful diff open must delegate compact row payloads to the existing write-diff modal');
-  assert.ok(legacy.includes('if (payload && Array.isArray(payload.rows))') &&
-    legacy.includes("row.kind === 'add' || row.kind === 'del' || row.kind === 'ctx' || row.kind === 'gap'") &&
-    legacy.includes('absoluteLineNumber: true') &&
-    theme.includes('[data-incipit-write-diff-row="gap"]'),
-    'write-diff renderer must accept host-supplied compact hunk rows with absolute line numbers');
-  assert.ok(!legacy.includes('function changeReviewDiffRows') &&
-    !legacy.includes('function fillChangeReviewDiffBody') &&
-    !legacy.includes('data-incipit-change-review-diff-grid') &&
-    !theme.includes('[data-incipit-change-review-diff-grid]') &&
-    !warm.includes('[data-incipit-change-review-diff-grid]'),
-    'the isolated change-review diff grid implementation must stay deleted');
-  assert.ok(theme.includes('[data-incipit-write-diff-modal]') &&
-    theme.includes('[data-incipit-write-diff-modal-content]') &&
-    warm.includes('[data-incipit-write-diff-modal-content]'),
-    'change-review diff should inherit the existing black/warm-white write-diff modal themes');
-  ok('change-review diff: on-demand payload, existing write-diff modal');
-})();
 
 (function reorderIsPointerDragNotNativeDnD() {
   const drag = functionBody('startDeferredRowDrag', 1100);
@@ -589,7 +366,6 @@ function cssRuleBody(selector) {
     'legacy runtime must not touch composer mirror geometry; mentionMirror scroll/padding is host-owned (a manual sync races the host on paste/insert and desyncs the visible layer)');
   assert.ok(!hostProbe.includes('data-incipit-input-editor') &&
     !hostProbe.includes('inputEditor') &&
-    !hostProbe.includes('messageInput') &&
     !hostProbe.includes('[aria-multiline="true"][contenteditable]'),
     'host probe must not mark or observe the official contenteditable editor');
   assert.ok(!theme.includes('data-incipit-composer-empty') &&
@@ -599,6 +375,24 @@ function cssRuleBody(selector) {
     !theme.includes('--app-mention-chip-foreground') &&
     !composerTextSelector.test(theme),
     'theme.css must not style messageInput, mentionMirror, or voiceInterim');
+  // The one sanctioned mirror rule: invisible scroll headroom. Chromium leaves
+  // a placeholder <br> at the end of the editable after a trailing line is
+  // deleted; the mirror (rendered from textContent) is then one line shorter,
+  // the host's scrollTop copy clamps at the bottom, and the visible text drifts
+  // off the caret. An empty ::after block keeps the mirror's scroll range >=
+  // the editor's so the copy never clamps. It must stay range-only: no colour,
+  // padding, font, position, or anything that could change the visible paint.
+  const mirrorHeadroomSelector = '[class*="messageInputContainer_"] > [class*="mentionMirror_"]::after';
+  const themeWithoutComments = theme.replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.strictEqual(themeWithoutComments.split('mentionMirror').length - 1, 1,
+    'theme.css may reference the composer mirror in exactly one rule (the scroll headroom block)');
+  assert.ok(themeWithoutComments.includes(mirrorHeadroomSelector + ' {'),
+    'mirror headroom must target the mirror as a direct child of messageInputContainer via ::after');
+  assert.strictEqual(cssRuleBody(mirrorHeadroomSelector).replace(/\s+/g, ' ').trim(),
+    'content: ""; display: block; height: 200px;',
+    'mirror headroom rule must only extend scrollable range (empty block, fixed height, no !important)');
+  assert.ok(!warm.includes('mentionMirror') && !ink.includes('mentionMirror'),
+    'palette overrides must not add any mirror rule of their own');
   assert.ok(!theme.includes('* {\n  scrollbar-width: auto !important;') &&
     theme.includes('*:not([class*="inputContainer_"]):not([class*="inputContainer_"] *):not([contenteditable]):not([contenteditable] *)') &&
     theme.includes('scrollbar-width: auto !important;'),

@@ -13,17 +13,26 @@ const {
 const ROOT = path.resolve(__dirname, '..');
 const THEME_PATH = path.join(ROOT, 'data', 'theme.css');
 const WARM_PATH = path.join(ROOT, 'data', 'warm-white-override.css');
+const SOURCE_DIR = path.join(ROOT, 'scripts', 'theme-sources');
+const FROZEN_THEME_PATH = path.join(SOURCE_DIR, 'theme.pre-tokenization.css');
+const FROZEN_WARM_PATH = path.join(SOURCE_DIR, 'warm-white-override.pre-tokenization.css');
 const BASELINE_PATH = path.join(__dirname, 'fixtures', 'theme-colors-baseline.json');
 const themeCss = fs.readFileSync(THEME_PATH, 'utf8');
 const warmCss = fs.readFileSync(WARM_PATH, 'utf8');
 
+// Theme changes are made in the pre-tokenization sources, so the baseline is
+// derived from those inputs (the tokenizer pins their hashes), never from the
+// generated `data/` outputs. Workflow: edit the sources, re-freeze the
+// baseline here, then `node scripts/tokenize-theme-colors.js --apply`.
 if (process.argv.includes('--write-baseline')) {
   if (fs.existsSync(BASELINE_PATH) && process.env.INCIPIT_REPLACE_THEME_BASELINE !== '1') {
     throw new Error('Refusing to replace the frozen theme baseline without INCIPIT_REPLACE_THEME_BASELINE=1.');
   }
-  const baseline = createBaseline(themeCss, warmCss, {
-    generatedFrom: '2026-07-21 pre-tokenization worktree',
-  });
+  const baseline = createBaseline(
+    fs.readFileSync(FROZEN_THEME_PATH, 'utf8'),
+    fs.readFileSync(FROZEN_WARM_PATH, 'utf8'),
+    { generatedFrom: 'scripts/theme-sources pre-tokenization inputs' },
+  );
   fs.mkdirSync(path.dirname(BASELINE_PATH), { recursive: true });
   fs.writeFileSync(BASELINE_PATH, JSON.stringify(baseline, null, 2) + '\n');
   console.log(`wrote ${path.relative(ROOT, BASELINE_PATH)}`);

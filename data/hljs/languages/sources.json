@@ -1,0 +1,119 @@
+[
+  {
+    "name": "clojure",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/clojure.min.js",
+    "sha256": "55bccef4e0b028471d18f2c62981a34ea20bc9e95f286dbff7c59579ab48224e",
+    "bytes": 4188
+  },
+  {
+    "name": "cmake",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/cmake.min.js",
+    "sha256": "e107ee6d92a7547252d0a212e163e56a24ef22e3770fa57e51993e8eab3621ea",
+    "bytes": 2537
+  },
+  {
+    "name": "dart",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/dart.min.js",
+    "sha256": "7b093ac674282b72bd4b4ddb1619187a0508077337bbd6293b127cba7f9ec0bd",
+    "bytes": 2215
+  },
+  {
+    "name": "dockerfile",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/dockerfile.min.js",
+    "sha256": "436757dd11b42ca83c2092e33bd05280344c1f716991289c843f9587d601ee4d",
+    "bytes": 520
+  },
+  {
+    "name": "dos",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/dos.min.js",
+    "sha256": "06397fa05efed85a83d866aea112b47c56adb23c343e5f8ae693e2faaa08062d",
+    "bytes": 1424
+  },
+  {
+    "name": "elixir",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/elixir.min.js",
+    "sha256": "3bcab0a64bcb6c9087f7b52fcd2e020e10c3c588448b8e2c947f3d485633f3b3",
+    "bytes": 2516
+  },
+  {
+    "name": "erlang",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/erlang.min.js",
+    "sha256": "98a22bd73f0cb76e05333dcc002455f4207bb9289bcdb6420c09ba216c9dfa04",
+    "bytes": 2065
+  },
+  {
+    "name": "groovy",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/groovy.min.js",
+    "sha256": "addec4ba9119bd54a8ab95fcc8de41c478398279d880748cc5252675e87d9238",
+    "bytes": 1670
+  },
+  {
+    "name": "haskell",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/haskell.min.js",
+    "sha256": "327f317e2ff8e786e7c2d598f3f06ff2f29cd0cb3a174eb8824e93d55fb45b27",
+    "bytes": 2264
+  },
+  {
+    "name": "julia",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/julia.min.js",
+    "sha256": "8ba5a0d2e4b0e879eaae1685076c8ae9a71d780cca63a480d5bb4913dcfdeaea",
+    "bytes": 4080
+  },
+  {
+    "name": "matlab",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/matlab.min.js",
+    "sha256": "7909f6ab67028a457122cc021d23aa978db9fe4f59b822212b3e4c33cac46faa",
+    "bytes": 2354
+  },
+  {
+    "name": "nginx",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/nginx.min.js",
+    "sha256": "4e3c62ed48196293549cebe75315c75bd05c5e5943b14441a7016d96366041fb",
+    "bytes": 1621
+  },
+  {
+    "name": "ocaml",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/ocaml.min.js",
+    "sha256": "1dc5b42d88748853c1f35b674db8ac99a201fb8b56f30104664efab3dc8baed7",
+    "bytes": 1330
+  },
+  {
+    "name": "powershell",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/powershell.min.js",
+    "sha256": "9812f1ea7bf1e4da7dcb4408cb46f3b5be3aa5bb46a01406b4092a9828a51275",
+    "bytes": 4447
+  },
+  {
+    "name": "protobuf",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/protobuf.min.js",
+    "sha256": "b28cd59f724da732c0278a47d35de4c51e4df887a67755dc2b60ad0a303f26de",
+    "bytes": 784
+  },
+  {
+    "name": "scala",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/scala.min.js",
+    "sha256": "500248a511caf5084b05c89acd4759566920f70d9cd0238d526fe2df2a14ea3e",
+    "bytes": 2154
+  },
+  {
+    "name": "scheme",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/scheme.min.js",
+    "sha256": "e7334c51f6e27b7c667dde2bfaef59ea0b145f596d102f37374059e9a4c29fd2",
+    "bytes": 3371
+  },
+  {
+    "name": "stylus",
+    "url": "https://raw.githubusercontent.com/highlightjs/cdn-release/11.9.0/build/languages/stylus.min.js",
+    "sha256": "853f4ff3b5de660c43708d5764a6877ca7c000c513f728c3ed139a620c5ca736",
+    "bytes": 10249
+  },
+  {
+    "name": "vue",
+    "url": "https://github.com/highlightjs/highlightjs-vue/blob/master/vue.js",
+    "license": "BSD-3-Clause (../LICENSE.vue)",
+    "sourceSha256": "0098082fbbc34d207f43935263d0583b153009121ba99cfb1c78f3b16e24817e",
+    "sha256": "dd4bdc2613acce6c9e83cf41e305fdbc783b6d0ee9ed32a41d1200b7558f235e",
+    "bytes": 942,
+    "modifications": "Vue 3 script setup, flexible attribute order, TypeScript and interpolation"
+  }
+]

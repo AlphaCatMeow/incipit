@@ -1,4 +1,5 @@
 import { SEL } from './host_probe.js';
+import { ensureHighlighter, normalizeLanguage } from './syntax_highlight.js';
 import { renderMathInSegment as rewriteMathInSegment } from './math_rewriter.js';
 import { collectMermaidBlocks, renderMermaidIn, MERMAID_GROUP_PALETTE } from './mermaid_render.js';
 import { CFG, assetURL, loadCSS, loadJS, log, reportHealth, warn } from './enhance_shared.js';
@@ -61,10 +62,10 @@ function domConversationLooksBusy() {
   }
 }
 
-function noteTranscriptActionMutation() {
+function noteTranscriptActionMutation(roots = null) {
   const fn = hook('noteTranscriptActionMutation');
   if (!fn) return;
-  try { fn(); }
+  try { fn(roots); }
   catch (e) { warn('transcript mutation hook failed:', e); }
 }
 
@@ -325,15 +326,8 @@ function mermaidThemeVariables() {
   };
 }
 
-const HLJS_THEME_FILES = Object.freeze({
-  'warm-black': 'hljs/styles/vs2015.min.css',
-  'ink-black': 'hljs/styles/vs2015.min.css',
-  'warm-white': 'hljs/styles/vs.min.css',
-});
-
 const assets = (() => {
   let katexPromise = null;
-  let hljsPromise = null;
   let mermaidPromise = null;
 
   return {
@@ -398,27 +392,6 @@ const assets = (() => {
         });
       }
       return katexPromise;
-    },
-    hljs() {
-      if (!hljsPromise) {
-        reportHealth('asset.hljs', 'loading');
-        const themeFile = HLJS_THEME_FILES[CFG.palette];
-        hljsPromise = Promise.all([
-          loadCSS(assetURL(themeFile)),
-          loadJS(assetURL('hljs/highlight.min.js')),
-        ]).then(() => {
-          if (typeof window.hljs === 'undefined') {
-            throw new Error('hljs loaded but window.hljs missing');
-          }
-          log('highlight.js ready (' + themeFile + ')');
-          reportHealth('asset.hljs', 'ok', { themeFile });
-        }).catch(e => {
-          reportHealth('asset.hljs', 'error', { message: e && e.message ? e.message : String(e) });
-          warn('hljs load failed:', e);
-          throw e;
-        });
-      }
-      return hljsPromise;
     },
   };
 })();
@@ -575,6 +548,11 @@ const HOST_DIFF_MODAL_CONTENT_SELECTOR = '[class*="diffEditorContainer"], .monac
 // render again.
 const TRANSCRIPT_ACTION_MUTATION_IGNORED_SELECTOR = [
   '[data-incipit-change-review-turn]',
+  '[data-incipit-tool-heading]',
+  '[data-incipit-file-tool-body]',
+  '[data-incipit-diff-view]',
+  '[data-incipit-diff-dialog]',
+  '.incipit-transcript-action-row',
 ].join(', ');
 
 function isDiffSurfaceNode(node) {
@@ -1332,7 +1310,7 @@ function handleMutations(mutations) {
       if (m.addedNodes.length) dirty = true;
     }
   }
-  if (dirty) noteTranscriptActionMutation();
+  if (dirty) noteTranscriptActionMutation(workQueued ? Array.from(pendingRoots) : null);
   if (workQueued || pendingSegments.size || pendingRoots.size) schedule();
 }
 
@@ -1393,7 +1371,7 @@ function setupObserver() {
     // mounted under this messages root. Subsequent growth is handled by
     // `handleMutations` adding individual subtrees to `pendingRoots`.
     pendingRoots.add(root);
-    noteTranscriptActionMutation();
+    noteTranscriptActionMutation(root);
     schedule();
   }
 
@@ -1561,15 +1539,18 @@ function explicitHighlightLanguage(block) {
 }
 
 function hljsCanHighlightBlock(block) {
-  const lang = explicitHighlightLanguage(block);
+  const lang = normalizeLanguage(explicitHighlightLanguage(block));
   if (!lang) return true;
   if (!window.hljs || typeof window.hljs.getLanguage !== 'function') return true;
   if (window.hljs.getLanguage(lang)) return true;
-  // highlightElement logs a warning for every unsupported language. Diff
-  // islands can contain hundreds of one-line code nodes, so one missing
-  // grammar (e.g. powershell) otherwise floods the VS Code console.
-  if (block.dataset) block.dataset.incipitHljsUnsupportedLanguage = lang;
-  if (block.classList) block.classList.add('hljs');
+  if (!syntaxWaiting.has(block)) {
+    syntaxWaiting.add(block);
+    ensureHighlighter(lang).then(highlighter => {
+      if (!block.isConnected) return;
+      if (highlighter.getLanguage(lang)) enqueueCodeHighlight(block);
+      else { block.dataset.incipitHljsUnsupportedLanguage = lang; block.classList.add('hljs'); }
+    }).catch(() => {}).finally(() => syntaxWaiting.delete(block));
+  }
   return false;
 }
 
@@ -1590,6 +1571,7 @@ function shouldDeferRegularCodeHighlight(block, busy) {
 }
 
 function highlightOneCodeBlock(block, options = {}) {
+  if (block.closest?.('[data-incipit-diff-view], [data-incipit-diff-dialog], [data-incipit-tool-collapsed="true"]')) return;
   const isDiffIsland = isIncipitDiffCodeBlock(block);
   if (!isDiffIsland && shouldDeferRegularCodeHighlight(block, options.busy === true)) {
     rememberDeferredCodeBlock(block);
@@ -1617,7 +1599,7 @@ function highlightOneCodeBlock(block, options = {}) {
 }
 
 export function highlightAllCode(root) {
-  if (typeof window.hljs === 'undefined') return;
+  if (typeof window.hljs === 'undefined') { enqueueCodeHighlight(root); return; }
   const scope = root || document.body;
   if (!scope) return;
   // During streaming the host keeps rebuilding the markdown tail. Running
@@ -1643,16 +1625,26 @@ export function highlightAllCode(root) {
   }
 }
 
-const HIGHLIGHT_CHUNK_BUDGET_MS = 8;
-const HIGHLIGHT_CHUNK_MIN_BLOCKS = 8;
+const HIGHLIGHT_CHUNK_BUDGET_MS = 4;
+const HIGHLIGHT_CHUNK_MIN_BLOCKS = 1;
 const pendingCodeHighlights = [];
 const pendingCodeHighlightSet = new Set();
+const syntaxWaiting = new WeakSet();
 let codeHighlightRaf = 0;
 
 export function enqueueCodeHighlight(root) {
-  if (typeof window.hljs === 'undefined') return;
   const scope = root || document.body;
   if (!scope) return;
+  if (!window.hljs) {
+    const selector = 'pre code:not(.language-latex):not(.language-mermaid)';
+    if (!scope.matches?.(selector) && !scope.querySelector?.(selector)) return;
+    if (!syntaxWaiting.has(scope)) {
+      syntaxWaiting.add(scope);
+      ensureHighlighter().then(() => { if (scope.isConnected) enqueueCodeHighlight(scope); })
+        .catch(() => {}).finally(() => syntaxWaiting.delete(scope));
+    }
+    return;
+  }
   const add = block => {
     if (!block || pendingCodeHighlightSet.has(block)) return;
     if (block.classList && (
@@ -1776,14 +1768,7 @@ export function initTypography(hooks = {}) {
   subscribe('streamSettled', () => scheduleMermaidScan('streamSettled'));
   setupObserver();
 
-  assets.hljs().then(() => {
-    // Once hljs lands, queue only the transcript code blocks. User/action
-    // controls were already seeded by the messages-root pass; putting
-    // document.body back into pendingRoots here caused a second full
-    // copy/action sweep on long transcripts during open.
-    const root = attachedMessagesRoot || document.querySelector(MESSAGES_ROOT_SELECTOR) || document.body;
-    if (root) enqueueCodeHighlight(root);
-  }).catch(() => { /* Already warned. */ });
+  enqueueCodeHighlight(attachedMessagesRoot || document.querySelector(MESSAGES_ROOT_SELECTOR));
 
   // Render any mermaid already present in an opened transcript (no stream, so
   // no settle event will fire for it).

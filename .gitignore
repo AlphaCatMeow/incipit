@@ -18,6 +18,9 @@ AGENTS.md
 # Internal dev notes / design docs (not for public repo)
 dev-notes/
 design-docs/
+ARCHITECTURE.md
+architecture/
+specs/
 
 # Build/temp artifacts (in case someone tries PyInstaller again)
 build/

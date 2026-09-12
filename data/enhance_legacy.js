@@ -13,6 +13,11 @@ import { parseOutlineCommandProtocol } from './legacy/conversation_outline_model
 import { initLegacyTaskIndicator } from './legacy/task_indicator.js';
 import { initLegacyDeferredNext } from './legacy/deferred_next.js';
 import { initLegacyAskRefinement } from './legacy/ask_refinement.js';
+import { initToolCards, enhanceToolCard, sweepToolCards } from './tool_cards.js';
+import { initActivityGroups, markActivityDirty, scanActivityTurns, configureActivityScheduler, flushActivityGroups, stageActivityTool } from './activity_groups.js';
+import { showDiffPayload } from './diff/view.js';
+import { resolveFileReference, isExternalReference } from './file_reference.js';
+import { getFileLanguage } from './syntax_highlight.js';
 import {
   conversationIsBusy as kernelConversationIsBusy,
   getHostState as kernelGetHostState,
@@ -731,10 +736,10 @@ import {
           mediaType: src.media_type || 'image/*',
           dataUrl,
         });
+      } else {
+        out.chips.push({ chipId: 'k-' + (++chipSeq), kind: 'keep', index: i,
+          blockKind: 'attachment', label: block.type || 'Attachment' });
       }
-      // Unknown / unrecognised block types are silently dropped from
-      // the editor view; they're already non-editable from the user's
-      // POV and forwarding an opaque blob would mislead the chip strip.
     }
     out.proseText = proseParts.join('\n');
     return out;
@@ -816,28 +821,12 @@ import {
     return null;
   }
 
-  // Walk a user record's content and pull out the first `<ide_*>` ref.
-  // Used by rerun to pre-poke `session.selection.value` so the host's
-  // own send pipeline rebuilds the exact ref text the saved record had.
-  // At most one `<ide_*>` per user message in practice (zB1 only emits
-  // one) so first-hit is correct.
-  function extractSavedIdeRef(record) {
-    const content = transcriptContent(record);
-    if (!Array.isArray(content)) return null;
-    for (const item of content) {
-      const block = unwrapTranscriptContentBlock(item);
-      if (!block || block.type !== 'text') continue;
-      const ref = parseIdeRefForSend(block.text);
-      if (ref) return ref;
-    }
-    return null;
-  }
 
   // Convert a saved `{type:'image', source:{type:'base64', media_type, data}}`
   // block back into a composer-shaped attachment `{file: File, dataUrl}`,
   // which is what `session.send`'s second arg expects (see host bundle
   // `vx`/`zB1`). Returns null for non-base64 sources we can't replay
-  // (e.g. URL-source images, which Anthropic doesn't accept anyway).
+  // (e.g. URL-source images, which this host composer adapter cannot rebuild).
   //
   // The filename is synthesized from media_type since the saved block
   // carries no filename. The host's downstream code (zB1) reads only
@@ -897,8 +886,13 @@ import {
       } else if (chip.kind === 'image-new' && chip.source) {
         att = imageSourceToAttachment(chip.source);
       }
+      if (chip.blockKind === 'image' && !att) throw new Error('This saved image cannot be replayed by the host. Reattach it or remove it before rerunning.');
+      if (chip.blockKind === 'attachment') throw new Error('This attachment type cannot be replayed by the host. Keep the original message or remove that attachment explicitly.');
+      if (chip.kind === 'keep' && chip.blockKind?.startsWith('ide_') && !parseIdeRefForSend(chip.rawText)) throw new Error('This IDE reference format cannot be replayed by the host.');
       if (att) attachments.push(att);
     }
+    const refs = (chips || []).filter(chip => chip.kind === 'keep' && chip.blockKind?.startsWith('ide_'));
+    if (refs.length > 1) throw new Error('The host can replay one IDE selection at a time. Keep one reference or copy the others into your prompt before rerunning.');
     return {
       prose: typeof text === 'string' ? text : '',
       attachments,
@@ -912,19 +906,7 @@ import {
   // host-public types `session.send` accepts.
   function buildRerunPayloadFromRecord(record) {
     const classified = classifyUserRecordBlocks(record);
-    const prose = classified.proseText || '';
-    const attachments = [];
-    const content = transcriptContent(record);
-    if (Array.isArray(content)) {
-      for (const item of content) {
-        const block = unwrapTranscriptContentBlock(item);
-        if (!block || block.type !== 'image') continue;
-        const att = imageBlockToAttachment(block);
-        if (att) attachments.push(att);
-      }
-    }
-    const savedIdeRef = extractSavedIdeRef(record);
-    return { prose, attachments, savedIdeRef };
+    return buildRerunPayloadFromEditorDraft(record, classified.proseText, classified.chips);
   }
 
   function transcriptText(record) {
@@ -977,7 +959,8 @@ import {
     const session = locateActiveSessionState();
     const messages = session && session.messages && session.messages.value;
     if (!Array.isArray(messages)) return false;
-    const idx = transcriptRecordIndex(messages, record);
+    const firstCopy = record.uuid ? messages.findIndex(message => message?.uuid === record.uuid) : -1;
+    const idx = firstCopy >= 0 ? firstCopy : transcriptRecordIndex(messages, record);
     if (idx < 0) return false;
     for (let i = idx + 1; i < messages.length; i++) {
       if (recordHasSignedThinking(messages[i])) return true;
@@ -1908,75 +1891,7 @@ import {
     return fallback;
   }
 
-  // Build an edited copy of a host message object.
-  //
-  // SHAPE NOTE (reverse-engineered from `webview/index.js` 2.1.118):
-  // `messages.value` does not hold raw JSONL records. Each entry is an
-  // `Ez` instance with the flat shape
-  //   { type, uuid, betaMessageId, content, timestamp,
-  //     parentToolUseId, isSynthetic, compactMetadata }
-  // and `content` is a `SY[]` array. Each `SY` wraps one JSONL block:
-  //   { content: { type:'text', text }, partial, hash, lastModifiedTime,
-  //     toolResultSignal, progressSignal, ... }
-  // React renders blocks via `J.content.map(B => createElement(yW,
-  // {key: B.key, ...}))`, where `B.key === B.hash + B.lastModifiedTime`.
-  //
-  // To make the webview re-render after an edit we must:
-  //   1. Build a brand-new `SY` (new hash → new key → React unmounts the
-  //      old block and mounts a new one with the new text).
-  //   2. Build a brand-new `Ez` (new instance → React.memo on the row
-  //      sees a different prop reference and re-renders this message).
-  //   3. Hand back the new `Ez` so the caller can place it into a fresh
-  //      `messages.value` array (signal subscribers fire, useMemo deps
-  //      invalidate).
-  // We pull the constructors off the existing instances, so we don't
-  // need to anchor to the minified class names. Failure path: return
-  // the original message — caller's array slice is still a new array
-  // reference, so the rest of the reflect pipeline (interrupt + clear
-  // channelId) still runs.
-  function makeEditedMessage(message, newText) {
-    if (!message || typeof message !== 'object') return message;
-    if (!Array.isArray(message.content) || message.content.length === 0) return message;
-
-    let textIdx = -1;
-    for (let i = 0; i < message.content.length; i++) {
-      const sy = message.content[i];
-      const c = sy && sy.content;
-      if (c && c.type === 'text' && typeof c.text === 'string') {
-        textIdx = i;
-        break;
-      }
-    }
-    if (textIdx < 0) return message;
-
-    const oldSy = message.content[textIdx];
-    const SyCtor = oldSy && oldSy.constructor;
-    if (typeof SyCtor !== 'function') return message;
-    let newSy;
-    try {
-      newSy = new SyCtor({ ...oldSy.content, text: newText }, !!oldSy.partial);
-    } catch (_) { return message; }
-
-    const newContent = message.content.slice();
-    newContent[textIdx] = newSy;
-
-    const EzCtor = message.constructor;
-    if (typeof EzCtor !== 'function') return message;
-    try {
-      return new EzCtor(message.type, newContent, {
-        uuid: message.uuid,
-        betaMessageId: message.betaMessageId,
-        timestamp: message.timestamp,
-        parentToolUseId: message.parentToolUseId,
-        isSynthetic: message.isSynthetic,
-        compactMetadata: message.compactMetadata,
-      });
-    } catch (_) { return message; }
-  }
-
-  // Block-aware companion to makeEditedMessage. The save path for rich
-  // user edits sends a `blocks` spec (kept-by-index + new text + new
-  // images); reflect needs to rebuild the Ez accordingly.
+  // Rebuild a host user message from kept block wrappers and edited content.
   //
   // Why reuse the original SY for `kind:'keep'` (vs constructing a
   // fresh one with the same JSONL block): SY carries `hash` and
@@ -2118,6 +2033,7 @@ import {
   // state matches current — this is the hot-path during streaming so
   // the no-op branch must stay free of DOM writes.
   function applyButtonBusyState(btn, busy) {
+    if (btn) transcriptActionButtons.add(btn);
     if (!btn) return;
     // Buttons that don't participate at all in the streaming gate (copy
     // / more — both safe during streaming).
@@ -2153,10 +2069,14 @@ import {
     if (busy) {
       try { removeCurrentBusyAssistantTerminalDecorations(); } catch (_) {}
     }
-    const icons = document.querySelectorAll('.incipit-transcript-action-btn');
-    for (const btn of icons) applyButtonBusyState(btn, busy);
-    const saves = document.querySelectorAll('.incipit-inline-edit-save');
-    for (const btn of saves) applyInlineSaveBusyState(btn, busy);
+    for (const btn of transcriptActionButtons) {
+      if (!btn.isConnected) transcriptActionButtons.delete(btn);
+      else applyButtonBusyState(btn, busy);
+    }
+    for (const btn of transcriptSaveButtons) {
+      if (!btn.isConnected) transcriptSaveButtons.delete(btn);
+      else applyInlineSaveBusyState(btn, busy);
+    }
   }
 
   const TRANSCRIPT_ACTION_QUIET_MS = 360;
@@ -2164,6 +2084,13 @@ import {
   let lastTranscriptMutationAt = 0;
   let transcriptActionSettleTimer = null;
   let transcriptActionBurstToken = 0;
+  const transcriptActionButtons = new Set();
+  const transcriptSaveButtons = new Set();
+  const assistantActionScopes = new Set();
+  const assistantActionRetries = new Set();
+  const knownAssistantRoots = new Set();
+  const transcriptIndexes = new WeakMap();
+  let assistantInitialScan = true;
 
   // ---- Turn-handoff serialization (interrupt → edit → rerun safety) ----
   //
@@ -2232,7 +2159,10 @@ import {
     } catch (_) {}
   }
 
-  function noteTranscriptActionMutation() {
+  function noteTranscriptActionMutation(roots = null) {
+    if (roots) for (const root of Array.isArray(roots) ? roots : [roots]) {
+      if (root && root.nodeType === 1) assistantActionScopes.add(root);
+    }
     lastTranscriptMutationAt = nowMs();
     scheduleTranscriptActionSettleScan();
   }
@@ -2279,7 +2209,7 @@ import {
     let frames = 0;
 
     const scanOnce = () => {
-      try { scanAssistantTranscriptActions(document.body); }
+      try { flushAssistantActionScopes(); }
       catch (e) { warn('assistant actions failed:', e); }
     };
 
@@ -2340,13 +2270,6 @@ import {
       } else {
         // Idle → busy: flip past-turn rows to disabled and remove any
         // tail-row that slipped in during the send/stop transition.
-        // Also eagerly clear any active edit hover-preview attr so a
-        // user who happened to be hovering the pencil at the moment
-        // streaming started doesn't see the draft-bg lingering on a
-        // now-disabled icon (mouseenter early-return covers fresh
-        // hovers; this handles the hover-in-flight case).
-        document.querySelectorAll('[data-incipit-edit-hover-preview]')
-          .forEach(el => el.removeAttribute('data-incipit-edit-hover-preview'));
         requestAnimationFrame(cleanupDuringBusy);
       }
     };
@@ -2368,6 +2291,9 @@ import {
       scheduleTranscriptActionSettleScan(0);
     });
     subscribeRuntime('sessionChanged', () => {
+      assistantInitialScan = true;
+      assistantActionScopes.clear(); assistantActionRetries.clear(); knownAssistantRoots.clear();
+      transcriptActionBurstToken++;
       noteTranscriptActionMutation();
     });
   }
@@ -2497,6 +2423,13 @@ import {
   // layer). The genuinely-needed non-interference fixes stay: global scrollbar
   // CSS excludes composer/contenteditable, the input container box model is
   // untouched, and no padding is added to the visible layer.
+  //
+  // The one static guarantee incipit does add lives in theme.css: an empty
+  // `::after` block gives the mirror scroll headroom so the host's own scrollTop
+  // copy can never clamp when Chromium's trailing placeholder <br> makes the
+  // editable one line taller than the mirror (the bottom-of-input drift, see
+  // dev-notes/2026-09-01-composer-mirror-clamp-investigation.md). That is CSS
+  // range, not a sync; do not reintroduce JS here.
 
   function fileDragHintText() {
     return FILE_DRAG_HINT_TEXT[CFG.language] || FILE_DRAG_HINT_TEXT.en;
@@ -3596,10 +3529,8 @@ import {
   }
 
   function changeReviewBusySafe() {
-    // Read-only / visual: gates WHEN the finalized review block renders,
-    // never whether files change. Fail-open (unknown ⇒ idle) so a broken
-    // probe surface cannot permanently brick review rendering; the
-    // busy-resume sweep already retracts a block minted into a live turn.
+    const state = kernelGetHostState();
+    if (state?.source === 'bridge') return state.busy === true || state.pendingInput === true;
     return conversationIsBusy();
   }
 
@@ -3614,26 +3545,17 @@ import {
       : [];
   }
 
-  function changeReviewTurnKeyForLastAssistant() {
-    const session = locateActiveSessionState();
-    const messages = session && session.messages && session.messages.value;
-    if (!Array.isArray(messages) || !messages.length) return '';
-    for (let i = messages.length - 1; i >= 0; i--) {
-      const m = messages[i];
-      if (!m || typeof m !== 'object') continue;
-      if (m.type === 'progress' || m.type === 'system') continue;
-      if (m.type === 'user' && transcriptHasToolResult(m)) continue;
-      if (m.type !== 'assistant') return '';
-      for (let j = i - 1; j >= 0; j--) {
-        const prev = messages[j];
-        if (!prev || typeof prev !== 'object') continue;
-        if (prev.type === 'user' && transcriptHasToolResult(prev)) continue;
-        if (prev.type === 'assistant' || prev.type === 'progress' || prev.type === 'system') continue;
-        if (prev.type !== 'user') return '';
-        return recordUuid(prev);
-      }
-      return '';
-    }
+
+  function isReviewUserPrompt(record) {
+    if (!record || record.type !== 'user' || record.isMeta || record.isSynthetic || record.message?.isMeta || transcriptHasToolResult(record)) return false;
+    if (record.parentToolUseId || record.sdkParentToolUseId || record.parent_tool_use_id) return false;
+    return !/^(?:\[Request interrupted by user|<task-notification>|<local-command-caveat>|<command-name>)/.test(transcriptText(record).trim());
+  }
+
+  function latestReviewTurnKey() {
+    const messages = locateActiveSessionState()?.messages?.value;
+    if (!Array.isArray(messages)) return '';
+    for (let i = messages.length - 1; i >= 0; i--) if (isReviewUserPrompt(messages[i])) return recordUuid(messages[i]);
     return '';
   }
 
@@ -3645,7 +3567,7 @@ import {
       const m = messages[i];
       if (!m || typeof m !== 'object') continue;
       if (m.type === 'progress' || m.type === 'system') continue;
-      if (m.type === 'user' && transcriptHasToolResult(m)) continue;
+      if (m.type === 'user' && !isReviewUserPrompt(m)) continue;
       if (m.type === 'assistant') {
         if (transcriptHasText(m)) return '';
         continue;
@@ -3658,7 +3580,7 @@ import {
 
   function removeCurrentBusyChangeReviewTurnBlocks() {
     if (!changeReviewBusySafe()) return;
-    const turnKey = latestRealUserTurnKey();
+    const turnKey = latestReviewTurnKey();
     if (!turnKey) return;
     document.querySelectorAll('[data-incipit-change-review-turn]').forEach(block => {
       if ((block.getAttribute('data-incipit-change-review-turn') || '') === turnKey) {
@@ -3717,7 +3639,7 @@ import {
   }
 
   function notifyChangeReviewTurnFinalized() {
-    postChangeReviewTurnLifecycle('change_review_turn_finalized', changeReviewTurnKeyForLastAssistant());
+    postChangeReviewTurnLifecycle('change_review_turn_finalized', changeReviewStartedTurnKey || latestReviewTurnKey());
   }
 
   function findAssistantRecordForTurn(turnKey) {
@@ -3730,10 +3652,9 @@ import {
     for (let i = userIdx + 1; i < messages.length; i++) {
       const m = messages[i];
       if (!m || typeof m !== 'object') continue;
-      if (m.type === 'user' && !transcriptHasToolResult(m)) break;
-      if (m.type === 'assistant' && transcriptHasText(m)) {
+      if (isReviewUserPrompt(m)) break;
+      if (m.type === 'assistant' && !m.parentToolUseId && !m.sdkParentToolUseId && !m.parent_tool_use_id) {
         fallback = m;
-        if (isLastAssistantOfTurn(m)) return m;
       }
     }
     return fallback;
@@ -3749,25 +3670,30 @@ import {
     const hosts = document.querySelectorAll(SEL.message + ', [class*="timelineMessage"]');
     for (const host of hosts) {
       if (host.closest(SEL.userMessageContainer) || host.closest('[class*="userMessageContainer"]')) continue;
-      if (!host.querySelector(':scope > .incipit-assistant-action-row')) continue;
       const rec = transcriptRecordForElement(host);
-      if (sameTranscriptRecord(rec, record)) return { host, markdownRoot: null };
+      if (sameTranscriptRecord(rec, record)) return { host, markdownRoot: null, after: !host.querySelector(':scope > .incipit-assistant-action-row') };
     }
     const roots = document.querySelectorAll(SEL.markdownRoot + ', [class*="root_"]');
     for (const root of roots) {
       const rec = transcriptRecordForElement(root);
       if (!sameTranscriptRecord(rec, record)) continue;
       const host = findAssistantActionHost(root) || closestByAttr(root, ATTR.message);
-      if (host && host.querySelector(':scope > .incipit-assistant-action-row')) return { host, markdownRoot: root };
+      if (host) return { host, markdownRoot: root, after: !host.querySelector(':scope > .incipit-assistant-action-row') };
     }
     return null;
   }
 
-  function placeChangeReviewTurnBlock(host, block) {
+  function placeChangeReviewTurnBlock(host, block, after = false) {
     if (!host || !block) return false;
+    if (after) {
+      if (!host.parentNode) return false;
+      if (host.nextSibling !== block) host.parentNode.insertBefore(block, host.nextSibling);
+      return true;
+    }
     const actionRow = host.querySelector(':scope > .incipit-assistant-action-row');
-    if (!actionRow) return false;
-    if (actionRow.nextSibling !== block) host.insertBefore(block, actionRow.nextSibling);
+    if (actionRow) {
+      if (actionRow.nextSibling !== block) host.insertBefore(block, actionRow.nextSibling);
+    } else if (host.lastElementChild !== block) host.appendChild(block);
     return true;
   }
 
@@ -3798,13 +3724,13 @@ import {
         block.setAttribute('data-incipit-change-review-turn', turn.turnKey);
         bindChangeReviewBlockDelegation(block);
       }
-      if (!placeChangeReviewTurnBlock(host, block)) continue;
+      if (!placeChangeReviewTurnBlock(host, block, placement.after)) continue;
       updateChangeReviewTurnBlock(block, turn);
     }
   }
 
   function updateChangeReviewTurnBlock(block, turn) {
-    const busy = changeReviewBusySafe();
+    const busy = conversationBusyTriState() !== false;
     const expanded = block.dataset.incipitChangeReviewExpanded === '1';
     // Build the new subtree OFF-DOM, then swap it into the live block only
     // when it actually differs from what's already rendered. The block
@@ -3870,6 +3796,7 @@ import {
     window.addEventListener('message', evt => {
       const msg = evt && evt.data;
       if (msg && msg.__incipitChangeReview === true && msg.payload) {
+        if (msg.payload.sessionId !== getActiveSessionId()) return;
         changeReviewPayload = msg.payload;
         if (!changeReviewBusySafe()) scheduleChangeReviewTurnBlocksRender();
         return;
@@ -3879,6 +3806,9 @@ import {
         const pending = changeReviewDiffPending.get(msg.requestId);
         if (!pending) return;
         changeReviewDiffPending.delete(msg.requestId);
+        if (msg.sessionId !== pending.sessionId || msg.cwd !== pending.cwd || pending.sessionId !== getActiveSessionId()) {
+          pending.reject(new Error('The review session changed.')); return;
+        }
         const payload = msg.payload || {};
         if (payload.ok === false) pending.reject(new Error(payload.error || 'Diff request failed'));
         else pending.resolve(payload);
@@ -3889,6 +3819,9 @@ import {
         if (!pending) return;
         changeReviewRejectPending.delete(msg.requestId);
         const payload = msg.payload || {};
+        if (pending.sessionId !== getActiveSessionId() || (payload.payload && payload.payload.sessionId !== pending.sessionId)) {
+          pending.reject(new Error('The review session changed.')); return;
+        }
         if (payload.payload) changeReviewPayload = payload.payload;
         if (payload.ok === false) pending.reject(new Error(payload.error || firstRejectError(payload) || 'Reject failed'));
         else pending.resolve(payload);
@@ -3903,7 +3836,7 @@ import {
     return hit ? hit.error : '';
   }
 
-  function postChangeReviewRequest(type, payload, timeoutMs = 10000) {
+  function postChangeReviewRequest(type, payload, timeoutMs = 10000, signal) {
     setupChangeReviewChannel();
     const api = getIncipitVsCodeApi();
     if (!api || typeof api.postMessage !== 'function') {
@@ -3917,22 +3850,35 @@ import {
       requestId,
       sessionId: getActiveSessionId(),
       cwd: getActiveSessionCwd() || (changeReviewPayload && changeReviewPayload.cwd) || null,
-      busy: changeReviewBusySafe(),
+      busy: conversationBusyTriState() !== false,
       ...payload,
     };
     return new Promise((resolve, reject) => {
-      pending.set(requestId, { resolve, reject });
+      let timer;
+      const abort = () => {
+        if (!pending.delete(requestId)) return;
+        if (type === 'change_review_diff_request') try { api.postMessage({ __incipit: true, type: 'change_review_diff_cancel', requestId }); } catch (_) {}
+        finish(Object.assign(new Error('Review closed.'), { name: 'AbortError' }));
+      };
+      const finish = (error, value) => {
+        clearTimeout(timer); signal?.removeEventListener('abort', abort);
+        if (error) reject(error); else resolve(value);
+      };
+      pending.set(requestId, { resolve: value => finish(null, value), reject: error => finish(error), sessionId: message.sessionId, cwd: message.cwd });
+      signal?.addEventListener('abort', abort, { once: true });
+      if (signal?.aborted) { abort(); return; }
       try {
         api.postMessage(message);
       } catch (error) {
         pending.delete(requestId);
-        reject(error);
+        finish(error);
         return;
       }
-      setTimeout(() => {
+      timer = setTimeout(() => {
         const item = pending.get(requestId);
         if (!item) return;
         pending.delete(requestId);
+        if (type === 'change_review_diff_request') try { api.postMessage({ __incipit: true, type: 'change_review_diff_cancel', requestId }); } catch (_) {}
         item.reject(new Error('Change review request timed out.'));
       }, timeoutMs);
     });
@@ -3961,7 +3907,7 @@ import {
   }
 
   function rejectChangeReviewTurn(turnKey, button) {
-    if (!turnKey || changeReviewBusySafe()) return;
+    if (!turnKey || conversationBusyTriState() !== false) return;
     if (button) button.dataset.incipitInflight = '1';
     const files = changeReviewTurnRejectedFiles(turnKey);
     postChangeReviewRequest('change_review_reject_request', { turnKey })
@@ -3976,7 +3922,7 @@ import {
   }
 
   function rejectChangeReviewFile(fileId, button) {
-    if (!fileId || changeReviewBusySafe()) return;
+    if (!fileId || conversationBusyTriState() !== false) return;
     if (button) button.dataset.incipitInflight = '1';
     const files = changeReviewRejectedFilesByIds([fileId]);
     postChangeReviewRequest('change_review_reject_request', { fileId })
@@ -3993,14 +3939,20 @@ import {
   function openChangeReviewDiff(file) {
     if (!file || !file.id) return;
     openChangeReviewModalShell(file.displayPath || file.filePath || 'diff', changeReviewText('loading'));
-    postChangeReviewRequest('change_review_diff_request', { fileId: file.id }, 12000)
+    const modal = changeReviewModal;
+    const sessionId = getActiveSessionId();
+    modal.controller = new AbortController();
+    postChangeReviewRequest('change_review_diff_request', { fileId: file.id, turnKey: file.turnKey }, 30000, modal.controller.signal)
       .then(payload => {
+        if (changeReviewModal !== modal || getActiveSessionId() !== sessionId) return;
         const diff = payload.diff || {};
-        openChangeReviewDiffModal(payload.file || file, diff);
+        return openChangeReviewDiffModal(payload.file || file, diff, modal);
       })
       .catch(error => {
-        openChangeReviewModalShell(file.displayPath || file.filePath || 'diff',
-          changeReviewText('diffFail', { msg: error && error.message ? error.message : String(error) }));
+        if (error.name === 'AbortError' || changeReviewModal !== modal) return;
+        modal.message.textContent = changeReviewText('diffFail', { msg: error && error.message ? error.message : String(error) });
+        const retry = document.createElement('button'); retry.type = 'button'; retry.textContent = 'Retry';
+        retry.addEventListener('click', () => openChangeReviewDiff(file)); modal.message.appendChild(retry);
       });
   }
 
@@ -4008,18 +3960,22 @@ import {
     if (!changeReviewModal) return;
     const modal = changeReviewModal;
     changeReviewModal = null;
+    modal.controller?.abort();
     document.removeEventListener('keydown', modal.onKeyDown, true);
     if (modal.backdrop && modal.backdrop.parentElement) modal.backdrop.remove();
+    if (modal.previousFocus?.isConnected) modal.previousFocus.focus({ preventScroll: true });
   }
 
   function openChangeReviewModalShell(titleText, bodyText) {
     closeChangeReviewModal();
     if (!document.body) return;
+    const previousFocus = document.activeElement;
     const backdrop = document.createElement('div');
     backdrop.setAttribute('data-incipit-change-review-modal', '');
     const content = document.createElement('div');
     content.setAttribute('data-incipit-write-diff-modal-content', '');
     content.setAttribute('data-incipit-change-review-modal-content', '');
+    content.setAttribute('role', 'dialog'); content.setAttribute('aria-label', titleText || 'File diff');
     const header = document.createElement('div');
     header.setAttribute('data-incipit-write-diff-modal-header', '');
     const title = document.createElement('span');
@@ -4054,11 +4010,12 @@ import {
       closeChangeReviewModal();
     };
     document.addEventListener('keydown', onKeyDown, true);
-    changeReviewModal = { backdrop, onKeyDown, content };
+    changeReviewModal = { backdrop, onKeyDown, content, message: body, previousFocus };
     document.body.appendChild(backdrop);
+    close.focus();
   }
 
-  function openChangeReviewDiffModal(file, diff) {
+  function openChangeReviewDiffModal(file, diff, modal) {
     const renderer = changeReviewWriteDiffRenderer;
     const title =
       (file && (file.displayPath || file.filePath)) ||
@@ -4078,26 +4035,29 @@ import {
       newText: diff && typeof diff.newText === 'string' ? diff.newText : '',
     };
     if (diff && Array.isArray(diff.rows)) payload.rows = diff.rows;
+    for (const field of ['notice', 'source', 'quality', 'lineNumbers']) if (diff?.[field] !== undefined) payload[field] = diff[field];
     const lineInfo = diff && (diff.oldStartLine || diff.newStartLine || diff.startLine)
       ? {
           oldStartLine: diff.oldStartLine || diff.startLine || 1,
           newStartLine: diff.newStartLine || diff.startLine || 1,
         }
       : null;
-    const stats = changeReviewFileHasLineStats(file)
+    const stats = diff?.stats || (changeReviewFileHasLineStats(file)
       ? {
           added: changeReviewNumber(file.added),
           removed: changeReviewNumber(file.removed),
         }
-      : null;
+      : null);
     const block = {
       name: 'ChangeReview',
       input: { file_path: filePath },
     };
     const languageClass = renderer.languageClassForPath(filePath);
-    closeChangeReviewModal();
     try {
-      renderer.openModal(payload, block, stats, languageClass, lineInfo);
+      return renderer.openModal(payload, block, stats, languageClass, lineInfo, {
+        signal: modal?.controller?.signal,
+        beforeOpen: () => closeChangeReviewModal(),
+      });
     } catch (error) {
       openChangeReviewModalShell(title,
         changeReviewText('diffFail', { msg: error && error.message ? error.message : String(error) }));
@@ -4498,6 +4458,7 @@ import {
     setupChangeReviewChannel();
     scheduleChangeReviewIdentityUpdate(0);
     subscribeRuntime('sessionChanged', () => {
+      closeChangeReviewModal();
       changeReviewPayload = null;
       changeReviewStartedTurnKey = '';
       cancelChangeReviewTurnStarted();
@@ -4508,16 +4469,15 @@ import {
       scheduleChangeReviewIdentityUpdate(250);
       if (changeReviewBusySafe()) scheduleChangeReviewTurnStarted(20);
     });
-    subscribeRuntime('busyChanged', evt => {
-      if (evt && evt.busy === true) armChangeReviewTurnStarted();
-      else cancelChangeReviewTurnStarted();
+    subscribeRuntime('executionStarted', () => {
+      armChangeReviewTurnStarted();
       if (!changeReviewBusySafe()) {
         scheduleChangeReviewIdentityUpdate(250);
       } else {
         removeCurrentBusyChangeReviewTurnBlocks();
       }
     });
-    subscribeRuntime('assistantTurnFinalized', () => {
+    subscribeRuntime('executionSettled', () => {
       if (changeReviewBusySafe()) {
         removeCurrentBusyChangeReviewTurnBlocks();
         return;
@@ -4591,47 +4551,6 @@ import {
     });
   }
 
-  const assistantUuidResolvePending = new Map();
-
-  async function ensureAssistantRecordUuid(record) {
-    if (!record || record.type !== 'assistant') return record;
-    if (recordUuid(record)) return record;
-
-    const live = liveTranscriptRecord(null, record);
-    if (live && recordUuid(live)) return live;
-
-    const betaMessageId = recordBetaMessageId(live || record);
-    if (!betaMessageId) return live || record;
-
-    const identity = transcriptRecordIdentity(live || record);
-    if (!identity) return live || record;
-
-    const key = `${identity.sessionId}:${betaMessageId}`;
-    let pending = assistantUuidResolvePending.get(key);
-    if (!pending) {
-      pending = requestTranscriptMutation('resolve_assistant_uuid', {
-        betaMessageId,
-        textTail: transcriptText(live || record).slice(-600),
-        ...identity,
-      }).then(payload => {
-        const uuid = payload && typeof payload.uuid === 'string' ? payload.uuid : '';
-        if (uuid) {
-          try { record.uuid = uuid; } catch (_) {}
-          if (live && live !== record) {
-            try { live.uuid = uuid; } catch (_) {}
-          }
-        }
-        return uuid;
-      }).finally(() => {
-        assistantUuidResolvePending.delete(key);
-      });
-      assistantUuidResolvePending.set(key, pending);
-    }
-
-    try { await pending; }
-    catch (_) { return live || record; }
-    return liveTranscriptRecord(null, live || record) || live || record;
-  }
 
   function nodeIsRendered(node) {
     return !!(
@@ -5291,7 +5210,9 @@ import {
     }
 
     try {
-      await session.send(prose, attachments, includeSelection);
+      // Saved content already contains its resolved references. Re-expanding
+      // it can read today's terminal/browser state into a replay (2026-09-05).
+      await session.send(prose, attachments, includeSelection, undefined, { expandMentions: !!overridePayload });
     } catch (error) {
       let rollback = null;
       let rollbackError = null;
@@ -5498,7 +5419,7 @@ import {
     await forkFromUser(record, button);
   }
 
-  // ---- inline editor (replaces modal for edit_user / edit_assistant_text) ----
+  // ---- User-message inline editor ----
   //
   // Flow:
   //   1. Mark the bubble's content node + the existing icon row with
@@ -5508,7 +5429,7 @@ import {
   //   2. Inject a `[data-incipit-inline-edit-shell]` sibling holding a
   //      transparent <textarea> (no border, body font, terra-red caret).
   //   3. Inject an `[data-incipit-inline-edit-actions]` sibling next to
-  //      the original icon row, holding [取消] [保存] text buttons.
+  //      the original icon row, holding Cancel and Save buttons.
   //   4. Save button respects `conversationIsBusy()`; sweep flips it.
   //   5. Cancel / save / Esc / Ctrl-Enter all teardown — remove the
   //      injected nodes and unhide the originals. Save also fires the
@@ -5798,6 +5719,7 @@ import {
   // automatically, and CSS dims it. Title flips between live and
   // streaming-explainer text.
   function applyInlineSaveBusyState(saveBtn, busy) {
+    if (saveBtn) transcriptSaveButtons.add(saveBtn);
     if (!saveBtn) return;
     const want = !!busy;
     const cur = saveBtn.dataset.incipitDisabled === '1';
@@ -5835,10 +5757,7 @@ import {
   async function saveAndRerunInlineEditor(uuid, button) {
     const state = inlineEditByUuid.get(uuid);
     if (!state) return;
-    if (state.kind !== 'user') {
-      await saveInlineEditor(uuid);
-      return;
-    }
+    if (state.record?.type !== 'user') return;
     if (blockMutationWhileBusyOrUnknown()) return;
     const text = state.textarea.value;
     const blocksSpec = buildUserEditBlocksSpec(state, text);
@@ -5862,7 +5781,7 @@ import {
 
   async function saveInlineEditor(uuid) {
     const state = inlineEditByUuid.get(uuid);
-    if (!state) return;
+    if (!state || state.record?.type !== 'user') return;
     if (blockMutationWhileBusyOrUnknown()) return;
     const text = state.textarea.value;
     const op = state.kind === 'assistant' ? 'edit_assistant_text' : 'edit_user';
@@ -5885,44 +5804,25 @@ import {
         return;
       }
     }
-
     state.saveBtn.dataset.incipitInflight = '1';
     state.cancelBtn.dataset.incipitInflight = '1';
-    let payload;
     try {
       const liveIdentity = transcriptRecordIdentity(liveTranscriptRecord(uuid, state.record)) || state.identity || {};
-      const requestPayload = blocksSpec
-        ? { uuid, blocks: blocksSpec, ...liveIdentity }
-        : { uuid, text, ...liveIdentity };
-      payload = await requestTranscriptMutation(op, requestPayload);
+      await requestTranscriptMutation('edit_user', { uuid, blocks: blocksSpec, ...liveIdentity });
     } catch (error) {
-      if (state.saveBtn) state.saveBtn.removeAttribute('data-incipit-inflight');
-      if (state.cancelBtn) state.cancelBtn.removeAttribute('data-incipit-inflight');
-      showTranscriptToast(error && error.message ? error.message : String(error), 'error');
+      state.saveBtn?.removeAttribute('data-incipit-inflight');
+      state.cancelBtn?.removeAttribute('data-incipit-inflight');
+      showTranscriptToast(error.message || String(error), 'error');
       return;
     }
-    // Teardown BEFORE reflect — otherwise React's mount of the new
-    // markdown root lands AFTER our hidden icon row + injected nodes,
-    // leaving the icon row stranded at the top of the bubble after
-    // teardown. Restoring DOM to the pre-edit shape first lets React
-    // reconcile in the same position the original markdown root held.
+    // Release the editor before React replaces the saved user bubble.
     teardownInlineEditor(uuid);
-    // Yield to the event loop so the browser can paint the closed
-    // editor before reflect's synchronous React re-render of the edited
-    // markdown row stalls the main thread (re-parsing markdown, hljs,
-    // KaTeX). Without this, teardown + the React commit run in one
-    // task and the user perceives "click → frozen → done" with zero
-    // intermediate feedback. Same total work, much better responsiveness.
     await new Promise(resolve => setTimeout(resolve, 0));
-    if (blocksSpec) {
-      reflectUserEditBlocks(uuid, blocksSpec);
-    } else {
-      reflectTranscriptMutation(op, payload, text);
-    }
+    reflectUserEditBlocks(uuid, blocksSpec);
   }
 
-  function openInlineEditor({ kind, record, bubbleHost, contentEl, originalActionRow, identity, initialText }) {
-    if (!record || !bubbleHost || !contentEl) return;
+  function openInlineEditor({ record, bubbleHost, contentEl, originalActionRow, identity }) {
+    if (!record || record.type !== 'user' || !bubbleHost || !contentEl) return;
     if (conversationIsBusy()) return;
     const existing = inlineEditByUuid.get(record.uuid);
     if (existing) {
@@ -6023,57 +5923,55 @@ import {
     textarea.rows = 1;
     shell.appendChild(textarea);
 
-    // Image paste/drop handlers (user kind only). Paste captures
+    // Image paste/drop handlers. Paste captures
     // clipboardData image items; drop captures dragged-in files.
     // Text paste falls through to the textarea's natural behaviour.
-    if (kind === 'user') {
-      textarea.addEventListener('paste', (ev) => {
-        const items = (ev.clipboardData && ev.clipboardData.items) || [];
-        let handled = false;
-        const state = inlineEditByUuid.get(record.uuid);
-        for (const it of items) {
-          if (it.kind === 'file' && /^image\//.test(it.type || '')) {
-            const file = it.getAsFile && it.getAsFile();
-            if (file && state) {
-              addInlineEditImageFromFile(state, file);
-              handled = true;
-            }
+    textarea.addEventListener('paste', (ev) => {
+      const items = (ev.clipboardData && ev.clipboardData.items) || [];
+      let handled = false;
+      const state = inlineEditByUuid.get(record.uuid);
+      for (const it of items) {
+        if (it.kind === 'file' && /^image\//.test(it.type || '')) {
+          const file = it.getAsFile && it.getAsFile();
+          if (file && state) {
+            addInlineEditImageFromFile(state, file);
+            handled = true;
           }
         }
-        if (handled) {
-          ev.preventDefault();
-          ev.stopPropagation();
-        }
-      });
-      shell.addEventListener('dragover', (ev) => {
-        // Only signal accept when an image-ish file is being dragged;
-        // suppresses VS Code's editor-level default for image drops.
-        const dt = ev.dataTransfer;
-        if (!dt) return;
-        const types = dt.types || [];
-        const looksLikeFile = Array.prototype.indexOf.call(types, 'Files') !== -1;
-        if (looksLikeFile) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          try { dt.dropEffect = 'copy'; } catch (_) {}
-        }
-      });
-      shell.addEventListener('drop', (ev) => {
-        const dt = ev.dataTransfer;
-        if (!dt) return;
-        const files = Array.from(dt.files || []).filter(f => /^image\//.test(f.type || ''));
-        if (!files.length) return;
+      }
+      if (handled) {
         ev.preventDefault();
         ev.stopPropagation();
-        const state = inlineEditByUuid.get(record.uuid);
-        if (!state) return;
-        for (const f of files) addInlineEditImageFromFile(state, f);
-      });
-    }
+      }
+    });
+    shell.addEventListener('dragover', (ev) => {
+      // Only signal accept when an image-ish file is being dragged;
+      // suppresses VS Code's editor-level default for image drops.
+      const dt = ev.dataTransfer;
+      if (!dt) return;
+      const types = dt.types || [];
+      const looksLikeFile = Array.prototype.indexOf.call(types, 'Files') !== -1;
+      if (looksLikeFile) {
+        ev.preventDefault();
+        ev.stopPropagation();
+        try { dt.dropEffect = 'copy'; } catch (_) {}
+      }
+    });
+    shell.addEventListener('drop', (ev) => {
+      const dt = ev.dataTransfer;
+      if (!dt) return;
+      const files = Array.from(dt.files || []).filter(f => /^image\//.test(f.type || ''));
+      if (!files.length) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      const state = inlineEditByUuid.get(record.uuid);
+      if (!state) return;
+      for (const f of files) addInlineEditImageFromFile(state, f);
+    });
 
     const editActions = document.createElement('div');
     editActions.className = 'incipit-transcript-action-row incipit-inline-edit-actions';
-    editActions.setAttribute('data-incipit-inline-edit-actions', kind);
+    editActions.setAttribute('data-incipit-inline-edit-actions', 'user');
 
     // SVG icon buttons (matching the original three-icon row family).
     // makeTranscriptActionButton wires stopPropagation, the
@@ -6106,13 +6004,12 @@ import {
     // too). Hide Save, keep only Cancel + Rerun so the user can't hit
     // that dead end. Read from messages.value, not DOM (virtualization).
     const hasDownstreamThinking =
-      kind === 'user' && userRecordHasDownstreamSignedThinking(record);
+      userRecordHasDownstreamSignedThinking(record);
 
     if (hasDownstreamThinking) {
       editActions.append(cancelBtn, saveRerunBtn);
     } else {
-      editActions.append(cancelBtn, saveBtn);
-      if (saveRerunBtn) editActions.appendChild(saveRerunBtn);
+      editActions.append(cancelBtn, saveBtn, saveRerunBtn);
     }
 
     // DOM injection.
@@ -6122,20 +6019,12 @@ import {
     } else {
       bubbleHost.appendChild(shell);
     }
-    // Edit-actions — placement depends on kind:
-    //  - user: inside the bubble itself, after the shell, so the
-    //    cancel/save pair sits at the bottom-right of the expanded
-    //    draft card (the bubble carries the visual identity).
-    //  - assistant: outside the markdown root, next to the original
-    //    icon row at message-host level, matching the original AI
-    //    action row position (below the warm draft card).
+    // Keep the editing controls inside the user's bubble when available.
     let editActionsPlaced = false;
-    if (kind === 'user') {
-      const userBubbleEl = contentEl.closest('[data-incipit-user-bubble]');
-      if (userBubbleEl) {
-        userBubbleEl.appendChild(editActions);
-        editActionsPlaced = true;
-      }
+    const userBubbleEl = contentEl.closest('[data-incipit-user-bubble]');
+    if (userBubbleEl) {
+      userBubbleEl.appendChild(editActions);
+      editActionsPlaced = true;
     }
     if (!editActionsPlaced) {
       if (originalActionRow && originalActionRow.parentElement) {
@@ -6148,21 +6037,18 @@ import {
     // Hide originals via attr (CSS handles display:none).
     contentEl.setAttribute('data-incipit-inline-edit-hidden', '');
     if (originalActionRow) originalActionRow.setAttribute('data-incipit-inline-edit-hidden', '');
-    // For user kind: also hide the host-rendered attachment pill row
+    // Also hide the host-rendered attachment pill row
     // (`[data-incipit-user-attachments]`). The host renders it either
     // inside the user bubble (short messages) or as a sibling above the
     // bubble (long messages). Without this hide, both the host's pills
     // *and* our chip strip render simultaneously, showing the same
     // images twice with two different visual styles. Scope query at the
     // userMessageContainer level to cover both layouts.
-    let attachmentsEl = null;
-    if (kind === 'user') {
-      attachmentsEl = bubbleHost.querySelector(SEL.userAttachments);
-      if (attachmentsEl) {
-        attachmentsEl.setAttribute('data-incipit-inline-edit-hidden', '');
-      }
+    const attachmentsEl = bubbleHost.querySelector(SEL.userAttachments);
+    if (attachmentsEl) {
+      attachmentsEl.setAttribute('data-incipit-inline-edit-hidden', '');
     }
-    bubbleHost.setAttribute('data-incipit-inline-editing', kind);
+    bubbleHost.setAttribute('data-incipit-inline-editing', 'user');
 
     const autoGrow = () => {
       textarea.style.height = 'auto';
@@ -6185,7 +6071,6 @@ import {
       }
     });
     inlineEditByUuid.set(record.uuid, {
-      kind,
       record,
       bubbleHost,
       contentEl,
@@ -6197,7 +6082,7 @@ import {
       editActionsEl: editActions,
       originalActionRow: originalActionRow || null,
       identity: identity || null,
-      // Chip strip state (user kind only). chips is mutated in place
+      // Chip strip state. chips is mutated in place
       // by removeInlineEditChip / addInlineEditImageFromFile;
       // renderInlineEditChipStrip clears + repaints `chipsContainerEl`
       // each time. chipsCounter namespace 'n-N' keeps new-image chip
@@ -6211,10 +6096,8 @@ import {
       attachmentsEl,
     });
 
-    if (kind === 'user') {
-      const seedState = inlineEditByUuid.get(record.uuid);
-      renderInlineEditChipStrip(seedState);
-    }
+    const seedState = inlineEditByUuid.get(record.uuid);
+    renderInlineEditChipStrip(seedState);
 
     applyInlineSaveBusyState(saveBtn, conversationIsBusy());
 
@@ -6410,15 +6293,12 @@ import {
         () => {
           const cur = liveRecord();
           const userContentEl = userBubbleContentElement(bubbleEl) || bubbleEl;
-          const initialText = transcriptText(cur) || userBubbleText(bubbleEl).trim();
           openInlineEditor({
-            kind: 'user',
             record: cur,
             bubbleHost: host,
             contentEl: userContentEl,
             originalActionRow: row,
             identity,
-            initialText,
           });
         }
       ));
@@ -6619,17 +6499,7 @@ import {
     if (!Array.isArray(messages)) return true;
     const idx = transcriptRecordIndex(messages, record);
     if (idx < 0) return true;
-    for (let i = idx + 1; i < messages.length; i++) {
-      const next = messages[i];
-      if (!next || typeof next !== 'object') continue;
-      const t = next.type;
-      if (t === 'assistant') return false;
-      if (t === 'user') {
-        if (transcriptHasToolResult(next)) continue;
-        return true;
-      }
-    }
-    return true;
+    return getTranscriptIndex(messages).terminal[idx] === true;
   }
 
   function lastAssistantTextRecordOfTurn() {
@@ -6668,23 +6538,32 @@ import {
     return !!(beta && beta === recordBetaMessageId(b));
   }
 
+  function getTranscriptIndex(messages) {
+    let index = transcriptIndexes.get(messages);
+    if (index && index.length === messages.length && index.stamp === lastTranscriptMutationAt) return index;
+    index = { objects: new Map(), uuids: new Map(), betas: new Map(), terminal: [], length: messages.length, stamp: lastTranscriptMutationAt };
+    let terminal = true;
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const record = messages[i];
+      if (!record || typeof record !== 'object') continue;
+      index.objects.set(record, i);
+      const uuid = recordUuid(record), beta = recordBetaMessageId(record);
+      if (uuid && !index.uuids.has(uuid)) index.uuids.set(uuid, i);
+      if (beta && !index.betas.has(beta)) index.betas.set(beta, i);
+      if (record.type === 'assistant') { index.terminal[i] = terminal; terminal = false; }
+      else if (record.type === 'user' && !transcriptHasToolResult(record)) terminal = true;
+    }
+    transcriptIndexes.set(messages, index);
+    return index;
+  }
+
   function transcriptRecordIndex(messages, record) {
     if (!Array.isArray(messages) || !record) return -1;
-    let idx = messages.findIndex(m => m === record);
-    if (idx >= 0) return idx;
-    const uuid = recordUuid(record);
-    if (uuid) {
-      for (let i = messages.length - 1; i >= 0; i--) {
-        if (recordUuid(messages[i]) === uuid) return i;
-      }
-    }
-    const beta = recordBetaMessageId(record);
-    if (beta) {
-      for (let i = messages.length - 1; i >= 0; i--) {
-        if (recordBetaMessageId(messages[i]) === beta) return i;
-      }
-    }
-    return -1;
+    const index = getTranscriptIndex(messages);
+    if (index.objects.has(record)) return index.objects.get(record);
+    const uuid = recordUuid(record), beta = recordBetaMessageId(record);
+    if (uuid && index.uuids.has(uuid)) return index.uuids.get(uuid);
+    return beta && index.betas.has(beta) ? index.betas.get(beta) : -1;
   }
 
   function latestRealUserMessageIndex(messages) {
@@ -6733,7 +6612,10 @@ import {
   }
 
   function lastAssistantMarkdownRoot(record = null) {
-    const roots = Array.from(document.querySelectorAll(SEL.markdownRoot));
+    const roots = Array.from(knownAssistantRoots).filter(root => {
+      if (root.isConnected) return true;
+      knownAssistantRoots.delete(root); return false;
+    }).sort((a, b) => a === b ? 0 : a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
     let fallback = null;
     for (let i = roots.length - 1; i >= 0; i--) {
       const root = roots[i];
@@ -6791,17 +6673,15 @@ import {
     return false;
   }
 
-  // AI text turns get a 2-icon row at the markdown end: pencil (edit
-  // local transcript) + more (copy as text/markdown). No delete:
-  // destructive operations live on user bubbles only, where they have
-  // a clean truncate-and-rerun semantic. No standalone copy: copy
-  // sits inside the more dropdown. Mid-turn assistant records
+  // Assistant output is read-only. Its terminal row retains the copy menu
+  // and the change-review placement anchor. Mid-turn assistant records
   // (thinking / tool_use / interrupted-tool-end) get nothing — the
   // turn boundary is the user's input, not the assistant's last block.
   function reconcileAssistantTranscriptActions(markdownRoot, fallbackRecord = null) {
     const host = findAssistantActionHost(markdownRoot);
     if (!host) return;
-    const domRecord = transcriptRecordForElement(host) || transcriptRecordForElement(markdownRoot);
+    knownAssistantRoots.add(markdownRoot);
+    assistantActionRetries.delete(markdownRoot);
     const existingRow = host.querySelector(':scope > .incipit-assistant-action-row');
     // Fast path: row already decorated. Once a record is the last
     // assistant text of its turn, that property is monotone (records
@@ -6815,7 +6695,7 @@ import {
     // and Interrupt. Idle→busy transitions still flip past-turn rows
     // to disabled via the busy-state observer's `cleanupDuringBusy`.
     if (existingRow) {
-      const existingRecord = domRecord || fallbackRecord;
+      const existingRecord = existingRow.__incipitTranscriptRecord || fallbackRecord || transcriptRecordForElement(host);
       if (recordBelongsToCurrentBusyTurn(existingRecord)) {
         existingRow.remove();
         removeCurrentBusyChangeReviewTurnBlocks();
@@ -6826,6 +6706,8 @@ import {
         .forEach(b => applyButtonBusyState(b, conversationIsBusy()));
       return;
     }
+    const domRecord = transcriptRecordForElement(host) || transcriptRecordForElement(markdownRoot);
+    if (!domRecord && !fallbackRecord) { assistantActionRetries.add(markdownRoot); return; }
     const domRecordLooksFinal = !!(
       domRecord &&
       domRecord.type === 'assistant' &&
@@ -6848,7 +6730,7 @@ import {
 
     const row = document.createElement('div');
     row.className = 'incipit-transcript-action-row incipit-assistant-action-row';
-    const identity = transcriptRecordIdentity(record);
+    row.__incipitTranscriptRecord = record;
     // Re-resolve the record by uuid at click time — see addUserCopyButton.
     const capturedUuid = record && record.uuid;
     const liveRecord = () => liveTranscriptRecord(capturedUuid, record);
@@ -6899,7 +6781,7 @@ import {
     document.querySelectorAll('.incipit-assistant-action-row').forEach(row => {
       const host = row.parentElement;
       if (!host || !host.isConnected) return;
-      const record = transcriptRecordForElement(host);
+      const record = row.__incipitTranscriptRecord || transcriptRecordForElement(host);
       if (!recordBelongsToCurrentBusyTurn(record)) return;
       row.remove();
     });
@@ -6909,6 +6791,7 @@ import {
   function scanAssistantTranscriptActions(root) {
     const scope = root || document.body;
     if (!scope) return;
+    if (conversationIsBusy()) { assistantActionScopes.add(scope); return; }
     if (scope.matches && scope.matches(SEL.markdownRoot)) reconcileAssistantTranscriptActions(scope);
     if (scope.querySelectorAll) {
       const markdownRoots = scope.querySelectorAll(SEL.markdownRoot);
@@ -6926,10 +6809,43 @@ import {
     sweepStreamingDisableState();
   }
 
+  function flushAssistantActionScopes() {
+    if (conversationIsBusy()) return;
+    if (assistantInitialScan) {
+      assistantInitialScan = false;
+      assistantActionScopes.add(document.querySelector(SEL.messagesContainer) || document.body);
+    }
+    const candidates = new Set(assistantActionRetries);
+    for (const scope of assistantActionScopes) {
+      if (!scope.isConnected) continue;
+      const nearest = scope.matches?.(SEL.markdownRoot) ? scope : scope.closest?.(SEL.markdownRoot);
+      if (nearest) candidates.add(nearest);
+      else scope.querySelectorAll?.(SEL.markdownRoot).forEach(root => candidates.add(root));
+    }
+    assistantActionScopes.clear();
+    const deadline = performance.now() + 4;
+    const remaining = Array.from(candidates);
+    for (let i = 0; i < remaining.length; i++) {
+      const root = remaining[i];
+      if (!root.isConnected) { assistantActionRetries.delete(root); knownAssistantRoots.delete(root); continue; }
+      reconcileAssistantTranscriptActions(root);
+      if (performance.now() >= deadline && i + 1 < remaining.length) {
+        for (let j = i + 1; j < remaining.length; j++) assistantActionScopes.add(remaining[j]);
+        requestAnimationFrame(flushAssistantActionScopes);
+        break;
+      }
+    }
+    const fallbackRecord = lastAssistantTextRecordOfTurn();
+    const tail = fallbackRecord && lastAssistantMarkdownRoot(fallbackRecord);
+    if (tail) reconcileAssistantTranscriptActions(tail, fallbackRecord);
+    sweepStreamingDisableState();
+  }
+
   function scanAndAddCopyButtons(root, options = {}) {
     const scope = root || document.body;
     if (!scope) return;
     const assistantActions = options.assistantActions !== false;
+    assistantActionScopes.add(scope);
     const handle = (bubble) => {
       // Interrupted messages are not real user input.
       if (bubble.querySelector(SEL.interruptedMessage)) return;
@@ -6941,7 +6857,7 @@ import {
     const userBubbles = scope.querySelectorAll(SEL.userBubble);
     for (const bubble of userBubbles) handle(bubble);
     if (assistantActions) {
-      scanAssistantTranscriptActions(scope);
+      scheduleTranscriptActionSettleScan();
     } else if (options.sweepBusyState !== false) {
       // Sweep at the end so newly-mounted user-bubble rows (created above
       // by addUserCopyButton) snap to the current busy state in the same
@@ -8017,6 +7933,12 @@ import {
   // half-broken UI — but if this function ever stops decorating anything,
   // the first suspect is a fiber shape drift, not a CSS selector miss.
   function setupToolFold() {
+    initToolCards({
+      getApi: getIncipitVsCodeApi,
+      getIdentity: () => ({ sessionId: getActiveSessionId(), cwd: getActiveSessionCwd() }),
+      getSession: locateActiveSessionState,
+    });
+    initActivityGroups();
     // Animated expand / collapse for the tool body. Drives the transition
     // by writing `inline max-height` from `scrollHeight` so the curve runs
     // the full natural distance — a fixed CSS `max-height` cap would let
@@ -8055,6 +7977,7 @@ import {
 
     function clearFoldInline(target) {
       cancelFoldAnimation(target);
+      target.removeAttribute('data-incipit-fold-animating');
       target.style.maxHeight = '';
       target.style.transitionDuration = '';
     }
@@ -8072,6 +7995,7 @@ import {
         }
         target.removeEventListener('transitionend', onEnd);
         target.__incipitFoldEnd = null;
+        target.removeAttribute('data-incipit-fold-animating');
         target.style.maxHeight = '';
         target.style.transitionDuration = '';
       }
@@ -8119,11 +8043,13 @@ import {
       // row label/chevron state before measuring the open layout.
       targets.forEach(t => {
         cancelFoldAnimation(t);
+        t.setAttribute('data-incipit-fold-animating', '');
         t.style.transitionDuration = '0ms';
         t.style.maxHeight = '0px';
       });
       el.dataset.incipitToolCollapsed = 'false';
       targets.forEach(t => { void t.offsetHeight; });
+      globalThis.__incipitTypography?.enqueueCodeHighlight?.(el);
       scheduleFoldLayoutRefresh(targets);
 
       targets.forEach(t => {
@@ -8153,6 +8079,7 @@ import {
       const starts = targets.map(foldTargetHeight);
       targets.forEach((t, i) => {
         cancelFoldAnimation(t);
+        t.setAttribute('data-incipit-fold-animating', '');
         const start = starts[i];
         if (start > 0) {
           t.style.transitionDuration = foldDuration(start) + 'ms';
@@ -8182,18 +8109,8 @@ import {
       animateCollapseTargets(el, [body]);
     }
 
-    // First-time collapse without the flash. CSS gives toolBody (and
-    // grep expansion) a default `max-height` transition so click
-    // toggles animate. But the very first time we set
-    // `data-incipit-tool-collapsed='true'` (right after stream finishes
-    // filling the body), the body's resting max-height is `none` and
-    // Chromium does interpolate `none → 0` by treating `none` as the
-    // current scrollHeight — visible as the tool flashing fully open
-    // and then snapping shut. Inline `transition: none` + force-reflow
-    // + rAF restore makes the initial snap instant, leaving the click
-    // animation rule untouched. Older comment claimed Chromium does
-    // not interpolate this case; that turned out to be wrong in
-    // practice.
+    // Suppress the initial transition across a paint without forcing one
+    // synchronous layout per mounted tool. User-triggered folds still animate.
     function snapInitialCollapse(el) {
       const targets = [];
       const tb = el.querySelector('[class*="toolBody_"]');
@@ -8206,11 +8123,10 @@ import {
         t.style.transition = 'none';
       });
       el.dataset.incipitToolCollapsed = 'true';
-      // Force a synchronous layout pass so the no-transition collapse
-      // commits before we restore the CSS-driven transition next frame.
-      if (targets.length) void targets[0].offsetHeight;
       requestAnimationFrame(() => {
-        targets.forEach((t, i) => { t.style.transition = prevs[i] || ''; });
+        requestAnimationFrame(() => targets.forEach((t, i) => {
+          if (t.isConnected) t.style.transition = prevs[i] || '';
+        }));
       });
     }
 
@@ -8430,6 +8346,7 @@ import {
       const targetId = useBlock && useBlock.id;
       if (targetId && result.reason === 'shapeMiss' && !_toolResultDiagSeen.has(targetId)) {
         _toolResultDiagSeen.add(targetId);
+        if (_toolResultDiagSeen.size > 128) _toolResultDiagSeen.delete(_toolResultDiagSeen.values().next().value);
         console.warn('[incipit] toolResultSignal not found for', targetId.slice(-8),
                      '— host fiber prop shape may have changed; run __incipitDumpFiber()');
       }
@@ -8454,19 +8371,20 @@ import {
     }
 
     function lineDiffStats(oldText, newText) {
-      const a = String(oldText == null ? '' : oldText).split('\n');
-      const b = String(newText == null ? '' : newText).split('\n');
+      const before = String(oldText == null ? '' : oldText), after = String(newText == null ? '' : newText);
+      if (before.length + after.length > 128 * 1024) return null;
+      const lines = text => { const value = text ? text.replace(/\r\n/g, '\n').split('\n') : []; if (value.at(-1) === '') value.pop(); return value; };
+      const a = lines(before), b = lines(after);
       const m = a.length, n = b.length;
-      if (m === 0 && n === 0) return { added: 0, removed: 0 };
-      if (m * n > 500000) {
-        return {
-          added: Math.max(0, n - m),
-          removed: Math.max(0, m - n),
-        };
-      }
+      if (!m || !n) return { added: n, removed: m };
+      // A net length difference is not a change count; wait for history when
+      // an exact input estimate exceeds this frame's budget (2026-09-05).
+      if (m * n > 500000) return null;
+      const deadline = performance.now() + 2;
       const prev = new Array(n + 1).fill(0);
       const curr = new Array(n + 1).fill(0);
       for (let i = 1; i <= m; i++) {
+        if ((i & 7) === 0 && performance.now() >= deadline) return null;
         for (let j = 1; j <= n; j++) {
           if (a[i - 1] === b[j - 1]) curr[j] = prev[j - 1] + 1;
           else curr[j] = curr[j - 1] > prev[j] ? curr[j - 1] : prev[j];
@@ -8823,6 +8741,7 @@ import {
       shapeValidate: opener => opener && typeof opener.open === 'function',
       probe(el) {
         if (!el) return { ok: false, value: null, reason: 'notMounted' };
+        for (let depth = 0; el && depth < 12 && !reactFiberKeyForElement(el); depth++) el = el.parentElement;
         const fk = reactFiberKeyForElement(el);
         if (!fk) return { ok: false, value: null, reason: 'noFiber' };
         let f = el[fk];
@@ -9079,68 +8998,7 @@ import {
     }
 
     function languageClassForFilePath(filePath) {
-      const base = basenameOfPath(filePath).toLowerCase();
-      const m = base.match(/\.([a-z0-9]+)$/);
-      const ext = m ? m[1] : base;
-      const langByExt = {
-        bash: 'bash',
-        bat: 'dos',
-        c: 'c',
-        cc: 'cpp',
-        cls: 'apex',
-        cmd: 'dos',
-        cpp: 'cpp',
-        cs: 'csharp',
-        css: 'css',
-        csv: 'csv',
-        cxx: 'cpp',
-        diff: 'diff',
-        dockerfile: 'dockerfile',
-        go: 'go',
-        h: 'cpp',
-        hpp: 'cpp',
-        html: 'xml',
-        ini: 'ini',
-        java: 'java',
-        js: 'javascript',
-        json: 'json',
-        jsonl: 'json',
-        jsx: 'javascript',
-        kt: 'kotlin',
-        less: 'less',
-        lua: 'lua',
-        m: 'objectivec',
-        // Diff previews must display markdown-family files as literal source.
-        // highlight.js' markdown lexer injects semantic spans such as
-        // `.hljs-strong` / `.hljs-bullet`, which visually reads as markdown
-        // rendering inside the diff. Force these files through plaintext.
-        markdown: 'plaintext',
-        md: 'plaintext',
-        mdx: 'plaintext',
-        mdown: 'plaintext',
-        mkd: 'plaintext',
-        mjs: 'javascript',
-        mm: 'objectivec',
-        patch: 'diff',
-        php: 'php',
-        ps1: 'powershell',
-        py: 'python',
-        rb: 'ruby',
-        rs: 'rust',
-        scss: 'scss',
-        sh: 'bash',
-        sql: 'sql',
-        swift: 'swift',
-        toml: 'toml',
-        ts: 'typescript',
-        tsx: 'typescript',
-        txt: 'plaintext',
-        xml: 'xml',
-        yaml: 'yaml',
-        yml: 'yaml',
-      };
-      const lang = langByExt[ext] || 'plaintext';
-      return 'language-' + lang;
+      return 'language-' + getFileLanguage(filePath);
     }
 
     function findDirectChildByAttr(parent, attrName) {
@@ -9729,16 +9587,6 @@ import {
         evt.preventDefault();
         closeWriteDiffModal();
       });
-      const onKeyDown = evt => {
-        if (evt.key !== 'Escape') return;
-        evt.preventDefault();
-        closeWriteDiffModal();
-      };
-      document.addEventListener('keydown', onKeyDown, true);
-      writeDiffModal = { backdrop, onKeyDown };
-
-      document.body.appendChild(backdrop);
-      highlightDiffIsland(content);
     }
 
     registerChangeReviewWriteDiffRenderer(openWriteDiffModal, languageClassForFilePath);
@@ -10328,75 +10176,13 @@ import {
       tipPendingProbe = null;
     }
 
-    function safeDecodeURIComponent(value) {
-      try { return decodeURIComponent(value); } catch (_) { return value; }
-    }
-
-    function fileHrefToLocalPath(rawHref) {
-      try {
-        const url = new URL(rawHref);
-        const host = safeDecodeURIComponent(url.hostname || '');
-        let pathname = safeDecodeURIComponent(url.pathname || '');
-        if (/^\/[A-Za-z]:\//.test(pathname)) {
-          return pathname.slice(1).replace(/\//g, '\\');
-        }
-        if (host && host.toLowerCase() !== 'localhost') {
-          const body = pathname.replace(/^\/+/, '');
-          return '//' + host + (body ? '/' + body : '');
-        }
-        return pathname;
-      } catch (_) {
-        return null;
-      }
-    }
-
     function eventTargetElement(node) {
       if (!node) return null;
       return node.nodeType === 1 ? node : (node.parentElement || null);
     }
 
-    function isExternalHref(raw) {
-      if (!raw) return false;
-      // Windows `C:\x` / `C:/x` is a filesystem path, not a URL scheme.
-      if (/^[A-Za-z]:[\\/]/.test(raw)) return false;
-      return /^[a-z][a-z0-9+.-]*:/i.test(raw) && !/^file:/i.test(raw);
-    }
-
-    function parseHrefLineLocation(hash) {
-      const m = String(hash || '').match(/^#L?(\d+)(?:-L?(\d+))?$/i);
-      if (!m) return undefined;
-      const startLine = validLineNumber(m[1]);
-      if (!startLine) return undefined;
-      const endLine = validLineNumber(m[2]) || startLine;
-      return { startLine, endLine };
-    }
-
     function splitFileHref(rawHref) {
-      let raw = String(rawHref || '').trim();
-      if (!raw || raw === '#' || /^javascript:/i.test(raw)) return null;
-      if (raw.charAt(0) === '#') return null;
-      if (isExternalHref(raw)) return null;
-
-      let hash = '';
-      const hashIndex = raw.indexOf('#');
-      if (hashIndex !== -1) {
-        hash = raw.slice(hashIndex);
-        raw = raw.slice(0, hashIndex);
-      }
-      const queryIndex = raw.indexOf('?');
-      if (queryIndex !== -1) raw = raw.slice(0, queryIndex);
-      let decoded = false;
-      if (/^file:/i.test(raw)) {
-        raw = fileHrefToLocalPath(raw);
-        if (!raw) return null;
-        decoded = true;
-      }
-      raw = (decoded ? String(raw) : safeDecodeURIComponent(raw)).trim();
-      if (!raw) return null;
-      return {
-        filePath: raw,
-        location: parseHrefLineLocation(hash),
-      };
+      return resolveFileReference(rawHref, { cwd: cwdForFileAction() });
     }
 
     function fileInfoFromToolEl(toolEl, pathText) {
@@ -10404,8 +10190,10 @@ import {
       if (!filePath) return null;
       const spec = toolPathOpenSpecs.get(toolEl);
       const line = validLineNumber(toolEl.dataset && toolEl.dataset.incipitToolGrepLine);
+      const info = resolveFileReference(spec?.path || toolEl.dataset.incipitToolSourcepath || filePath, { cwd: cwdForFileAction(), literal: true });
+      if (!info) return null;
       return {
-        filePath: spec && spec.path ? spec.path : filePath,
+        ...info,
         location: spec && spec.location ? spec.location : (line ? { startLine: line, endLine: line } : undefined),
       };
     }
@@ -10426,13 +10214,16 @@ import {
       // back on click, or, for true external links, the full URL.
       const raw = link.getAttribute('href') || '';
       if (!raw || raw === '#' || /^javascript:/i.test(raw)) return null;
-      return { target: link, path: raw, fileInfo: splitFileHref(raw) };
+      const fileInfo = splitFileHref(raw);
+      return fileInfo || isExternalReference(raw) ? { target: link, path: fileInfo?.filePath || raw, fileInfo } : null;
     }
 
     function cwdForFileAction() {
       try {
         const state = kernelGetHostState({ refresh: true, reason: 'link-file-action' });
-        return state && typeof state.cwd === 'string' ? state.cwd : '';
+        if (state && typeof state.cwd === 'string' && state.cwd) return state.cwd;
+        const session = locateActiveSessionState();
+        return session?.cwd?.value || (typeof session?.cwd === 'string' ? session.cwd : '');
       } catch (_) {
         // Keep file actions useful when the semantic bridge is degraded:
         // the legacy surface already owns a SessionState fiber fallback.
@@ -10482,8 +10273,8 @@ import {
         __incipit: true,
         type: 'file_reveal_request',
         requestId,
-        filePath: info.filePath,
-        cwd: cwdForFileAction(),
+        filePath: info.revealPath || info.filePath,
+        cwd: info.cwd || cwdForFileAction(),
         sessionId: sessionIdForFileAction(),
       };
       return new Promise((resolve, reject) => {
@@ -10799,6 +10590,8 @@ import {
     }
 
     function handleTipHover(evt) {
+      const link = closestBodyLink(evt.target);
+      if (link?.dataset.incipitFileReference === 'unavailable') queueFileLinks(link);
       const hit = resolveTipFast(evt.target, evt);
       if (hit) {
         // Already shown for this exact anchor, or a reveal is already
@@ -10889,17 +10682,31 @@ import {
         const link = closestBodyLink(evt.target) || bodyLinkFromPoint(evt.target, evt);
         if (!link) return;
         const info = splitFileHref(link.getAttribute('href') || '');
-        if (!info || !info.filePath) return;
+        if (!info || !info.filePath) {
+          if (!isExternalReference(link.getAttribute('href'))) { evt.preventDefault(); evt.stopPropagation(); }
+          return;
+        }
         const opener = readHostFileOpener(link);
         if (!opener) return;
         evt.preventDefault();
         evt.stopPropagation();
-        try {
-          opener.open(info.filePath, info.location || undefined);
-        } catch (error) {
-          try { console.warn('[incipit] failed to open markdown file link:', error); } catch (_) {}
-        }
+        openFileReference(opener, info);
       }, true);
+    }
+
+    function openFileReference(opener, info) {
+      try { Promise.resolve(opener.open(info.filePath, info.location)).catch(() => {}); }
+      catch (_) { /* The host decides which file types it can open (2026-09-05). */ }
+    }
+
+    function toolFileAction(path, root) {
+      const info = resolveFileReference(path, { cwd: cwdForFileAction(), literal: true });
+      if (!info || !readHostFileOpener(root)) return null;
+      return { ...info, open() {
+        const current = resolveFileReference(path, { cwd: cwdForFileAction(), literal: true });
+        const opener = readHostFileOpener(root);
+        if (current && opener) openFileReference(opener, current);
+      } };
     }
 
     function handleTipContextMenu(evt) {
@@ -10962,9 +10769,11 @@ import {
     // chevron) toggles the fold.
     function decorateToolUse(el) {
       // Path truncation runs regardless of fiber/status — it is a pure
-      // display concern and should apply to failed / pending calls too.
+      // display concern and should apply to failed / pending calls too. Once
+      // the incipit heading owns the row the host summary is hidden, so its
+      // spans are left alone.
       const summary = el.querySelector('[class*="toolSummary"]');
-      if (summary) {
+      if (summary && el.dataset.incipitToolHeadline !== '1') {
         summary
           .querySelectorAll('[class*="toolNameTextSecondary"], [class*="filePath"]')
           .forEach(truncatePathSpan);
@@ -10978,7 +10787,34 @@ import {
       // when there's no body to fold. Identification is fiber-based, no
       // dependency on host class names.
       const grepData = readToolUseBlock(el);
-      decorateToolFilePaths(el, summary, grepData);
+      const result = grepData && (['Edit', 'MultiEdit', 'Write', 'Agent', 'Task', 'Workflow', 'RunWorkflow'].includes(grepData.block.name) || !grepData.status || grepData.status === 'error')
+        ? readToolResult(grepData.block, el) : null;
+      const ownsTool = enhanceToolCard(el, grepData && { ...grepData, result }, {
+        summary,
+        estimateStats: estimateToolStats,
+        fileAction: path => toolFileAction(path, el),
+        onNativeChange: () => { pendingToolUseRoots.add(el); scheduleRescan(); },
+        language: grepData ? languageClassForFilePath(firstToolPathForDisplay(grepData.block)).replace(/^language-/, '') : 'plaintext',
+        toggle: () => {
+          const targets = [el.querySelector('[class*="toolBody_"]'), el.querySelector('[data-incipit-tool-grep-expansion]')].filter(Boolean);
+          if (el.dataset.incipitToolCollapsed !== 'false') animateExpandTargets(el, targets);
+          else animateCollapseTargets(el, targets);
+        },
+        expandable: next => {
+          const toolBody = el.querySelector('[class*="toolBody_"]');
+          if (toolBody && toolBody.children.length) return true;
+          if (el.querySelector('[data-incipit-tool-grep-expansion]')) return true;
+          const input = next.block.input || {};
+          return next.block.name === 'Grep' && typeof input.pattern === 'string' && !!input.pattern;
+        },
+      });
+      if (ownsTool) return;
+      if (grepData && ['Edit', 'MultiEdit', 'Write'].includes(grepData.block.name)) {
+        reportHealth('tool.diff.identity', 'degraded', { reason: 'The host did not expose a stable file-tool identity.' });
+        return;
+      }
+      const headlineOwned = el.dataset.incipitToolHeadline === '1';
+      if (!headlineOwned) decorateToolFilePaths(el, summary, grepData);
       handleGrepAuxLayout(el, summary, grepData);
       // Grep is fully self-contained inside `handleGrepAuxLayout` — it
       // owns chevron, click handler, expansion div, and animation. The
@@ -11014,10 +10850,7 @@ import {
       if (!titleWrap) return;
 
       const stats = computeStatsCached(data.block);
-      const useIncipitDiff = !!incipitDiffPayload(data.block);
-      if (useIncipitDiff) {
-        ensureWriteDiffBody(el, body, data.block, stats);
-      } else {
+      {
         cleanupWriteDiffBody(el, body);
         decorateInlineDiffHeader(body, data.block, stats);
         // Generic IN/OUT truncation for tools using the host's
@@ -11028,6 +10861,10 @@ import {
         const grid = body.querySelector('[class*="toolBodyGrid"]');
         if (grid) applyToolBodyTruncation(grid, data.block.name);
       }
+      // The incipit heading is the row's only fold affordance and the host
+      // summary it replaces is hidden, so the stats, fingerprint and root
+      // click binding below would be dead work.
+      if (headlineOwned) return;
 
       if (el.dataset.incipitToolBound !== '1') {
         el.addEventListener('click', evt => {
@@ -11174,6 +11011,28 @@ import {
       return stats;
     }
 
+    // Line counts that follow exactly from the tool input: Edit and MultiEdit
+    // without replace_all. They show on the row immediately while the
+    // historical patch is fetched; Write counts need the saved original.
+    function estimateToolStats(block) {
+      if (!block || !block.input) return null;
+      const input = block.input;
+      let stats = null;
+      if (block.name === 'Edit' && !input.replace_all &&
+          typeof input.old_string === 'string' && typeof input.new_string === 'string') {
+        stats = lineDiffStats(input.old_string, input.new_string);
+      } else if (block.name === 'MultiEdit' && Array.isArray(input.edits) && input.edits.length) {
+        stats = { added: 0, removed: 0 };
+        for (const edit of input.edits) {
+          if (!edit || edit.replace_all || typeof edit.old_string !== 'string' || typeof edit.new_string !== 'string') { stats = null; break; }
+          const part = lineDiffStats(edit.old_string, edit.new_string);
+          if (!part) { stats = null; break; }
+          stats.added += part.added; stats.removed += part.removed;
+        }
+      }
+      return stats;
+    }
+
     // `pendingToolUseRoots` stores the actual toolUse elements that need
     // (re)decoration this frame, not arbitrary mutation roots. The mutation
     // handler walks each added subtree to figure out which toolUse(s) are
@@ -11181,20 +11040,64 @@ import {
     // document body every animation frame, which scaled poorly with long
     // sessions.
     const pendingToolUseRoots = new Set();
+    configureActivityScheduler(scheduleRescan);
+    const pendingFileLinks = new Set();
+    let fileLinksFrame = 0;
+    let fileLinksRoot = null;
+    const fileHrefObserver = new MutationObserver(records => { for (const record of records) queueFileLinks(record.target); });
+    function observeFileHrefs(root) {
+      if (!root || root === document.body || root === fileLinksRoot) return;
+      fileHrefObserver.disconnect(); fileLinksRoot = root;
+      fileHrefObserver.observe(root, { attributes: true, attributeFilter: ['href'], subtree: true });
+    }
+    function queueFileLinks(scope) {
+      if (!scope || scope.nodeType !== 1) return;
+      if (scope.matches('a[href]')) pendingFileLinks.add(scope);
+      else if (scope.firstElementChild) for (const link of scope.querySelectorAll('a[href]')) pendingFileLinks.add(link);
+      if (!fileLinksFrame && pendingFileLinks.size) fileLinksFrame = requestAnimationFrame(refreshFileLinks);
+    }
+    function refreshFileLinks() {
+      fileLinksFrame = 0;
+      const deadline = performance.now() + 4;
+      for (const link of pendingFileLinks) {
+        pendingFileLinks.delete(link);
+        if (link.isConnected && bodyLinkScopeFor(link)) {
+          const href = link.getAttribute('href');
+          if (isExternalReference(href)) {
+            if (link.hasAttribute('data-incipit-file-reference')) { link.removeAttribute('data-incipit-file-reference'); link.removeAttribute('aria-disabled'); link.removeAttribute('tabindex'); }
+          } else {
+            const valid = !!splitFileHref(href) && !!readHostFileOpener(link);
+            const state = valid ? 'ready' : 'unavailable';
+            if (link.getAttribute('data-incipit-file-reference') !== state) link.setAttribute('data-incipit-file-reference', state);
+            if (valid) { link.removeAttribute('aria-disabled'); link.removeAttribute('tabindex'); }
+            else { link.setAttribute('aria-disabled', 'true'); link.tabIndex = -1; }
+          }
+        }
+        if (performance.now() >= deadline) break;
+      }
+      if (pendingFileLinks.size) fileLinksFrame = requestAnimationFrame(refreshFileLinks);
+    }
     let rescanScheduled = false;
     function scheduleRescan() {
       if (rescanScheduled) return;
       rescanScheduled = true;
       requestAnimationFrame(() => {
         rescanScheduled = false;
-        if (!pendingToolUseRoots.size) return;
         const tools = Array.from(pendingToolUseRoots);
         pendingToolUseRoots.clear();
-        for (const t of tools) {
+        const deadline = performance.now() + 4;
+        for (let i = 0; i < tools.length; i++) {
+          const t = tools[i];
           if (!t.isConnected) continue;
           try { decorateToolUse(t); }
           catch (e) { try { console.warn('[incipit] decorateToolUse failed:', e); } catch (_) {} }
+          if (performance.now() >= deadline) {
+            for (let j = i + 1; j < tools.length; j++) pendingToolUseRoots.add(tools[j]);
+            scheduleRescan();
+            break;
+          }
         }
+        flushActivityGroups(deadline);
       });
     }
 
@@ -11213,6 +11116,7 @@ import {
         }
       }
       if (elementClassText(node).indexOf('toolUse_') !== -1) {
+        stageActivityTool(node);
         pendingToolUseRoots.add(node);
         queued = true;
       }
@@ -11221,6 +11125,7 @@ import {
       if (node.firstElementChild && node.querySelectorAll) {
         const inners = node.querySelectorAll('[class*="toolUse_"]');
         for (const t of inners) {
+          stageActivityTool(t);
           pendingToolUseRoots.add(t);
           queued = true;
         }
@@ -11234,20 +11139,46 @@ import {
     // streaming token — a much higher per-mutation cost than this loop,
     // which only walks `addedNodes` and does a single `closest`. The
     // `pendingToolUseRoots` Set keeps the scan amortised per RAF.
+    // Activity groups re-layout a turn only when its row list or a row's set
+    // of blocks changes; streaming text inside a paragraph never qualifies.
+    const ACTIVITY_BLOCKS = '[class*="toolUse_"], [class*="thinking_"], [class*="root_"]';
+    function enqueueActivityChange(mutation, target) {
+      if (!target || !target.matches) return;
+      if (target.matches('[class*="turn_"], [class*="messagesContainer_"]')) {
+        if (mutation.removedNodes && mutation.removedNodes.length) markActivityDirty(target);
+        for (const node of mutation.addedNodes || []) if (node.nodeType === 1) markActivityDirty(node);
+        return;
+      }
+      for (const node of mutation.addedNodes || []) {
+        if (node.nodeType !== 1) continue;
+        if (node.matches(ACTIVITY_BLOCKS) || (node.firstElementChild && node.querySelector(ACTIVITY_BLOCKS))) markActivityDirty(node);
+      }
+    }
+
     const mo = new MutationObserver(muts => {
       let dirty = false;
+      let removed = false;
       for (let i = 0; i < muts.length; i++) {
         const m = muts[i];
-        if (m.type !== 'childList' || !m.addedNodes.length) continue;
+        if (m.removedNodes && m.removedNodes.length) removed = true;
         if (mutationInsideFocusedEditor(m)) continue;
-        const targetInsideToolUse = !!(
-          m.target &&
-          (m.target.nodeType === 1 ? m.target : m.target.parentElement)?.closest?.('[class*="toolUse_"]')
-        );
-        for (const node of m.addedNodes) {
-          if (enqueueAffectedToolUses(node, targetInsideToolUse)) dirty = true;
+        const target = m.target && (m.target.nodeType === 1 ? m.target : m.target.parentElement);
+        const ancestor = target?.closest?.('[class*="toolUse_"]');
+        if (ancestor) {
+          if (target.closest('[data-incipit-tool-heading], [data-incipit-file-tool-body], [data-incipit-tool-error]')) continue;
+          // A result can replace only a text node or a status class. Queue its
+          // native tool boundary even when no new element was mounted.
+          pendingToolUseRoots.add(ancestor);
+          dirty = true;
+        }
+        enqueueActivityChange(m, target);
+        for (const node of m.addedNodes || []) {
+          if (node.nodeType === 1 && node.matches('[class*="messagesContainer_"]')) observeFileHrefs(node);
+          if (!ancestor) queueFileLinks(node);
+          if (enqueueAffectedToolUses(node, !!ancestor)) dirty = true;
         }
       }
+      if (removed) sweepToolCards();
       if (dirty && pendingToolUseRoots.size) scheduleRescan();
     });
     mo.observe(document.body, { childList: true, subtree: true });
@@ -11258,9 +11189,12 @@ import {
       document.querySelector('[class*="messagesContainer_"]') ||
       document.body;
     if (initialRoot) {
+      observeFileHrefs(initialRoot);
+      queueFileLinks(initialRoot);
       const initial = initialRoot.querySelectorAll('[class*="toolUse_"]');
       for (const t of initial) pendingToolUseRoots.add(t);
       scheduleRescan();
+      scanActivityTurns(initialRoot);
     }
   }
 

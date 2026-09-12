@@ -1,3 +1,17 @@
-# Theme tokenization inputs are hashed byte-for-byte against the recorded
-# baseline, so their line endings must never depend on the checkout platform.
+# Line endings must never depend on the checkout platform. Parts of this
+# repository read their own sources byte-for-byte: the tokenizer hashes its
+# frozen theme inputs against a recorded baseline, and the patch contracts
+# match runtime anchors whose patterns contain a literal \n. A CRLF checkout
+# breaks both, and only on the platform that produced it — a Windows CI runner
+# is what surfaced it. Normalize to LF in the index and on checkout.
+* text=auto eol=lf
+
+# Kept explicit because it is the strictest case: these bytes are the frozen
+# input to theme tokenization and are identified by their hash.
 scripts/theme-sources/*.css text eol=lf
+
+# Bundled binaries must be copied through untouched. `eol` implies `text`, so
+# each one has to unset both or the rule above would corrupt it on checkout.
+*.woff2 binary !eol
+*.ttf   binary !eol
+*.png   binary !eol

@@ -1,12 +1,9 @@
 {
   "name": "@alphacatmeow/incipit",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "A frontend rework of the official Claude Code VS Code extension — surface redrawn, engine untouched.",
   "bin": {
     "incipit": "bin/cli.js"
-  },
-  "publishConfig": {
-    "access": "public"
   },
   "main": "src/install.js",
   "files": [
@@ -16,15 +13,17 @@
     "data/",
     "tests/",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "CHANGELOG.md",
+    "CHANGELOG.zh.md"
   ],
   "scripts": {
     "start": "node bin/cli.js",
     "apply": "node bin/cli.js apply",
     "restore": "node bin/cli.js restore",
     "test": "node scripts/tokenize-theme-colors.js --check && node tests/theme-colors-oracle.test.js && node tests/theme-token-contracts.test.js && node tests/theme-runtime-palettes.test.js && node tests/markdown-code-component-contracts.test.js && node tests/patch-contracts.test.js && node tests/apply-warnings.test.js && node tests/config-theme-icon.test.js && node tests/file-dialog.test.js && node tests/custom-icon.test.js && node tests/backup-custom-icons.test.js && node tests/install-custom-icons.test.js && node tests/companion-extension-install.test.js && node tests/markdown-preprocess.test.js && node tests/cache-history-buckets.test.js && node tests/session-identity.test.js && node tests/rerun-handoff.test.js && node tests/file-reveal.test.js && node tests/change-review.test.js && node tests/editor-overlay-insiders.test.js && node tests/host-detect-manual-add.test.js && node tests/deep-scan.test.js && node tests/deep-scan-results-screen.test.js && node tests/deferred-next.test.js && node tests/conversation-outline-model.test.js && node tests/conversation-outline-bookmarks.test.js && node tests/conversation-outline-runtime.test.js && node tests/cjk-literary-no-faux-bold.test.js && node tests/mermaid-render.test.js && node tests/notes.test.js && node tests/task-indicator-model.test.js && node tests/task-indicator-runtime.test.js",
+    "test:release": "npm test && node tests/patch-contracts.test.js --require-fixtures",
     "test:contracts": "node tests/patch-contracts.test.js",
-    "test:companion-install": "node tests/companion-extension-install.test.js",
     "test:markdown-code-component": "node tests/markdown-code-component-contracts.test.js",
     "test:config": "node tests/config-theme-icon.test.js",
     "test:file-dialog": "node tests/file-dialog.test.js",
@@ -46,9 +45,10 @@
     "test:deep-scan-screen": "node tests/deep-scan-results-screen.test.js",
     "test:mermaid": "node tests/mermaid-render.test.js",
     "test:deferred-next": "node tests/deferred-next.test.js",
-    "test:conversation-outline": "node tests/conversation-outline-model.test.js && node tests/conversation-outline-bookmarks.test.js && node tests/conversation-outline-runtime.test.js",
     "test:cjk-literary": "node tests/cjk-literary-no-faux-bold.test.js",
     "test:notes": "node tests/notes.test.js",
+    "test:companion-install": "node tests/companion-extension-install.test.js",
+    "test:conversation-outline": "node tests/conversation-outline-model.test.js && node tests/conversation-outline-bookmarks.test.js && node tests/conversation-outline-runtime.test.js",
     "test:task-indicator": "node tests/task-indicator-model.test.js && node tests/task-indicator-runtime.test.js"
   },
   "engines": {
@@ -82,6 +82,9 @@
     "url": "https://github.com/AlphaCatMeow/incipit/issues"
   },
   "homepage": "https://github.com/AlphaCatMeow/incipit#readme",
-  "author": "AlphaCat",
-  "license": "AGPL-3.0-or-later"
+  "author": "",
+  "license": "AGPL-3.0-or-later",
+  "publishConfig": {
+    "access": "public"
+  }
 }

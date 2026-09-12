@@ -6,6 +6,13 @@ import { ensureDomFreeze } from './enhance_shared.js';
  *
  * Bootstrap installs the shared DOM freeze before this module loads. This
  * module only owns thinking intent, user toggles, and remount reconciliation.
+ *
+ * The summary label belongs to the host. Claude Code derives "Thought for Ns"
+ * from a runtime-only clock that is null for anything loaded from history, so
+ * a duration shows during a live turn and is absent afterwards. incipit used
+ * to measure its own wall-clock and rewrite the label; that produced timings
+ * no record could back, so the label is now left exactly as the host renders
+ * it and no thinking duration is stored anywhere.
  */
 
 // ========== thinking ==========
@@ -32,137 +39,9 @@ export function initThinking() {
   // `m<msgIdx>t<thinkingIdx>`.
 
   const intentOpen = new Set();
-  const THINKING_REPLACE_GRACE_MS = 1500;
-  const thinkingTimingByKey = new Map();
-  const thinkingSummaryObservers = new Map();
-
-  const thinkingSummaryLabel = (summary) => {
-    if (!summary || !summary.querySelector) return null;
-    return summary.querySelector(':scope > span') || summary.firstElementChild || null;
-  };
-
-  const thinkingLabelText = (summary) => {
-    const label = thinkingSummaryLabel(summary);
-    return label ? (label.textContent || '').trim() : '';
-  };
-
-  const isLiveThinkingLabel = (text) => /^Thinking\.\.\./.test(String(text || '').trim());
-  const isDoneThinkingLabel = (text) => /^Thought for \d+s\b/.test(String(text || '').trim());
-  const formatThoughtDuration = (ms) => 'Thought for ' + Math.max(0, Math.round(ms / 1000)) + 's';
-  const nowMs = () => (window.performance && typeof window.performance.now === 'function')
-    ? window.performance.now()
-    : Date.now();
-
-  const markThinkingLive = (key, summary) => {
-    if (!key) return;
-    const now = nowMs();
-    const existing = thinkingTimingByKey.get(key);
-    if (!existing ||
-        existing.durationMs != null ||
-        (existing.pendingRemountUntilMs && now > existing.pendingRemountUntilMs)) {
-      thinkingTimingByKey.set(key, {
-        startMs: now,
-        durationMs: null,
-        activeSummary: summary || null,
-        pendingRemountEndMs: 0,
-        pendingRemountUntilMs: 0,
-      });
-      return;
-    }
-    existing.activeSummary = summary || existing.activeSummary || null;
-    existing.pendingRemountEndMs = 0;
-    existing.pendingRemountUntilMs = 0;
-  };
-
-  const noteThinkingSummaryDetached = (key, summary) => {
-    if (!key) return;
-    const existing = thinkingTimingByKey.get(key);
-    if (!existing || existing.durationMs != null || existing.activeSummary !== summary) return;
-    const endMs = nowMs();
-    existing.activeSummary = null;
-    existing.pendingRemountEndMs = endMs;
-    existing.pendingRemountUntilMs = endMs + THINKING_REPLACE_GRACE_MS;
-  };
-
-  const markThinkingDone = (key, summary) => {
-    if (!key) return null;
-    const existing = thinkingTimingByKey.get(key);
-    if (!existing || !existing.startMs) return existing || null;
-    if (existing.durationMs == null) {
-      const endMs = nowMs();
-      const observedSameSummary = summary && existing.activeSummary === summary;
-      const observedPromptRemount =
-        existing.pendingRemountEndMs > 0 &&
-        existing.pendingRemountUntilMs > 0 &&
-        endMs <= existing.pendingRemountUntilMs;
-      if (!observedSameSummary && !observedPromptRemount) {
-        // Historical/virtualized thinking blocks can replay a transient
-        // "Thinking..." placeholder long after the real transition. If we
-        // missed the live->done edge, leave the host label alone instead of
-        // manufacturing a wall-clock duration from a stale start time.
-        thinkingTimingByKey.delete(key);
-        return null;
-      }
-      const effectiveEndMs = observedPromptRemount ? existing.pendingRemountEndMs : endMs;
-      existing.durationMs = Math.max(0, effectiveEndMs - existing.startMs);
-      existing.endMs = effectiveEndMs;
-      existing.activeSummary = null;
-      existing.pendingRemountEndMs = 0;
-      existing.pendingRemountUntilMs = 0;
-    }
-    return existing;
-  };
-
-  const syncThinkingSummaryDuration = (details, key) => {
-    const summary = details && details.querySelector && details.querySelector(':scope > summary');
-    if (!summary) return;
-    const label = thinkingSummaryLabel(summary);
-    if (!label) return;
-    const text = (label.textContent || '').trim();
-    if (isLiveThinkingLabel(text)) {
-      markThinkingLive(key, summary);
-      return;
-    }
-    if (!isDoneThinkingLabel(text)) return;
-    const timing = markThinkingDone(key, summary);
-    if (!timing || timing.durationMs == null) return;
-    const next = formatThoughtDuration(timing.durationMs);
-    if (label.textContent !== next) label.textContent = next;
-  };
-
-  const observeThinkingSummary = (summary, details, key) => {
-    if (!summary || !details || !key) return;
-    const existing = thinkingSummaryObservers.get(summary);
-    if (existing && existing.key === key) return;
-    if (existing) existing.observer.disconnect();
-    const observer = new MutationObserver(() => {
-      syncThinkingSummaryDuration(details, key);
-    });
-    // Scoped characterData observation is intentional: the body observer stays
-    // characterData-free, while this watches only the host's tiny summary label
-    // so we can end the real runtime clock when "Thinking..." becomes done.
-    observer.observe(summary, { childList: true, subtree: true, characterData: true });
-    thinkingSummaryObservers.set(summary, { observer, key });
-  };
-
-  const cleanupThinkingSummaryObservers = (seen) => {
-    for (const [summary, entry] of Array.from(thinkingSummaryObservers.entries())) {
-      if (summary.isConnected && seen.has(summary)) continue;
-      noteThinkingSummaryDetached(entry.key, summary);
-      entry.observer.disconnect();
-      thinkingSummaryObservers.delete(summary);
-    }
-  };
-
-  const currentlyMountedObservedSummaries = () => {
-    const seen = new Set();
-    for (const summary of thinkingSummaryObservers.keys()) {
-      if (summary && summary.isConnected && summary.closest && summary.closest(SEL.thinking)) {
-        seen.add(summary);
-      }
-    }
-    return seen;
-  };
+  // Matches `--incipit-fold-duration`: the closing phase keeps `open` for this
+  // long so the content can fold before the disclosure actually closes.
+  const FOLD_MS = 220;
 
   const keyFor = (details) => {
     const msg = details.closest(SEL.message);
@@ -202,11 +81,7 @@ export function initThinking() {
 
   const reconcileAll = () => {
     const all = document.querySelectorAll(SEL.thinking);
-    if (!all.length) {
-      cleanupThinkingSummaryObservers(new Set());
-      return;
-    }
-    cleanupThinkingSummaryObservers(currentlyMountedObservedSummaries());
+    if (!all.length) return;
     // Build msgIdx and tIdx in one pass instead of calling keyFor per node.
     // keyFor on its own is O(messages) for the message index lookup, so
     // calling it N times during a reconcile pass scales as N × messages —
@@ -220,7 +95,6 @@ export function initThinking() {
       const ts = msgs[i].querySelectorAll(SEL.thinking);
       for (let j = 0; j < ts.length; j++) tIdxOf.set(ts[j], j);
     }
-    const seenSummaries = new Set();
     for (let i = 0; i < all.length; i++) {
       const d = all[i];
       d.__claudeFrozen = true;
@@ -231,15 +105,6 @@ export function initThinking() {
       const ti = tIdxOf.get(d);
       if (ti == null) continue;
       const k = `m${mi}t${ti}`;
-      const summary = d.querySelector(':scope > summary');
-      if (summary) {
-        seenSummaries.add(summary);
-        const labelText = thinkingLabelText(summary);
-        if (isLiveThinkingLabel(labelText) || thinkingTimingByKey.has(k)) {
-          observeThinkingSummary(summary, d, k);
-          syncThinkingSummaryDuration(d, k);
-        }
-      }
       const shouldOpen = intentOpen.has(k);
       const isOpen = d.hasAttribute('open');
       if (shouldOpen && !isOpen) {
@@ -249,7 +114,6 @@ export function initThinking() {
         NATIVE_REMOVE.call(d, 'open');
       }
     }
-    cleanupThinkingSummaryObservers(seenSummaries);
   };
   reconcileAll();
 
@@ -360,15 +224,37 @@ export function initThinking() {
     const topBefore = summary.getBoundingClientRect().top;
 
     // Toggle through the captured native methods and update the intent set
-    // so remounted nodes can be restored by `reconcileAll`.
+    // so remounted nodes can be restored by `reconcileAll`. Opening and
+    // closing carry a transient attribute that theme.css animates; the intent
+    // only flips to closed once the fold has finished, so a reconcile pass in
+    // between leaves the node alone.
     const k = keyFor(details);
-    armHostToggleSync(details);
     if (details.hasAttribute('open')) {
-      NATIVE_REMOVE.call(details, 'open');
-      if (k) intentOpen.delete(k);
+      if (details.__incipitClosing) {
+        // A second click while folding keeps it open.
+        clearTimeout(details.__incipitClosing);
+        details.__incipitClosing = 0;
+        details.removeAttribute('data-incipit-thinking-closing');
+      } else {
+        details.setAttribute('data-incipit-thinking-closing', '1');
+        details.__incipitClosing = setTimeout(() => {
+          details.__incipitClosing = 0;
+          details.removeAttribute('data-incipit-thinking-closing');
+          armHostToggleSync(details);
+          NATIVE_REMOVE.call(details, 'open');
+          if (k) intentOpen.delete(k);
+        }, FOLD_MS);
+      }
     } else {
+      armHostToggleSync(details);
       NATIVE_SET.call(details, 'open', '');
       if (k) intentOpen.add(k);
+      details.setAttribute('data-incipit-thinking-opening', '1');
+      clearTimeout(details.__incipitOpening);
+      details.__incipitOpening = setTimeout(() => {
+        details.__incipitOpening = 0;
+        details.removeAttribute('data-incipit-thinking-opening');
+      }, FOLD_MS + 60);
     }
 
     // One rAF is enough: `getBoundingClientRect()` forces layout, so the

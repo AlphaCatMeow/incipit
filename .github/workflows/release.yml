@@ -1,0 +1,96 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify · node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - { node: '16', os: ubuntu-22.04 }
+          - { node: '18', os: ubuntu-22.04 }
+          - { node: '20', os: ubuntu-latest }
+          - { node: '22', os: ubuntu-latest }
+          - { node: '24', os: ubuntu-latest }
+          - { node: '22', os: windows-latest }
+          - { node: '22', os: macos-latest }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm ci
+      - run: npm test
+
+  publish:
+    name: publish to npm
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # create the GitHub Release
+      id-token: write   # OIDC for npm trusted publishing
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing needs npm 11.5.1 or newer.
+      - run: npm install -g npm@latest
+
+      # The tag is the authorization for this release, so it has to agree with
+      # what would actually be published. A tag naming a different version than
+      # package.json means one of the two is a mistake; refuse both.
+      - name: Tag must match package version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          pkg="$(node -p 'require("./package.json").version')"
+          echo "tag=$tag package.json=$pkg"
+          test "$tag" = "$pkg"
+
+      - name: Refuse to republish an existing version
+        run: |
+          pkg="$(node -p 'require("./package.json").version')"
+          if npm view "incipit@$pkg" version >/dev/null 2>&1; then
+            echo "::error::incipit@$pkg is already on npm"
+            exit 1
+          fi
+
+      - run: npm ci
+      - run: npm test
+
+      # No NODE_AUTH_TOKEN: this publish is authorized by the OIDC trusted
+      # publisher registered for the repository on npmjs.com, which is also what
+      # attaches the provenance attestation.
+      - name: Publish
+        run: npm publish --provenance --access public
+
+      # The annotated tag message is the release notes, so `git tag -a vX.Y.Z`
+      # with the notes in its message is the whole publishing ritual. Create it
+      # with `--cleanup=verbatim`: git's default cleanup strips every line
+      # starting with `#`, which silently eats the markdown headings and leaves
+      # the release body a run of orphaned bullets.
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch --force --tags
+          notes="$(git for-each-ref --format='%(contents)' "refs/tags/${GITHUB_REF_NAME}")"
+          if [ -z "$(printf '%s' "$notes" | tr -d '[:space:]')" ]; then
+            echo "::error::${GITHUB_REF_NAME} is not an annotated tag with a message; the release notes would be empty"
+            exit 1
+          fi
+          printf '%s\n' "$notes" > "$RUNNER_TEMP/notes.md"
+          gh release create "${GITHUB_REF_NAME}" --title "${GITHUB_REF_NAME}" --notes-file "$RUNNER_TEMP/notes.md"

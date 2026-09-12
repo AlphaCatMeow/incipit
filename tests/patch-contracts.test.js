@@ -340,10 +340,9 @@ function assertRuntimeSourceContracts() {
       install.includes('installContracts,'),
     'installer must collect structured install contracts including hostRoute/I1/I2, inject __incipitInstallManifest, and expose them in the apply report',
   );
-  assert(
-    install.includes("const LOCAL_ASSET_TREES = ['katex', 'hljs', 'fonts', 'effort-brain', 'capability', 'legacy', 'mermaid']"),
-    'installer must copy capability/, legacy/, and mermaid/ webview asset subtrees',
-  );
+  for (const tree of ['capability', 'legacy', 'mermaid', 'diff']) {
+    assert(require('../src/install').LOCAL_ASSET_TREES.includes(tree), `installer must own the ${tree}/ runtime assets`);
+  }
   assert(
     install.includes('function patchCspDirective(') &&
       install.includes('function assessCspDirectiveContact(') &&
@@ -813,13 +812,14 @@ function assertRuntimeSourceContracts() {
       !hostProbe.includes('syncInputContainers') &&
       !hostProbe.includes('ATTR.inputContainer') &&
       !hostProbe.includes("['[class*=\"inputContainer_\"]', ATTR.inputContainer]") &&
-      !hostProbe.includes("selectors: ['fieldset[class*=\"inputContainer_\"]', '[class*=\"inputContainer_\"]:has(> [class*=\"inputContainerBackground\"])']") &&
+      hostProbe.includes('if (root.nodeType === 1 && root.isContentEditable) return;') &&
+      hostProbe.includes('if (element.isContentEditable) return;') &&
       hostProbe.includes("presence: 'whileVisible'") &&
       hostProbe.includes('CSS_ALWAYS_WARMUP_MS = 5000') &&
       hostProbe.includes('function runAlwaysCssCapabilityCheck') &&
       hostProbe.includes('function scheduleVisibleCssCapabilityCheck') &&
       hostProbe.includes("health.set('capability.' + def.name"),
-    'host_probe must expose runtime.cssClass capabilities without tagging or capability-probing the composer input container subtree',
+    'host_probe may identify external composer placement while preserving the editable subtree exclusion',
   );
   assert.strictEqual(
     (hostProbe.match(/new MutationObserver/g) || []).length,
@@ -840,23 +840,6 @@ function assertRuntimeSourceContracts() {
     enhance_typography: typography,
     workbench_overlay: workbenchOverlay,
   });
-  assert(
-    thinking.includes('const thinkingTimingByKey = new Map();') &&
-      thinking.includes('const thinkingSummaryObservers = new Map();') &&
-      thinking.includes('const THINKING_REPLACE_GRACE_MS = 1500;') &&
-      thinking.includes("const isLiveThinkingLabel = (text) => /^Thinking\\.\\.\\./") &&
-      thinking.includes("const isDoneThinkingLabel = (text) => /^Thought for \\d+s\\b/") &&
-      thinking.includes("const nowMs = () => (window.performance && typeof window.performance.now === 'function')") &&
-      thinking.includes('activeSummary: summary || null') &&
-      thinking.includes('const noteThinkingSummaryDetached = (key, summary) =>') &&
-      thinking.includes('existing.activeSummary === summary') &&
-      thinking.includes('endMs <= existing.pendingRemountUntilMs') &&
-      thinking.includes('thinkingTimingByKey.delete(key);') &&
-      thinking.includes('formatThoughtDuration(timing.durationMs)') &&
-      thinking.includes('observer.observe(summary, { childList: true, subtree: true, characterData: true });') &&
-      thinking.includes('cleanupThinkingSummaryObservers(seenSummaries)'),
-    'thinking duration must be measured only from an observed live summary to its done transition; missed historical/virtualized transitions must not synthesize wall-clock durations',
-  );
   assert(
     footerBadge.includes('function nodeInsideFocusedEditor(node)') &&
       footerBadge.includes('function mutationInsideFocusedEditor(mutation)') &&
@@ -895,7 +878,6 @@ function assertRuntimeSourceContracts() {
       legacy.includes('if (!askActive && !structural) continue;') &&
       legacy.includes('function enqueueAffectedToolUses(node, targetInsideToolUse)') &&
       legacy.includes('node.firstElementChild && node.querySelectorAll') &&
-      legacy.includes('const targetInsideToolUse = !!(') &&
       !legacy.includes('for (const node of m.addedNodes) enqueueAffectedToolUses(node);') &&
       typography.includes('function mutationsAllInsideFocusedEditor(mutations)') &&
       typography.includes('if (mutationsAllInsideFocusedEditor(mutations)) return;'),
@@ -987,7 +969,6 @@ function assertRuntimeSourceContracts() {
       !legacy.includes("data-incipit-path-tooltip-copy") &&
       !legacy.includes("data-incipit-path-tooltip-more") &&
       legacy.includes('file links in assistant markdown should') &&
-      legacy.includes('opener.open(info.filePath, info.location || undefined)') &&
       legacy.includes("document.body.addEventListener('contextmenu', handleTipContextMenu, true)") &&
       legacy.includes('function openTipContextMenu(hit, evt)') &&
       legacy.includes('function requestResolvedFilePaths(info)') &&
@@ -1191,6 +1172,80 @@ function assertHostStateBridgePatchVariants() {
     'missing SessionState business fingerprint must still fail closed',
   );
   console.log('patch-contracts: ok host-state bridge variants');
+}
+
+// ---- @ mention command bridge families (2026-08-13) ----
+// The command setup exists in two upstream families and both stay reachable:
+// the emitter family (<= 2.1.220) fires a shared EventEmitter and asks
+// `webviews.hasVisibleWebview()`, while the delivery family (>= 2.1.231)
+// owns a local deliver -> reveal -> stash helper and dropped
+// `hasVisibleWebview` for per-surface `isChatSurface` / `isVisible()`.
+// Neither anchor may encode the other's neighbourhood.
+const AT_MENTION_EMITTER_FIXTURE =
+  'function HZt(e,t,r){e.push(Pe.commands.registerCommand("claude-vscode.insertAtMention",async()=>{let n=Pe.window.activeTextEditor;if(!n)return;t.fire("@"+n.document.fileName)})),e.push(Pe.commands.registerCommand("claude-vscode.blur",async()=>{Pe.commands.executeCommand("workbench.action.focusFirstEditorGroup")}))}';
+const AT_MENTION_DELIVERY_FIXTURE =
+  'function rmr(e,t){async function r(n){if(t.deliverAtMention(n))return;if(t.revealAndDeliverAtMention(n))return;t.stashAtMentionForNextChatSurface(n),await Fe.commands.executeCommand("claude-vscode.editor.openLast")}e.push(Fe.commands.registerCommand("claude-vscode.insertAtMention",async()=>{let n=Fe.window.activeTextEditor;if(!n)return;await r("@"+n.document.fileName)})),e.push(Fe.commands.registerCommand("claude-vscode.blur",async()=>{}))}';
+
+function assertAtMentionCommandPatchVariants() {
+  const variants = [
+    {
+      label: 'emitter family (<= 2.1.220)',
+      fixture: AT_MENTION_EMITTER_FIXTURE,
+      // Delivery is a bare emitter fire, so the bridge owns panel opening and
+      // has to fire twice to beat webview cold start.
+      expected: [
+        'commands.registerCommand("incipit.claudeCode.insertAtMention"',
+        'if(!r.hasVisibleWebview())await Pe.commands.executeCommand("claude-vscode.editor.openLast")',
+        'let __incipitFire=()=>t.fire(__incipitMention)',
+        'commands.registerCommand("incipit.claudeCode.hasVisibleWebview",()=>r.hasVisibleWebview())',
+      ],
+      forbidden: ['deliverAtMention', '__incipitSurface'],
+    },
+    {
+      label: 'delivery family (>= 2.1.231)',
+      fixture: AT_MENTION_DELIVERY_FIXTURE,
+      // The host helper already walks deliver -> reveal -> stash -> openLast,
+      // so the bridge must reuse it instead of re-timing the delivery itself.
+      expected: [
+        'commands.registerCommand("incipit.claudeCode.insertAtMention"',
+        'await r(__incipitMention);return!0',
+        'for(let __incipitSurface of t.webviews)if(__incipitSurface.isChatSurface&&__incipitSurface.isVisible())return!0',
+        'catch(__incipitShapeError){return!0}',
+      ],
+      forbidden: ['__incipitFire', '.hasVisibleWebview()'],
+    },
+  ];
+
+  for (const { label, fixture, expected, forbidden } of variants) {
+    const [patched, line] = __test.patchAtMentionCommand(fixture);
+    assert(/已写入/.test(line), `${label}: bridge should patch cleanly, got: ${line}`);
+    for (const fragment of expected) {
+      assert(patched.includes(fragment), `${label}: missing injected fragment: ${fragment}`);
+    }
+    for (const fragment of forbidden) {
+      assert(!patched.includes(fragment), `${label}: leaked the other family's shape: ${fragment}`);
+    }
+    assert.doesNotThrow(
+      () => new vm.Script(patched, { filename: `at-mention-${label}.js` }),
+      `${label}: patched fixture must remain valid JavaScript`,
+    );
+    assert.strictEqual(
+      (patched.match(/incipit\.claudeCode\.insertAtMention/g) || []).length, 1,
+      `${label}: bridge command must be registered exactly once`,
+    );
+    const [repatched, repatchedLine] = __test.patchAtMentionCommand(patched);
+    assert.strictEqual(repatched, patched, `${label}: second apply must be idempotent`);
+    assert(/已存在/.test(repatchedLine), `${label}: second apply should report already present`);
+  }
+
+  // A renamed command id must degrade softly: the companion surfaces its own
+  // warning, but apply itself must not abort (R-02 low-risk visual面 fail open).
+  const renamed = AT_MENTION_DELIVERY_FIXTURE.replaceAll('claude-vscode.insertAtMention', 'claude-vscode.insertAtMentionRenamed');
+  const [unchanged, degradedLine] = __test.patchAtMentionCommand(renamed);
+  assert.strictEqual(unchanged, renamed, 'anchor miss must not mutate the extension bundle');
+  assert(/降级/.test(degradedLine), 'anchor miss should degrade instead of aborting apply');
+
+  console.log('patch-contracts: ok @ mention command bridge families');
 }
 
 // ---- Monaco diff span anchors (2026-06-09) ----
@@ -1543,11 +1598,29 @@ function assertAtMentionBridgePatchDegrades(root) {
 
 assertRuntimeSourceContracts();
 assertHostStateBridgePatchVariants();
+assertAtMentionCommandPatchVariants();
 assertMonacoDiffSpanPatchVariants();
+
+// The host-compatibility half of this file can only run against real official
+// restore points, which live on the developer's machine and can never exist in
+// a clean CI checkout. Skipping quietly is right there — but it is exactly
+// wrong on a release gate, where a green run would then be read as proof of
+// host compatibility it never checked. `--require-fixtures` (or
+// INCIPIT_REQUIRE_FIXTURES=1) turns the skip into a failure. 2026-09-07
+const requireFixtures = process.argv.includes('--require-fixtures') ||
+  /^(1|true|yes)$/i.test(String(process.env.INCIPIT_REQUIRE_FIXTURES || ''));
 
 const fixtures = collectFixtureRoots();
 if (!fixtures.length) {
-  console.log('patch-contracts: skipped (no Claude Code official restore fixture found)');
+  const reason = 'no Claude Code official restore fixture found under '
+    + path.join(os.homedir(), '.incipit', 'official-restore-points-v1')
+    + ' (set INCIPIT_CONTRACT_FIXTURE to point elsewhere)';
+  if (requireFixtures) {
+    console.error(`patch-contracts: FAILED — fixtures required but ${reason}`);
+    process.exit(1);
+  }
+  console.log(`patch-contracts: skipped (${reason})`);
+  console.log('patch-contracts: source-level contracts ran; HOST COMPATIBILITY WAS NOT VERIFIED');
   process.exit(0);
 }
 

@@ -244,9 +244,10 @@
    the user's expected "hovered tool row reads as body text" affordance
    went silent. Mirror the dark-palette behaviour by force-lifting both
    the row and every descendant span (tool-name, fingerprint, stats,
-   chevron — anything riding `currentColor`) to ink on hover. Thinking
-   summary intentionally stays at the resting tone because it's not a
-   click target. */
+   chevron — anything riding `currentColor`) to ink on hover. The
+   disclosure-style thinking summary gets the same lift in the activity
+   rail block below; the static thinking block is not a click target and
+   stays at the resting tone. */
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover,
 [data-incipit-tool-use] [data-incipit-tool-summary]:hover * {
   color: #0d0d0d !important;
@@ -459,7 +460,8 @@
   background-color: rgba(0, 0, 0, 0.20) !important;
 }
 
-[data-incipit-write-diff-modal] {
+[data-incipit-write-diff-modal],
+[data-incipit-diff-dialog]::backdrop {
   background-color: rgba(0, 0, 0, 0.20);
 }
 
@@ -1331,106 +1333,42 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   background: #DDDBD5;
 }
 
-/* ---------- Cache popup ---------- */
+/* ---------- Cache popup ----------
+   Same three lanes as warm-black; only the palette changes. Card fills and
+   inset hairlines are gone from both palettes now, so this block is pure
+   colour — no structural exceptions left to carry. */
 .cceStatPopup {
   background: #ffffff;
   border: 1px solid rgba(0,0,0,0.08);
   box-shadow: 0 12px 36px rgba(60,55,40,0.22), 0 2px 8px rgba(60,55,40,0.14);
   color: #0d0d0d;
 }
-.cceStatOverview {
-  gap: 0;
-  margin-bottom: 11px;
-  padding-bottom: 10px;
+.cceStatHeader {
   border-bottom: 1px solid rgba(60,55,40,0.10);
 }
-.cceStatHeading {
-  color: #0d0d0d;
-}
-.cceStatDivider {
-  background: rgba(0,0,0,0.08);
-}
-.cceStatMetric,
-.cceHitChartShell,
-.cceHitStat,
-.cceSelectedMetric {
-  background: transparent;
-  border-radius: 0;
-  box-shadow: none;
-}
-.cceStatMetric {
-  padding: 0 10px 0 0;
-}
-.cceStatMetric + .cceStatMetric {
-  padding: 0 0 0 12px;
-  border-left: 1px solid rgba(60,55,40,0.10);
-}
-.cceHitChartShell {
-  padding: 2px 0 0;
-}
-.cceHitStats {
-  gap: 0;
-  margin-top: 8px;
-  padding-top: 7px;
-  border-top: 1px solid rgba(60,55,40,0.10);
-}
-.cceHitStat {
-  padding: 0 8px;
-}
-.cceHitStat:first-child {
-  padding-left: 0;
-}
-.cceHitStat + .cceHitStat {
-  border-left: 1px solid rgba(60,55,40,0.10);
-}
-.cceStatTotals {
-  gap: 12px;
-}
-.cceSelectedGrid {
-  gap: 8px 12px;
-}
-.cceSelectedMetric {
-  padding: 5px 0 0;
-  border-top: 1px solid rgba(60,55,40,0.10);
-}
-.cceStatMetricLabel,
-.cceHitChartMeta,
-.cceHitStat span,
-.cceSelectedMetric span,
-.cceFlowRangeTime {
+.cceStatNow {
   color: #797569;
 }
-.cceHitAxisLabel {
-  fill: #797569;
-}
-.cceStatMetricValue,
-.cceHitStat strong,
-.cceSelectedMetric strong {
+.cceStatNow strong {
   color: #0d0d0d;
 }
 .cceHitGrid {
   stroke: rgba(60,55,40,0.13);
 }
-.cceHitXAxis {
-  stroke: rgba(60,55,40,0.18);
+.cceHitMean {
+  stroke: rgba(168,137,110,0.55);
 }
 .cceHitXTick {
   stroke: rgba(60,55,40,0.20);
 }
+.cceHitAxisLabel,
+.cceHitTimeLabel {
+  fill: #797569;
+}
+.cceHitAxisLabelMean {
+  fill: #a8896e;
+}
 .cceHitLine {
-  stroke: #a8896e;
-}
-.cceRangeLine {
-  stroke: rgba(168,137,110,0.68);
-}
-.cceRangeTrack {
-  stroke: rgba(60,55,40,0.20);
-}
-.cceRangeWindow {
-  fill: rgba(168,137,110,0.12);
-  stroke: rgba(168,137,110,0.44);
-}
-.cceRangeHandle {
   stroke: #a8896e;
 }
 .cceHitPoint {
@@ -1461,42 +1399,50 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 .cceHitHoverTime {
   color: #797569;
 }
-.cceHitChartMeta span:nth-child(2) {
+.cceRangeLine {
+  stroke: rgba(168,137,110,0.68);
+}
+.cceRangeTrack {
+  stroke: rgba(60,55,40,0.20);
+}
+.cceRangeWindow {
+  fill: rgba(168,137,110,0.12);
+  stroke: rgba(168,137,110,0.44);
+}
+.cceRangeHandle {
+  stroke: #a8896e;
+}
+.cceStatSpend {
+  border-top: 1px solid rgba(60,55,40,0.10);
+}
+.cceSpendHead {
   color: #797569;
 }
-.cceFlowHeader span,
-.cceFlowLegend,
-.cceFlowLabel {
-  color: #797569;
-}
-.cceFlowHeader strong,
-.cceFlowValue {
-  color: #0d0d0d;
-}
-.cceContextStack {
+.cceSpendBar {
   background: #E6E4DE;
   box-shadow: inset 0 0 0 1px rgba(60,55,40,0.07);
 }
-.cceFlowBar {
-  background: #E6E4DE;
-}
-.cceContextSeg-fresh,
-.cceFlowRow-fresh .cceFlowBar span,
-.cceLegendFresh {
+.cceSpendSeg-fresh,
+.cceSpendDot-fresh {
   background: rgba(60,55,40,0.30);
 }
-.cceContextSeg-write,
-.cceFlowRow-write .cceFlowBar span,
-.cceLegendWrite {
+.cceSpendSeg-write,
+.cceSpendDot-write {
   background: rgba(168,137,110,0.48);
 }
-.cceContextSeg-read,
-.cceFlowRow-read .cceFlowBar span,
-.cceLegendRead {
+.cceSpendSeg-read,
+.cceSpendDot-read {
   background: rgba(168,137,110,0.82);
 }
-.cceFlowRow-output .cceFlowBar span {
+.cceSpendSeg-output,
+.cceSpendDot-output {
   background: rgba(121,117,105,0.70);
+}
+.cceSpendLegend {
+  color: #797569;
+}
+.cceSpendItem b {
+  color: #0d0d0d;
 }
 .cceStatEmpty {
   color: #b8b4a4;
@@ -1710,22 +1656,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   color: #0d0d0d !important;
 }
 
-/* ---------- Inline edit (warm-white draft card) ----------
-   AI draft card reuses the warm-white code-block surface (#E6E4DE)
-   — same "embedded content" weight as <pre> blocks, so the editor
-   reads as the same surface family. Save icon + caret use the
-   deeper #bf5d3a accent. User bubble keeps its own #E6E4DE fill
-   (set elsewhere); no extra chrome needed when expanded. */
-[data-incipit-inline-edit-shell="assistant"] {
-  background: #E6E4DE !important;
-}
-/* Edit hover preview — same paper-tone draft fill the inline-edit
-   shell uses when actually opened. theme.css defines the transition
-   and base behaviour; this only flips the colour for warm-white so
-   the preview matches the (now-paper) draft card. */
-[data-incipit-markdown-root][data-incipit-edit-hover-preview] {
-  background-color: #E6E4DE !important;
-}
+/* User edit controls retain the warm-white accent and bubble surface. */
 .incipit-inline-edit-textarea {
   caret-color: #bf5d3a !important;
 }
@@ -1775,4 +1706,64 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 .incipit-edit-chip-add:hover {
   border-color: rgba(191, 93, 58, 0.65) !important;
   color: rgba(191, 93, 58, 0.95) !important;
+}
+
+/* ---------- Activity rail, tool rows and group headers ----------
+   Same selectors as theme.css; paper canvas behind glyphs, ash text, the
+   light accent for focus rings. */
+[data-incipit-message][data-incipit-activity]::after {
+  background-color: rgba(60,55,40,0.16) !important;
+}
+[data-incipit-activity-header] {
+  color: #8c897e;
+}
+[data-incipit-activity-header]:hover {
+  color: #0d0d0d;
+}
+[data-incipit-activity-header]:focus-visible {
+  color: #0d0d0d;
+  outline: 1px solid rgba(191,93,58,0.6);
+}
+[data-incipit-activity="thinking"] details[data-incipit-thinking]::before,
+[data-incipit-activity="thinking"] [data-incipit-thinking-static]::before {
+  background-color: #f8f8f6;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:hover,
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
+  color: #0d0d0d !important;
+}
+details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
+  outline: 1px solid rgba(191,93,58,0.6);
+}
+[data-incipit-tool-heading] {
+  color: #8c897e;
+}
+[data-incipit-tool-row]:hover {
+  color: #0d0d0d;
+}
+[data-incipit-tool-toggle]:focus-visible {
+  color: #0d0d0d;
+  outline: 1px solid rgba(191,93,58,0.6);
+}
+[data-incipit-tool-row]:focus-within { color: #0d0d0d; }
+button[data-incipit-tool-file-link] { background-image: radial-gradient(circle, rgba(191,93,58,0.85) 1px, transparent 1.6px); }
+button[data-incipit-tool-file-link]:focus-visible { outline: 1px solid rgba(191,93,58,0.6); }
+[data-incipit-tool-icon] {
+  color: #8c897e;
+}
+[data-incipit-activity] [data-incipit-tool-icon] {
+  background-color: #f8f8f6;
+}
+[data-incipit-tool-row]:hover [data-incipit-tool-icon] {
+  color: #0d0d0d;
+}
+[data-incipit-tool-use][data-incipit-tool-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon]::before {
+  background-color: #0d0d0d;
+}
+[data-incipit-diff-viewport]:focus-visible {
+  outline: 1px solid rgba(191,93,58,0.6);
+}
+[data-incipit-agent-card], [data-incipit-workflow] {
+  --incipit-agent-rule: rgba(13,13,13,0.14);
+  --incipit-agent-muted: #8c897e;
 }

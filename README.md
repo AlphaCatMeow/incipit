@@ -59,6 +59,8 @@ incipit restore   # restore the current target to official Claude Code files
 
 After every Claude Code update, the local patch is overwritten by the official files — run `incipit` again and re-apply. To upgrade incipit itself, use the same global install command.
 
+What changed in each version is in the [changelog](CHANGELOG.md).
+
 To uninstall only the incipit CLI:
 
 ```bash
@@ -121,7 +123,17 @@ These statistics also read local transcript files only. They do not upload proje
 
 ## diff
 
-Edit / Write diffs no longer use the host's default split-pane Monaco: filename + `+N −M` sit at the header, deleted lines get a deep red background, added lines a deep green, line numbers are kept restrained, and character-level differences receive a second pass of inline coloring in the same hue but more visible. Short diffs render expanded; long diffs fold into a card with `Click to expand` opening the full content in a popover.
+Tool calls read as an activity list in the manner of claude.ai: a glyph column with a connector line, tense-aware rows such as `Edited tool_cards.js +3 −2` or `Ran command`, and a group summary (`Read 7 files, edited 5 files · 1 failed`) that collapses a whole run, thinking included. Whatever Claude says between tool calls stays ordinary prose and starts a new run. Carets fade in on hover, a running tool blinks in the glyph column, and a failed one turns red.
+
+Edit / MultiEdit / Write previews start collapsed on their row. Expand a tool to see its historical patch with surrounding context, line numbers, whole-line change tints, and separate change sections in one scrollable viewport; a footer line carries notices, paging, and `Full diff`, which opens a searchable view with access to every changed line. Colors follow the selected theme, and long filenames shorten to fit without hiding their identity.
+
+Historical context comes from the saved tool result. When it is unavailable, the preview identifies the known replacement fragments or requested contents instead of guessing from today's file. Large views render in pages and reuse bounded diff caches. The conversation, compact markers, change review, and composer share a reading column that adapts from a narrow sidebar to a wide editor panel.
+
+File-change counts load while tool rows stay collapsed and recover from delayed history writes. When an execution ends—including a manual stop or a disconnected process—a change review appears after its last assistant activity. File diffs reconstruct the turn from saved tool operations; incomplete histories show the available operations with an explanation of their scope.
+
+Agent and Task calls keep their own input, replies, thinking, and tool activity beneath a single collapsed row. Nested calls remain independently expandable, and parallel agents stay attached to their actual invocation. Running agents have an animated status icon; completed, failed, stopped, and unrecorded states remain distinct.
+
+Workflow calls open into their recorded phases and agents, with per-agent activity, queued work, retries, cached results, and usage where Claude Code provides them. These views read official task events and local history only. Missing or unreadable records offer a retry and access to the source; long histories are paginated, and closing a view releases its readers.
 
 <p align="center">
   <img src="docs/screenshots/diff-warm-black.png" width="360" alt="incipit diff in warm-black: wine red / forest green backgrounds with character-level inline coloring" />
@@ -154,11 +166,7 @@ The over-stretched brackets in KaTeX's native rendering are fixed as well.
   <img src="docs/screenshots/actions.png" width="420" alt="incipit user-message action row: edit / rerun / fork / more — four restrained icons" />
 </p>
 
-- Edit (inline editor): expands an editor in place. AI messages are editable too. Every output block can be edited.
-
-<p align="center">
-  <img src="docs/screenshots/edit-assistant.png" width="420" alt="incipit inline editor: in-place edit on an AI turn — translucent panel, serif body, two action icons (× / ✓) at the bottom" />
-</p>
+- Edit (inline editor): edit user messages in place, including their text, images, and IDE references. Assistant replies remain read-only; their copy menu and change review remain available. When later replies contain signed thinking, use Save and Rerun so the changed prompt is sent without replaying incompatible downstream thinking.
 
 - Attachment management: messages display the IDE file references, code selections, and images already attached. You can click to remove existing attachments, or drag-and-drop / paste to add new images.
 Local save: clicking save only rewrites the local JSONL conversation record file. No network requests are triggered.
@@ -168,7 +176,7 @@ Resend logic: editing only modifies the local context state. To submit the modif
   <img src="docs/screenshots/edit-user.png" width="420" alt="incipit inline editor: in-place edit on a user message — chip strip at the top with image attachment chip and add button" />
 </p>
 
-- Rerun: only available on user messages, executable at any user message. It removes the entire downstream conversation context, then resends the current message verbatim through Claude Code's native interface (session.send) under the same session id, fully preserving text, images, and IDE reference structure. **This means the cache for the user message and its prior context is preserved.**
+- Rerun: available on user prompts throughout the conversation. It removes the selected prompt and its downstream context, then resends the prompt and supported attachments through Claude Code's native send and resume flow. Earlier model messages remain unchanged, keeping their prefix eligible for prompt-cache reuse. A cache hit is not guaranteed: expiry, available cache checkpoints, model/settings changes, and changes to text or images can affect it. The cache badge reports server usage for the current transcript; rebuilding its local statistics does not clear the server's prompt cache.
 
 - Fork: calls the host AppContext's forkConversation interface, copying the current and preceding context into a new session while leaving the original session intact.
 
@@ -228,7 +236,17 @@ Thanks to the [linuxdo](https://linux.do/) community for discussion, sharing, an
 
 ## License
 
-Starting with the next release, incipit is distributed under the GNU Affero General Public License v3.0 or later. Earlier published releases remain under the license they were published with. See [LICENSE](LICENSE).
+incipit is distributed under the GNU Affero General Public License v3.0 or later, from 0.1.7 onward. Releases up to 0.1.6 were published under the MIT License and remain so. See [LICENSE](LICENSE).
+
+### Bundled syntax highlighting
+
+Prose code blocks and diffs share [highlight.js 11.9.0](https://github.com/highlightjs/highlight.js), copyright © 2006 Ivan Sagalaev and contributors, under the BSD 3-Clause License. The full license is included in [data/hljs/LICENSE](data/hljs/LICENSE). Additional core grammars load only when needed; their pinned sources and hashes are recorded in [data/hljs/languages/sources.json](data/hljs/languages/sources.json).
+
+The Vue single-file component grammar is adapted from [highlightjs-vue](https://github.com/highlightjs/highlightjs-vue), copyright © 2019 Sara Lissette Luis Ibáñez, under the BSD 3-Clause License. It supports Vue 3 script setup and flexible attribute order. The full license is included in [data/hljs/LICENSE.vue](data/hljs/LICENSE.vue).
+
+### Bundled message formatting
+
+Agent history uses [markdown-it 15.0.1](https://github.com/markdown-it/markdown-it) under the MIT License. Full third-party notices are included in [data/markdown/LICENSES.txt](data/markdown/LICENSES.txt), with dependency licenses, the pinned package integrity, and the asset hash in [data/markdown/source.json](data/markdown/source.json). The parser loads locally on demand; opening history does not load remote images.
 
 ### Bundled fonts
 

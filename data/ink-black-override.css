@@ -13,6 +13,8 @@
   --ink-action-dropdown-separator-bg: rgba(251,251,252,0.10);
   --ink-action-dropdown-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
   --ink-active-border-bottom: #c2c4c7;
+  --ink-activity-after-bg: rgba(251,251,252,0.16);
+  --ink-activity-header-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
   --ink-add-bar: #3fb950;
   --ink-add-char-bg: #2ea04366;
   --ink-add-fg: #7cb27c;
@@ -47,8 +49,6 @@
   --ink-cce-badge-active-bg-2: #212121;
   --ink-cce-badge-hover-bg: #212121;
   --ink-cce-badge-val-fg: #838484;
-  --ink-cce-context-stack-bg: rgba(18,18,18,0.28);
-  --ink-cce-context-stack-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
   --ink-cce-edit-cell-bg: rgba(255,255,255,0.055);
   --ink-cce-edit-cell-bg-2: rgba(194,196,199,0.26);
   --ink-cce-edit-cell-bg-3: rgba(194,196,199,0.42);
@@ -74,12 +74,7 @@
   --ink-cce-edit-status-fg: #dadce0;
   --ink-cce-edit-tooltip-bg: rgba(31,31,30,0.92);
   --ink-cce-edit-tooltip-shadow: 0 2px 8px rgba(0,0,0,0.26);
-  --ink-cce-flow-bar-bg: rgba(199,198,199,0.74);
-  --ink-cce-flow-bar-bg-2: rgba(18,18,18,0.22);
-  --ink-cce-flow-header-fg: #fbfbfc;
-  --ink-cce-flow-value-fg: #fbfbfc;
-  --ink-cce-hit-chart-shell-bg: rgba(18,18,18,0.18);
-  --ink-cce-hit-chart-shell-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  --ink-cce-hit-axis-label-mean-fill: #c2c4c7;
   --ink-cce-hit-grid-stroke: rgba(251,251,252,0.10);
   --ink-cce-hit-hover-label-bg: rgba(31,31,30,0.88);
   --ink-cce-hit-hover-label-shadow: 0 2px 8px rgba(0,0,0,0.22);
@@ -88,19 +83,12 @@
   --ink-cce-hit-hover-point-stroke: #c2c4c7;
   --ink-cce-hit-hover-time-fg: #aaaaab;
   --ink-cce-hit-line-stroke: #c2c4c7;
+  --ink-cce-hit-mean-stroke: rgba(194,196,199,0.55);
   --ink-cce-hit-point-fill: #1a1b1c;
   --ink-cce-hit-point-latest-fill: #1a1b1c;
   --ink-cce-hit-point-low-fill: #c2c4c7;
   --ink-cce-hit-point-stroke: #c2c4c7;
-  --ink-cce-hit-stat-bg: rgba(18,18,18,0.16);
-  --ink-cce-hit-stat-border-left-override: 1px solid rgba(55,55,55,0.10);
-  --ink-cce-hit-stat-fg: #fbfbfc;
-  --ink-cce-hit-stats-border-top-override: 1px solid rgba(55,55,55,0.10);
-  --ink-cce-hit-xaxis-stroke: rgba(251,251,252,0.16);
   --ink-cce-hit-xtick-stroke: rgba(251,251,252,0.18);
-  --ink-cce-legend-fresh-bg: rgba(251,251,252,0.42);
-  --ink-cce-legend-read-bg: rgba(194,196,199,0.82);
-  --ink-cce-legend-write-bg: rgba(194,196,199,0.48);
   --ink-cce-note-btn-active-bg: #212121;
   --ink-cce-note-btn-active-bg-override: #212121;
   --ink-cce-note-btn-fg: #fbfbfc;
@@ -116,18 +104,19 @@
   --ink-cce-range-track-stroke: rgba(251,251,252,0.18);
   --ink-cce-range-window-fill: rgba(194,196,199,0.12);
   --ink-cce-range-window-stroke: rgba(194,196,199,0.42);
-  --ink-cce-selected-metric-bg: rgba(18,18,18,0.16);
-  --ink-cce-selected-metric-border-top-override: 1px solid rgba(55,55,55,0.10);
-  --ink-cce-selected-metric-fg: #fbfbfc;
-  --ink-cce-stat-divider-bg: rgba(255,255,255,0.07);
+  --ink-cce-spend-bar-bg: rgba(18,18,18,0.28);
+  --ink-cce-spend-bar-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+  --ink-cce-spend-dot-fresh-bg: rgba(251,251,252,0.42);
+  --ink-cce-spend-dot-output-bg: rgba(199,198,199,0.74);
+  --ink-cce-spend-dot-read-bg: rgba(194,196,199,0.82);
+  --ink-cce-spend-dot-write-bg: rgba(194,196,199,0.48);
+  --ink-cce-spend-item-fg: #fbfbfc;
   --ink-cce-stat-empty-fg: #838484;
-  --ink-cce-stat-metric-bg: rgba(18,18,18,0.24);
-  --ink-cce-stat-metric-border-left-override: 1px solid rgba(55,55,55,0.10);
-  --ink-cce-stat-metric-shadow: inset 0 0 0 1px rgba(255,255,255,0.045);
-  --ink-cce-stat-overview-border-bottom-override: 1px solid rgba(55,55,55,0.10);
+  --ink-cce-stat-header-border-bottom: 1px solid rgba(255,255,255,0.07);
   --ink-cce-stat-popup-border: 1px solid rgba(255,255,255,0.08);
   --ink-cce-stat-popup-fg: #fbfbfc;
   --ink-cce-stat-popup-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
+  --ink-cce-stat-spend-border-top: 1px solid rgba(255,255,255,0.07);
   --ink-change-review-counts-fg: rgba(251,251,252,0.5);
   --ink-change-review-error-bg: rgba(217,119,87,0.12);
   --ink-change-review-error-fg: #e6a08c;
@@ -214,6 +203,8 @@
   --ink-diff-button-border: rgba(255,255,255,0.14);
   --ink-diff-button-text: #fbfbfc;
   --ink-diff-del-border: rgba(201, 106, 106, 0.35);
+  --ink-diff-dialog-bg: rgba(0,0,0,0.45);
+  --ink-diff-dialog-bg-override: rgba(0,0,0,0.20);
   --ink-diff-divider: rgba(255,255,255,0.08);
   --ink-diff-editor-container-bg: rgba(0,0,0,0.45);
   --ink-diff-gradient-start: rgba(10,11,11,0);
@@ -226,6 +217,7 @@
   --ink-diff-shadow: rgba(0, 0, 0, 0.28);
   --ink-diff-surface: #0a0b0b;
   --ink-diff-text: #fbfbfc;
+  --ink-diff-viewport-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
   --ink-disabled-fg: rgba(255,255,255,0.45);
   --ink-disabled-hover-fg: rgba(255,255,255,0.45);
   --ink-disabled-hover-fg-2: rgba(194,196,199,0.92);
@@ -234,8 +226,6 @@
   --ink-dropdown-border-2: rgba(255,255,255,0.06);
   --ink-dropdown-placeholder-fg: rgba(251,251,252,0.42);
   --ink-dropdown-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
-  --ink-edit-hover-preview-bg: #1a1b1c;
-  --ink-edit-hover-preview-bg-override: #1a1b1c;
   --ink-editor-bg: #0a0b0b;
   --ink-file-drag-hint-after-bg: rgba(31,31,30,0.94);
   --ink-file-drag-hint-after-border: 1px solid rgba(194,196,199,0.36);
@@ -284,8 +274,6 @@
   --ink-incipit-transcript-action-save-hover-bg-override: rgba(255,255,255,0.06);
   --ink-incipit-transcript-action-save-hover-fg: #a8a8a8;
   --ink-incipit-transcript-action-save-hover-fg-override: #a8a8a8;
-  --ink-inline-edit-shell-bg: #1a1b1c;
-  --ink-inline-edit-shell-bg-override: #1a1b1c;
   --ink-input-container-background-shadow: 0 2px 10px rgba(0,0,0,0.20),0 1px 3px rgba(0,0,0,0.15);
   --ink-keyboard-hints-fg: rgba(251,251,252,0.58);
   --ink-keys-bg: rgba(255,255,255,0.07);
@@ -298,7 +286,7 @@
   --ink-markdown-root-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-menu-divider-bg: rgba(255,255,255,0.14);
   --ink-menu-popup-shadow: 0 12px 36px rgba(0,0,0,0.55),0 2px 8px rgba(0,0,0,0.35);
-  --ink-message-after-bg: rgba(255,255,255,0.18);
+  --ink-message-after-bg-override: rgba(55,55,55,0.14);
   --ink-message-bg: linear-gradient(to right,transparent,rgba(200,200,200,0.28) 20%,rgba(200,200,200,0.28) 80%,transparent);
   --ink-message-border-bottom: 1px solid rgba(255,255,255,0.10);
   --ink-message-border-bottom-2: 1.5px solid rgba(255,255,255,0.16);
@@ -426,7 +414,11 @@
   --ink-text-strong: #fbfbfc;
   --ink-text-tertiary: #838484;
   --ink-text-tool-secondary: #aaaaab;
+  --ink-thinking-summary-fg: #aaaaab;
   --ink-thinking-summary-fg-override: #898989;
+  --ink-thinking-summary-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
+  --ink-thinking-summary-hover-fg: #fbfbfc;
+  --ink-thinking-summary-hover-fg-override: #fbfbfc;
   --ink-thumb-bg-override: #ffffff;
   --ink-thumb-icon-border: rgba(255,255,255,0.10);
   --ink-thumb-icon-hover-border: rgba(255,255,255,0.20);
@@ -434,6 +426,8 @@
   --ink-title-group-shadow: inset 0 -1px 0 rgba(0,0,0,0.55);
   --ink-tool-added-fg-override: #2f8c3a;
   --ink-tool-added-hover-fg-override: #1c9c1c;
+  --ink-tool-file-link-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
+  --ink-tool-file-link-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-tool-filepath-hover-bg: rgba(194,196,199,0.22);
   --ink-tool-filepath-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-tool-fingerprint-aux-fg: #93959a;
@@ -441,11 +435,14 @@
   --ink-tool-grep-expansion-border: 1px solid rgba(255,255,255,0.16);
   --ink-tool-grep-filename-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-tool-grep-more-fg: #aaaaab;
+  --ink-tool-icon-before-bg: #fbfbfc;
   --ink-tool-out-more-fg: #aaaaab;
   --ink-tool-removed-fg-override: #b24740;
   --ink-tool-removed-hover-fg-override: #c92626;
   --ink-tool-summary-fg: #aaaaab;
   --ink-tool-summary-hover-fg-override: inherit;
+  --ink-tool-toggle-focus-visible-fg-override: #0d0d0d;
+  --ink-tool-toggle-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
   --ink-tool-use-border: 1px solid rgba(255,255,255,0.16);
   --ink-tool-use-border-override: rgba(0,0,0,0.16);
   --ink-tool-use-border-top: 1px solid rgba(255,255,255,0.10);
@@ -459,7 +456,6 @@
   --ink-usage-fill-bg: #c2c4c7;
   --ink-usage-track-bg-override: #d6d6d6;
   --ink-write-diff-modal-bg: rgba(0,0,0,0.45);
-  --ink-write-diff-modal-bg-override: rgba(0,0,0,0.20);
 }
 
 :root {

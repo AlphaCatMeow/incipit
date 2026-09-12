@@ -13,7 +13,11 @@ const os = require('os');
 const path = require('path');
 const cp = require('child_process');
 const crypto = require('crypto');
+const vm = require('vm');
 
+const { atomicWrite } = require('./fs-atomic');
+const { patchTranscriptFollow } = require('./webview-scroll');
+const { patchTaskEvents, taskEventPreamble } = require('./webview-task-events');
 const { HOST_BADGE_COMM_ATTACH } = require('./badge-iife');
 const {
   buildInstallManifestPreamble,
@@ -55,14 +59,33 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'claude_code_enhance.js'), ENHANCE_TARGET_NAME],
   [path.join('data', 'enhance_shared.js'),      'enhance_shared.js'],
   [path.join('data', 'runtime_kernel.js'),      'runtime_kernel.js'],
+  [path.join('data', 'execution_lifecycle.js'), 'execution_lifecycle.js'],
   [path.join('data', 'capability.js'),          'capability.js'],
   [path.join('data', 'enhance_footer_badge.js'), 'enhance_footer_badge.js'],
   [path.join('data', 'enhance_thinking.js'),    'enhance_thinking.js'],
   [path.join('data', 'enhance_typography.js'),  'enhance_typography.js'],
+  [path.join('data', 'syntax_highlight.js'),     'syntax_highlight.js'],
+  [path.join('data', 'file_reference.js'),       'file_reference.js'],
   [path.join('data', 'mermaid_render.js'),      'mermaid_render.js'],
   [path.join('data', 'enhance_legacy.js'),      'enhance_legacy.js'],
   [path.join('data', 'host_probe.js'),           'host_probe.js'],
   [path.join('data', 'host-badge.cjs'),          'host-badge.cjs'],
+  [path.join('data', 'tool-diff-source.cjs'),    'tool-diff-source.cjs'],
+  [path.join('data', 'change-review-source.cjs'), 'change-review-source.cjs'],
+  [path.join('data', 'tool_cards.js'),           'tool_cards.js'],
+  [path.join('data', 'tool_headline.js'),        'tool_headline.js'],
+  [path.join('data', 'agent_activity.js'),       'agent_activity.js'],
+  [path.join('data', 'agent_activity_state.js'), 'agent_activity_state.js'],
+  [path.join('data', 'agent_activity_source.js'), 'agent_activity_source.js'],
+  [path.join('data', 'agent_activity_dom.js'),   'agent_activity_dom.js'],
+  [path.join('data', 'agent_history_view.js'),   'agent_history_view.js'],
+  [path.join('data', 'agent_rich_text.js'),      'agent_rich_text.js'],
+  [path.join('data', 'workflow_activity.js'),    'workflow_activity.js'],
+  [path.join('data', 'agent-activity-source.cjs'), 'agent-activity-source.cjs'],
+  [path.join('data', 'agent-journal.cjs'),        'agent-journal.cjs'],
+  [path.join('data', 'activity_groups.js'),      'activity_groups.js'],
+  [path.join('data', 'transcript_layout.js'),    'transcript_layout.js'],
+  [path.join('data', 'transcript_scroll.js'),    'transcript_scroll.js'],
   [path.join('data', 'markdown_preprocess.js'),  'markdown_preprocess.js'],
   [path.join('data', 'math_tokens.js'),         'math_tokens.js'],
   [path.join('data', 'math_rewriter.js'),       'math_rewriter.js'],
@@ -80,7 +103,7 @@ const IMPORT_MARKER =
   'import("./enhance.js").catch(e=>console.error("[incipit] enhance.js import failed",e));';
 // Local asset subtrees copied from `data/<name>/` to `webview/<name>/`.
 // Sync the whole subtree so math, highlighting, fonts, and mermaid work offline.
-const LOCAL_ASSET_TREES = ['katex', 'hljs', 'fonts', 'effort-brain', 'capability', 'legacy', 'mermaid'];
+const LOCAL_ASSET_TREES = ['katex', 'hljs', 'fonts', 'effort-brain', 'capability', 'legacy', 'mermaid', 'diff', 'markdown'];
 const DORMANT_WEBVIEW_ASSET_FILES = Object.freeze({
   legacy: new Set(['session_status.js']),
 });
@@ -217,6 +240,26 @@ const HOST_CONTACT_ROUTE_CATALOG = Object.freeze([
     extensionSha256: '3aae3fae2428888c0cf875490c02926241ba3941a4ea178d6b1316d0dc525818',
     webviewSha256: '41a6bef5785078bf411932d8219d1f66d253ef6ada90422ae046d9ff699d71d7',
   },
+  {
+    version: '2.1.220',
+    extensionSha256: 'fa21620fa84e43995c84faca86f6172937c274e20a16abbe38f4a66e1dc65285',
+    webviewSha256: 'c06c44d5e45fc8484ca2d7408b321dcda947466c6e583ef8bbe6f5c5dec24286',
+  },
+  {
+    version: '2.1.231',
+    extensionSha256: '7951e104be33cfaf0d0cc98a1c2621000b29021a9b1e9fef511ffdda9281af67',
+    webviewSha256: '98150befd672dffc371d3209f2184667c2ca0c049ab7fc54cbfb174836949844',
+  },
+  {
+    version: '2.1.251',
+    extensionSha256: '3976184231e566251a8e9c5f5e940ce2d3abb1ecce9ee4ec6e7d1067f00f43ba',
+    webviewSha256: 'a0751d183a681e8cc59696250bda26d7ae495fd82b8574a31e65bbfeb0b0d9ad',
+  },
+  {
+    version: '2.1.258',
+    extensionSha256: '8d0ec100338102e52f3fce91abfa8ddb91281b5922206e56f655869dfdbf4348',
+    webviewSha256: '559c3a4f04c143e05c52893a95394c1d77b2cda760dad7dbb732ba2dd91bac70',
+  },
 ]);
 
 function sanitizeFontFamilyValue(raw) {
@@ -261,12 +304,34 @@ const MARKDOWN_CODE_COMPONENT_V1_PATCHED_PATTERN =
   /code:\(\{children:([A-Za-z_$][\w$]*),className:([A-Za-z_$][\w$]*)\}\)=>\{if\(\2\)\{let ([A-Za-z_$][\w$]*)=String\(\1\),__incipitHtml=window\.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window\.__INCIPIT_HIGHLIGHT_CODE_HTML__\(\3,\2\);if\(__incipitHtml!==null&&__incipitHtml!==void 0\)return ([A-Za-z_$][\w$]*)\.default\.createElement\("code",\{className:\2\+" hljs",dangerouslySetInnerHTML:\{__html:__incipitHtml\}\}\);return \4\.default\.createElement\("code",\{className:\2\},\1\)\}let \3=String\(\1\);/g;
 const MARKDOWN_CODE_HIGHLIGHT_CALL =
   'window.__INCIPIT_HIGHLIGHT_CODE_HTML__&&window.__INCIPIT_HIGHLIGHT_CODE_HTML__(';
+// The at-mention command setup exists in two upstream families, and both are
+// still live in the wild:
+//
+//   emitter family   (<= 2.1.220): `function f(subscriptions, emitter, webviews)`
+//     delivery is `emitter.fire(mention)` and visibility is
+//     `webviews.hasVisibleWebview()`. The host had no retry, so the bridge has
+//     to open the panel itself and fire twice to beat webview cold start.
+//   delivery family  (>= 2.1.231): `function f(subscriptions, manager)`
+//     the host now owns delivery through a local helper that walks
+//     deliver -> revealAndDeliver -> stashForNextChatSurface -> openLast, and
+//     `hasVisibleWebview` is gone in favour of per-surface `isChatSurface` /
+//     `isVisible()`. Reuse that helper instead of re-inventing the timing hack.
+//
+// Anchor on the business signature (the command id plus the delivery method
+// names), never on the surrounding neighbourhood — encoding adjacency is what
+// broke this anchor on 2.1.231 (2026-08-13).
 const AT_MENTION_COMMAND_ANCHOR_PATTERN =
   /function ([A-Za-z_$][\w$]*)\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{([\s\S]{0,900}?)(\2\.push\(([A-Za-z_$][\w$]*)\.commands\.registerCommand\("claude-vscode\.insertAtMention")/g;
+const AT_MENTION_DELIVERY_ANCHOR_PATTERN =
+  /function ([A-Za-z_$][\w$]*)\(([A-Za-z_$][\w$]*),([A-Za-z_$][\w$]*)\)\{(async function ([A-Za-z_$][\w$]*)\(([A-Za-z_$][\w$]*)\)\{if\(\3\.deliverAtMention\(\6\)\)return;if\(\3\.revealAndDeliverAtMention\(\6\)\)return;\3\.stashAtMentionForNextChatSurface\(\6\)[\s\S]{0,200}?\})(\2\.push\(([A-Za-z_$][\w$]*)\.commands\.registerCommand\("claude-vscode\.insertAtMention")/g;
 const AT_MENTION_COMMAND_PATCHED_RE =
   /commands\.registerCommand\("incipit\.claudeCode\.insertAtMention",async\(__incipitMention\)=>\{if\(typeof __incipitMention==="string"\)\{if\(![A-Za-z_$][\w$]*\.hasVisibleWebview\(\)\)await [A-Za-z_$][\w$]*\.commands\.executeCommand\("claude-vscode\.editor\.openLast"\);let __incipitFire=\(\)=>[A-Za-z_$][\w$]*\.fire\(__incipitMention\);setTimeout\(__incipitFire,80\);setTimeout\(__incipitFire,360\);return!0\}return!1\}\)/;
 const CLAUDE_VISIBLE_COMMAND_PATCHED_RE =
   /commands\.registerCommand\("incipit\.claudeCode\.hasVisibleWebview",\(\)=>[A-Za-z_$][\w$]*\.hasVisibleWebview\(\)\)/;
+const AT_MENTION_DELIVERY_PATCHED_RE =
+  /commands\.registerCommand\("incipit\.claudeCode\.insertAtMention",async\(__incipitMention\)=>\{if\(typeof __incipitMention!=="string"\)return!1;await [A-Za-z_$][\w$]*\(__incipitMention\);return!0\}\)/;
+const CLAUDE_SURFACE_VISIBLE_PATCHED_RE =
+  /commands\.registerCommand\("incipit\.claudeCode\.hasVisibleWebview",\(\)=>\{try\{for\(let __incipitSurface of [A-Za-z_$][\w$]*\.webviews\)if\(__incipitSurface\.isChatSurface&&__incipitSurface\.isVisible\(\)\)return!0;return!1\}catch\(__incipitShapeError\)\{return!0\}\}\)/;
 const IMPLICIT_SELECTION_SEND_BRANCH_PATTERN =
   /if\((?!\!1&&)([^;{}]*\bthis\.lastSentSelection\b[^;{}]*\bthis\.selection\.value\b[^;{}]*)\)([A-Za-z_$][\w$]*)=this\.selection\.value,this\.lastSentSelection=\2;/g;
 const IMPLICIT_SELECTION_SEND_PATCHED_BRANCH_RE =
@@ -726,7 +791,7 @@ function copyIfChanged(srcPath, dstPath) {
       }
     } catch { /* fall through to write */ }
   }
-  fs.writeFileSync(dstPath, srcBytes);
+  atomicWrite(dstPath, srcBytes);
   if (srcStat) {
     try { fs.utimesSync(dstPath, srcStat.atime, srcStat.mtime); } catch (_) {}
   }
@@ -747,9 +812,32 @@ function copyWithTransform(srcPath, dstPath, transform) {
       if (existing === transformed) return false;
     } catch (_) { /* fall through to write */ }
   }
-  fs.mkdirSync(path.dirname(dstPath), { recursive: true });
-  fs.writeFileSync(dstPath, transformed, 'utf8');
+  atomicWrite(dstPath, transformed);
   return true;
+}
+
+// Prove a patch did not corrupt a host bundle before it reaches disk.
+//
+// Only assert when the pristine bundle itself parses. If upstream ever ships
+// syntax this Node cannot handle (an ESM bundle, newer language features),
+// refusing to apply would be a false alarm about someone else's file. But when
+// the original parsed and ours does not, the corruption is unambiguously
+// incipit's — and a corrupt `webview/index.js` blanks the Claude Code panel
+// with no in-product way back, so this fails closed rather than shipping it.
+function assertPatchedBundleParses(originalText, patchedText, targetPath) {
+  if (patchedText === originalText) return;
+  try {
+    new vm.Script(originalText, { filename: targetPath });
+  } catch (_) {
+    return;
+  }
+  try {
+    new vm.Script(patchedText, { filename: targetPath });
+  } catch (exc) {
+    throw new Error(
+      `incipit 生成的 ${path.basename(targetPath)} 不是合法 JavaScript,已中止写入以保护宿主: ${exc.message}`,
+    );
+  }
 }
 
 function assertCustomIconBytes(bytes, label) {
@@ -1344,6 +1432,7 @@ function buildWebviewConfigPreamble(features, theme, language, installContracts 
          `globalThis.__incipitMonacoDiffThemes = Object.freeze(${diffThemes});\n` +
          '(function(){try{var raw=globalThis.acquireVsCodeApi;if(typeof raw==="function"&&!globalThis.__incipitGetVsCodeApi){var cached=null;globalThis.__incipitGetVsCodeApi=function(){if(cached)return cached;cached=raw();return cached;};globalThis.acquireVsCodeApi=function(){return globalThis.__incipitGetVsCodeApi();};}}catch(_){}})();\n' +
          buildHostStateBridgePreamble() +
+         taskEventPreamble() +
          'globalThis.__incipitEnsureMonacoDiffTheme = function(monaco){try{if(!monaco||typeof monaco.defineTheme!=="function")return false;var ready=globalThis.__incipitMonacoDiffThemeNamespaces;if(!ready||typeof ready.has!=="function"||typeof ready.add!=="function"){ready=new WeakSet();globalThis.__incipitMonacoDiffThemeNamespaces=ready;}if(ready.has(monaco))return true;var themes=globalThis.__incipitMonacoDiffThemes||{};for(var name in themes)if(Object.prototype.hasOwnProperty.call(themes,name))monaco.defineTheme(name,themes[name]);ready.add(monaco);if(typeof document!=="undefined"&&document.fonts&&document.fonts.ready){document.fonts.ready.then(function(){try{if(monaco&&typeof monaco.remeasureFonts==="function")monaco.remeasureFonts();}catch(_){}});}return true;}catch(e){try{console.warn("[incipit] Monaco diff theme setup failed",e);}catch(_){}return false;}};\n' +
          `globalThis.__incipitPickMonacoDiffTheme = function(monaco){var palette=globalThis.__incipitConfig&&globalThis.__incipitConfig.theme&&globalThis.__incipitConfig.theme.palette;var light=palette==="warm-white";var picked=light?"${MONACO_DIFF_LIGHT_THEME}":palette==="ink-black"?"${MONACO_DIFF_INK_THEME}":"${MONACO_DIFF_DARK_THEME}";var ok=globalThis.__incipitEnsureMonacoDiffTheme&&globalThis.__incipitEnsureMonacoDiffTheme(monaco);return ok?picked:(light?"vs":"vs-dark");};\n\n`;
 }
@@ -2668,7 +2757,7 @@ function patchMarkdownCodeComponent(content) {
   return [updated, `${padLabel('markdown 代码渲染')}: 已写入`];
 }
 
-function patchAtMentionCommand(content) {
+function patchAtMentionEmitterFamily(content) {
   const hasInsert = AT_MENTION_COMMAND_PATCHED_RE.test(content);
   const hasVisible = CLAUDE_VISIBLE_COMMAND_PATCHED_RE.test(content);
   if (hasInsert && hasVisible) {
@@ -2676,9 +2765,7 @@ function patchAtMentionCommand(content) {
   }
 
   const matches = content.match(AT_MENTION_COMMAND_ANCHOR_PATTERN) || [];
-  if (matches.length !== 1) {
-    return [content, `${padLabel('@引用命令桥')}: 降级 (未找到命令 setup 锚点; companion 引用不可用)`];
-  }
+  if (matches.length !== 1) return null;
   return [
     content.replace(AT_MENTION_COMMAND_ANCHOR_PATTERN, (
       _match,
@@ -2706,6 +2793,56 @@ function patchAtMentionCommand(content) {
     ),
     `${padLabel('@引用命令桥')}: 已写入`,
   ];
+}
+
+function patchAtMentionDeliveryFamily(content) {
+  const hasInsert = AT_MENTION_DELIVERY_PATCHED_RE.test(content);
+  const hasVisible = CLAUDE_SURFACE_VISIBLE_PATCHED_RE.test(content);
+  if (hasInsert && hasVisible) {
+    return [content, `${padLabel('@引用命令桥')}: 已存在`];
+  }
+
+  const matches = content.match(AT_MENTION_DELIVERY_ANCHOR_PATTERN) || [];
+  if (matches.length !== 1) return null;
+  return [
+    content.replace(AT_MENTION_DELIVERY_ANCHOR_PATTERN, (
+      _match,
+      functionName,
+      subscriptions,
+      manager,
+      deliveryHelper,
+      deliverMention,
+      _helperParam,
+      commandStart,
+      vscodeApi,
+    ) => {
+      const registrations = [];
+      if (!hasInsert) {
+        registrations.push(
+          `${subscriptions}.push(${vscodeApi}.commands.registerCommand("incipit.claudeCode.insertAtMention",async(__incipitMention)=>{if(typeof __incipitMention!=="string")return!1;await ${deliverMention}(__incipitMention);return!0})),`,
+        );
+      }
+      if (!hasVisible) {
+        // Fail open on an unexpected surface shape: the overlay treats a
+        // rejected or falsy answer as "hide the button forever", silently, and
+        // the CodeLens fallback is already suppressed whenever the overlay is
+        // desired. A spurious button is recoverable; a vanished entry point is
+        // not (R-19).
+        registrations.push(
+          `${subscriptions}.push(${vscodeApi}.commands.registerCommand("incipit.claudeCode.hasVisibleWebview",()=>{try{for(let __incipitSurface of ${manager}.webviews)if(__incipitSurface.isChatSurface&&__incipitSurface.isVisible())return!0;return!1}catch(__incipitShapeError){return!0}})),`,
+        );
+      }
+      return `function ${functionName}(${subscriptions},${manager}){${deliveryHelper}${registrations.join('')}${commandStart}`;
+    }
+    ),
+    `${padLabel('@引用命令桥')}: 已写入`,
+  ];
+}
+
+function patchAtMentionCommand(content) {
+  return patchAtMentionEmitterFamily(content) ||
+    patchAtMentionDeliveryFamily(content) ||
+    [content, `${padLabel('@引用命令桥')}: 降级 (未找到命令 setup 锚点; companion 引用不可用)`];
 }
 
 function patchDisableImplicitSelectionSend(content) {
@@ -3127,6 +3264,14 @@ function patchWebviewIndex(content, features, theme, language, installContracts 
   const record = (name, line, detail = null) =>
     pushInstallContract(contracts, name, line, detail);
 
+  let scrollIntentStatus;
+  [updated, scrollIntentStatus] = patchTranscriptFollow(updated);
+  statusLines.push(record('install.transcriptFollow', scrollIntentStatus));
+
+  let taskEventStatus;
+  [updated, taskEventStatus] = patchTaskEvents(updated);
+  statusLines.push(record('install.taskActivityEvents', taskEventStatus));
+
   let markdownStatus;
   [updated, markdownStatus] = patchMarkdownChildren(updated);
   statusLines.push(record('install.markdownPreprocess', markdownStatus));
@@ -3370,9 +3515,6 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
   });
   extContracts.push(overlayInstallContract);
   const extJsUpdated = extJsUpdatedText !== extJsOriginal;
-  if (extJsUpdated) {
-    fs.writeFileSync(target.extensionJsPath, extJsUpdatedText, 'utf8');
-  }
 
   // `webview/index.js`
   const [webviewUpdatedText, webviewStatusLines, installContracts] = patchWebviewIndex(
@@ -3383,8 +3525,18 @@ function installClaudeCodeVSCodeEnhance(resourceRoot, options = {}) {
     extContracts,
   );
   const webviewUpdated = webviewUpdatedText !== webviewOriginal;
+
+  // Both bundles are patched and proven parseable before either one reaches
+  // disk. Patching `webview/index.js` can still fail closed after `extension.js`
+  // is already rewritten, and a half-patched target has no rollback path — the
+  // user's only way out is `incipit restore`.
+  assertPatchedBundleParses(extJsOriginal, extJsUpdatedText, target.extensionJsPath);
+  assertPatchedBundleParses(webviewOriginal, webviewUpdatedText, target.webviewIndexJsPath);
+  if (extJsUpdated) {
+    atomicWrite(target.extensionJsPath, extJsUpdatedText);
+  }
   if (webviewUpdated) {
-    fs.writeFileSync(target.webviewIndexJsPath, webviewUpdatedText, 'utf8');
+    atomicWrite(target.webviewIndexJsPath, webviewUpdatedText);
   }
 
   // Install the bundled serif system fonts for hosts that resolve user font
@@ -3524,6 +3676,7 @@ module.exports = {
     normalizedPalette,
     MONACO_DIFF_THEMES,
     patchHostStateSemanticBridge,
+    patchAtMentionCommand,
     patchMarkdownCodeComponent,
     renderTimeMarkdownCodeIsPatched,
     buildWorkbenchOverlayInstallContract,

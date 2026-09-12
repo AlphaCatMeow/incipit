@@ -63,6 +63,7 @@ const {
   LEGACY_ASSET_TREES,
 } = require('./install');
 const { CUSTOM_ICON_NAMES } = require('./custom-icon');
+const { atomicWrite } = require('./fs-atomic');
 
 const BACKUP_ROOT = path.join(os.homedir(), '.incipit-backup');
 const OFFICIAL_RESTORE_ROOT = path.join(os.homedir(), '.incipit', 'official-restore-points-v1');
@@ -140,22 +141,6 @@ function sanitizeBackupName(raw) {
   if (s.startsWith('_history-') || s === '_history') s = s.replace(/^_+/, '');
   if (!s) return DEFAULT_BACKUP_NAME;
   return s;
-}
-
-function atomicWrite(targetPath, data) {
-  const dir = path.dirname(targetPath);
-  fs.mkdirSync(dir, { recursive: true });
-  const tmp = path.join(
-    dir,
-    `.${path.basename(targetPath)}.tmp-${process.pid}-${Date.now()}`,
-  );
-  fs.writeFileSync(tmp, data);
-  try {
-    fs.renameSync(tmp, targetPath);
-  } catch (exc) {
-    try { fs.unlinkSync(tmp); } catch (_) {}
-    throw exc;
-  }
 }
 
 function moveDirSync(src, dst) {
