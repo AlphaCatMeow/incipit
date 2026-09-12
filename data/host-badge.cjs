@@ -23,7 +23,7 @@ const reviewStatsJobs = new WeakSet();
 const POLL_INTERVAL_MS = 1500;
 const WRITE_POLL_DEBOUNCE_MS = 120;
 const JSONL_SUFFIX = '.jsonl';
-const USAGE_CACHE_SCHEMA_VERSION = 3;
+const USAGE_CACHE_SCHEMA_VERSION = 4;
 const USAGE_CACHE_INDEX_DIR = path.join(os.homedir(), '.incipit', 'claude-usage-cache-v2');
 const USAGE_CACHE_HASH_BYTES = 4096;
 const EDIT_ACTIVITY_SCHEMA_VERSION = 1;
@@ -2523,6 +2523,8 @@ function loadUsageCacheParser(state, target, stat) {
 }
 
 function hydrateUsageCacheParser(parser, index) {
+  const review = index && index.changeReview;
+  if (!review || !Array.isArray(review.turnBaselines)) return false;
   parser.projectCwd = typeof index.projectCwd === 'string' && index.projectCwd ? index.projectCwd : null;
   const usage = index.usage && typeof index.usage === 'object' ? index.usage : {};
   const records = Array.isArray(usage.records) ? usage.records : [];
@@ -2584,7 +2586,6 @@ function hydrateUsageCacheParser(parser, index) {
     ? edit.editVersion
     : parser.editCounted.size;
 
-  const review = index.changeReview && typeof index.changeReview === 'object' ? index.changeReview : {};
   parser.changeReviewTurns = new Map();
   parser.changeReviewAssistantTurns = new Map();
   parser.changeReviewSnapshotUpdates = new Map();
@@ -3105,47 +3106,9 @@ function applyChangeReviewTurnBaselineToFile(parser, turn, file) {
 function repairChangeReviewFileBackupFromBaseline(parser, file) {
   if (!parser || !file || file.backupFileName !== undefined || !file.turnKey) return false;
   const turn = parser.changeReviewTurns && parser.changeReviewTurns.get(file.turnKey);
-  if (turn && applyChangeReviewTurnBaselineToFile(parser, turn, file)) return true;
-
-  // Back-compat for usage-cache parsers created before turn baselines were
-  // serialized: rescan only this transcript's plain baseline snapshot for the
-  // requested turn. It still does not create review rows.
-  if (!parser.path || !fs.existsSync(parser.path)) return false;
-  let changed = false;
-  try {
-    const lines = fs.readFileSync(parser.path, 'utf8').split('\n');
-    for (const line of lines) {
-      if (!line) continue;
-      const entry = parseJsonLine(line);
-      if (!entry || entry.type !== 'file-history-snapshot' ||
-          entry.isSnapshotUpdate === true ||
-          entry.messageId !== file.turnKey) continue;
-      const snapshot = entry.snapshot && typeof entry.snapshot === 'object' ? entry.snapshot : null;
-      const backups = snapshot && snapshot.trackedFileBackups && typeof snapshot.trackedFileBackups === 'object'
-        ? snapshot.trackedFileBackups
-        : null;
-      if (!backups) continue;
-      const meta = {
-        timestamp: snapshot.timestamp || entry.timestamp || '',
-        cwd: parser.projectCwd || entry.cwd || '',
-      };
-      for (const [rawPath, backup] of Object.entries(backups)) {
-        if (!rawPath || !backup || typeof backup !== 'object') continue;
-        rememberChangeReviewTurnBaseline(parser, file.turnKey, rawPath, {
-          backupFileName: Object.prototype.hasOwnProperty.call(backup, 'backupFileName')
-            ? backup.backupFileName
-            : undefined,
-          version: Number.isFinite(backup.version) ? backup.version : null,
-          backupTime: typeof backup.backupTime === 'string' ? backup.backupTime : '',
-        }, meta);
-      }
-      changed = file.backupFileName !== undefined;
-      if (changed) break;
-    }
-  } catch (_) {
-    return false;
-  }
-  return changed;
+  // A parsed transcript or current cache already covers all saved baselines.
+  // Per-file rescans blocked the host's interrupt handler (2026-09-12).
+  return !!turn && applyChangeReviewTurnBaselineToFile(parser, turn, file);
 }
 
 function consumeChangeReviewSnapshotUpdatesForItem(parser, item) {
