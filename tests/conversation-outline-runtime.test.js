@@ -84,7 +84,13 @@ assert.ok(!/::[-\w]*scrollbar/.test(css.replace(/\/\*[\s\S]*?\*\//g, '')));
 
 assert.ok(shared.includes("ensureStylesheet('incipit-conversation-outline-link', 'conversation_outline.css')"));
 assert.ok(install.includes("[path.join('data', 'conversation_outline.css'), 'conversation_outline.css']"));
-assert.ok(install.includes("const LOCAL_ASSET_TREES = ['katex', 'hljs', 'fonts', 'effort-brain', 'capability', 'legacy', 'mermaid'];"));
+// Check membership rather than the exact array literal: upstream keeps adding
+// runtime asset trees (diff/, markdown/, ...), and pinning the whole line makes
+// this assertion fail on every unrelated upstream addition.
+for (const tree of ['katex', 'hljs', 'fonts', 'effort-brain', 'capability', 'legacy', 'mermaid']) {
+  assert.ok(require('../src/install').LOCAL_ASSET_TREES.includes(tree),
+    `installer must own the ${tree}/ runtime assets`);
+}
 assert.ok(!install.includes("legacy: new Set(['conversation_outline.js'"));
 
 console.log('conversation-outline-runtime: 59 checks PASSED');

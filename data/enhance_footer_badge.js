@@ -702,16 +702,9 @@ function setupCacheBadge() {
     // spend. The chart's own axis reports the range extremes, so nothing
     // below it restates what the plot already shows.
     el.innerHTML =
-      '<div class="cceStatOverview" data-overview></div>' +
-      '<div class="cceStatSection">' +
-        '<div class="cceStatHeading">' + escapeAttr(t('cache_hit_history')) + '</div>' +
-        '<div class="cceHitChart" data-history></div>' +
-      '</div>' +
-      '<div class="cceStatDivider"></div>' +
-      '<div class="cceStatSection">' +
-        '<div class="cceStatHeading">' + escapeAttr(t('selected_range')) + '</div>' +
-        '<div class="cceStatTotals" data-totals></div>' +
-      '</div>';
+      '<div class="cceStatHeader" data-overview></div>' +
+      '<div class="cceHitChart" data-history></div>' +
+      '<div class="cceStatSpend" data-totals></div>';
     el.addEventListener('click', function(ev) { ev.stopPropagation(); });
     return el;
   }
@@ -944,14 +937,15 @@ function setupCacheBadge() {
     var hitStr = latest && !sessionHasNoCache(latest) ? fmtPct(latest.hit) : '—';
     var ctxStr = latest ? fmtTokens(latest.ctx) : '—';
     box.innerHTML =
-      '<div class="cceStatMetric">' +
-        '<div class="cceStatMetricLabel">' + escapeAttr(t('current_cache')) + '</div>' +
-        '<div class="cceStatMetricValue">' + hitStr + '</div>' +
-      '</div>' +
-      '<div class="cceStatMetric">' +
-        '<div class="cceStatMetricLabel">' + escapeAttr(t('context')) + '</div>' +
-        '<div class="cceStatMetricValue">' + ctxStr + '</div>' +
-      '</div>';
+      '<span class="cceStatNow"><strong>' + hitStr + '</strong>' + escapeAttr(t('cache_hit_rate')) + '</span>' +
+      '<span class="cceStatNow"><strong>' + ctxStr + '</strong>' + escapeAttr(t('context')) + '</span>';
+  }
+  // Chart viewBox width in CSS pixels, so one user unit is one device-
+  // independent pixel and SVG text keeps its declared size at any popup width.
+  function chartPixelWidth(box) {
+    var width = box && box.clientWidth ? box.clientWidth : 0;
+    if (!width && popupEl) width = popupEl.clientWidth - 26;
+    return clamp(Math.round(width) || 454, 200, 900);
   }
   function renderHistoryChart(box) {
     if (!box) return;
@@ -1170,37 +1164,222 @@ function setupCacheBadge() {
             '<rect class="cceRangeHit cceRangeHandleHit" data-range-part="end" x="' + svgNumber(selX2 - 8) + '" y="0" width="16" height="' + rangeH + '"></rect>' +
           '</svg>' +
         '</div>' +
-      '</div>' +
-      '<div class="cceHitStats">' +
-        '<div class="cceHitStat"><span>' + escapeAttr(t('latest')) + '</span><strong>' + fmtPct(latestHit) + '</strong></div>' +
-        '<div class="cceHitStat"><span>' + escapeAttr(t('mean')) + '</span><strong>' + fmtPct(mean) + '</strong></div>' +
-        '<div class="cceHitStat"><span>' + escapeAttr(t('lowest')) + '</span><strong>' + fmtPct(minHit) + '</strong></div>' +
+      '</div>';
+
+    bindHitChartHover(box, points, {
+      width: W,
+      padLeft: padL,
+      padRight: padR,
+      padTop: padT,
+      padBottom: padB,
+      plotWidth: plotW,
+      rangeStart: oldestTs,
+      rangeEnd: newestTs,
+    });
+    bindHitRangeSlider(box, {
+      width: W,
+      padLeft: padL,
+      padRight: padR,
+      plotWidth: plotW,
+      count: fullRows.length,
+    });
+  }
+  function bindHitChartHover(box, points, dims) {
+    if (!box || !points || !points.length) return;
+    var svg = box.querySelector('.cceHitSvg');
+    var shell = box.querySelector('.cceHitChartShell');
+    var line = box.querySelector('.cceHitHoverLine');
+    var dot = box.querySelector('.cceHitHoverPoint');
+    var label = box.querySelector('[data-hit-hover-label]');
+    if (!svg || !shell || !line || !dot || !label) return;
+    if (!label.__cceHitHoverBuilt) {
+      // One line: the readout lives in a reserved lane above the plot, so a
+      // two-line label would have to overlap the chart it describes.
+      label.innerHTML =
+        '<span class="cceHitHoverPct" data-hit-hover-pct></span>' +
+        '<span class="cceHitHoverTime" data-hit-hover-time></span>';
+      label.__cceHitHoverBuilt = true;
+    }
+    var pctEl = label.querySelector('[data-hit-hover-pct]');
+    var timeEl = label.querySelector('[data-hit-hover-time]');
+
+    var raf = 0;
+    var lastEvent = null;
+
+    function hideHover() {
+      if (raf) {
+        cancelAnimationFrame(raf);
+        raf = 0;
+      }
+      lastEvent = null;
+      svg.removeAttribute('data-hit-hovering');
+      label.removeAttribute('data-active');
+    }
+
+    function applyHover(evt) {
+      raf = 0;
+      if (!evt) return;
+      var rect = svg.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+      var xSvg = clamp(
+        ((evt.clientX - rect.left) / rect.width) * dims.width,
+        dims.padLeft,
+        dims.width - dims.padRight,
+      );
+      var denom = Math.max(1, points.length - 1);
+      var index = Math.round(((xSvg - dims.padLeft) / Math.max(1, dims.plotWidth)) * denom);
+      index = Math.max(0, Math.min(points.length - 1, index));
+      var p = points[index];
+      if (!p) return;
+
+      var x = svgNumber(p.x);
+      var y = svgNumber(p.y);
+      line.setAttribute('x1', x);
+      line.setAttribute('x2', x);
+      dot.setAttribute('cx', x);
+      dot.setAttribute('cy', y);
+
+      if (pctEl) pctEl.textContent = fmtPct(p.hit);
+      if (timeEl) timeEl.textContent = fmtChartTime(p.ts, dims.rangeStart, dims.rangeEnd);
+      svg.setAttribute('data-hit-hovering', '1');
+      label.setAttribute('data-active', '1');
+
+      var shellRect = shell.getBoundingClientRect();
+      var xPx = (p.x / dims.width) * rect.width + (rect.left - shellRect.left);
+      var labelWidth = label.offsetWidth || 54;
+      xPx = clamp(xPx, labelWidth / 2 + 6, shellRect.width - labelWidth / 2 - 6);
+      label.style.left = Math.round(xPx) + 'px';
+    }
+
+    function scheduleHover(evt) {
+      lastEvent = evt;
+      if (raf) return;
+      raf = requestAnimationFrame(function() { applyHover(lastEvent); });
+    }
+
+    svg.addEventListener('pointermove', scheduleHover);
+    svg.addEventListener('pointerleave', hideHover);
+    svg.addEventListener('pointercancel', hideHover);
+  }
+  function bindHitRangeSlider(box, dims) {
+    if (!box || !dims || dims.count <= 1) return;
+    var svg = box.querySelector('.cceRangeSvg');
+    if (!svg) return;
+    var drag = null;
+    function eventFrac(evt) {
+      var rect = drag && drag.rect ? drag.rect : svg.getBoundingClientRect();
+      if (!rect.width) return hitRangeStart;
+      var xSvg = ((evt.clientX - rect.left) / rect.width) * dims.width;
+      return clamp((xSvg - dims.padLeft) / Math.max(1, dims.plotWidth), 0, 1);
+    }
+    function moveWindowTo(center, width) {
+      var half = width / 2;
+      var start = center - half;
+      var end = center + half;
+      if (start < 0) {
+        end -= start;
+        start = 0;
+      }
+      if (end > 1) {
+        start -= end - 1;
+        end = 1;
+      }
+      setHitRange(start, end);
+    }
+    function onMove(evt) {
+      if (!drag) return;
+      evt.preventDefault();
+      var frac = eventFrac(evt);
+      if (drag.part === 'start') {
+        setHitRange(frac, drag.end);
+      } else if (drag.part === 'end') {
+        setHitRange(drag.start, frac);
+      } else {
+        moveWindowTo(drag.center + (frac - drag.origin), drag.width);
+      }
+    }
+    function onUp() {
+      drag = null;
+      window.removeEventListener('pointermove', onMove, true);
+      window.removeEventListener('pointerup', onUp, true);
+      window.removeEventListener('pointercancel', onUp, true);
+    }
+    svg.addEventListener('pointerdown', function(evt) {
+      var target = evt.target;
+      var part = target && target.getAttribute ? target.getAttribute('data-range-part') : '';
+      var frac = eventFrac(evt);
+      var width = Math.max(minHitRangeFraction(dims.count), hitRangeEnd - hitRangeStart);
+      if (!part || part === 'track') {
+        moveWindowTo(frac, width);
+        part = 'move';
+      }
+      var rect = svg.getBoundingClientRect();
+      drag = {
+        part: part,
+        rect: { left: rect.left, width: rect.width },
+        origin: frac,
+        start: hitRangeStart,
+        end: hitRangeEnd,
+        center: (hitRangeStart + hitRangeEnd) / 2,
+        width: hitRangeEnd - hitRangeStart,
+      };
+      evt.preventDefault();
+      window.addEventListener('pointermove', onMove, true);
+      window.addEventListener('pointerup', onUp, true);
+      window.addEventListener('pointercancel', onUp, true);
+    });
+  }
+  function tokenBarWidth(value, max) {
+    if (!Number.isFinite(value) || value <= 0 || !Number.isFinite(max) || max <= 0) return 0;
+    return Math.max(1.6, (value / max) * 100);
+  }
+  // Token spend for the brushed range. The bar spans every billed class,
+  // including output, so the legend's four values and the bar's four
+  // segments are the same four facts stated once — not a composition chart
+  // whose read share would only restate the hit rate the plot above already
+  // draws.
+  // Labels resolve through t() at render time so the popup follows
+  // CFG.language like every other incipit surface.
+  var SPEND_CLASSES = [
+    { key: 'fresh', labelKey: 'fresh' },
+    { key: 'write', labelKey: 'write' },
+    { key: 'read', labelKey: 'read' },
+    { key: 'output', labelKey: 'output' },
+  ];
+  function renderSessionFlow(box) {
+    if (!box) return;
+    var rows = latest && latest.totals
+      ? (selectedHitRows && selectedHitRows.length ? selectedHitRows : cacheHistoryRows())
+      : [];
+    var S = summarizeHistoryRows(rows);
+    if (!S.requests) {
+      box.innerHTML = '';
+      return;
+    }
+    var total = S.fresh + S.write + S.read + S.output;
+    var segments = '';
+    var legend = '';
+    for (var i = 0; i < SPEND_CLASSES.length; i++) {
+      var cls = SPEND_CLASSES[i];
+      var value = S[cls.key] || 0;
+      var share = total > 0 ? (value / total) * 100 : 0;
+      // Floor a spent class above the rounding threshold: the legend states
+      // the tokens either way, so a class the bar showed as absent would
+      // contradict it. Only an exact zero collapses.
+      if (value > 0 && share < 0.1) share = 0.1;
+      segments += '<span class="cceSpendSeg cceSpendSeg-' + cls.key + '" style="width:' + pctNumber(share) + '%"></span>';
+      legend += '<span class="cceSpendItem">' +
+        '<i class="cceSpendDot cceSpendDot-' + cls.key + '"></i>' + escapeAttr(t(cls.labelKey)) +
+        '<b>' + fmtTokens(value) + '</b>' +
+      '</span>';
+    }
+    var requestLabel = tRequests(S.requests);
     var durationLabel = S.durationMs > 0 ? ' · ' + fmtDuration(S.durationMs) : '';
 
     box.innerHTML =
-      '<div class="cceFlowContext cceSelectedRange">' +
-        '<div class="cceFlowHeader">' +
-          '<span>' + escapeAttr(t('selected_range')) + '</span>' +
-          '<strong>' + requestLabel + durationLabel + '</strong>' +
-        '</div>' +
-        '<div class="cceFlowRangeTime">' + rangeTimeLabel(rows) + '</div>' +
-        '<div class="cceContextStack" aria-hidden="true">' +
-          '<span class="cceContextSeg cceContextSeg-fresh" style="width:' + pctNumber(freshPct) + '%"></span>' +
-          '<span class="cceContextSeg cceContextSeg-write" style="width:' + pctNumber(writePct) + '%"></span>' +
-          '<span class="cceContextSeg cceContextSeg-read" style="width:' + pctNumber(readPct) + '%"></span>' +
-        '</div>' +
-        '<div class="cceFlowLegend">' +
-          '<span><i class="cceLegendFresh"></i>' + escapeAttr(t('fresh')) + ' ' + fmtTokens(S.fresh) + '</span>' +
-          '<span><i class="cceLegendWrite"></i>' + escapeAttr(t('write')) + ' ' + fmtTokens(S.write) + '</span>' +
-          '<span><i class="cceLegendRead"></i>' + escapeAttr(t('read')) + ' ' + fmtTokens(S.read) + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div class="cceSelectedGrid">' +
-        metric(t('cache_read'), fmtTokens(S.read), 'read') +
-        metric(t('cache_write'), fmtTokens(S.write), 'write') +
-        metric(t('output'), fmtTokens(S.output), 'output') +
-        metric(t('fresh_input'), fmtTokens(S.fresh), 'fresh') +
-      '</div>';
+      '<div class="cceSpendHead">' + requestLabel + durationLabel + '</div>' +
+      '<div class="cceSpendBar" aria-hidden="true">' + segments + '</div>' +
+      '<div class="cceSpendLegend">' + legend + '</div>';
   }
   function renderPopup() {
     if (!popupEl) return;
