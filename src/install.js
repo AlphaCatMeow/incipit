@@ -18,6 +18,7 @@ const vm = require('vm');
 const { atomicWrite } = require('./fs-atomic');
 const { patchTranscriptFollow } = require('./webview-scroll');
 const { patchTaskEvents, taskEventPreamble } = require('./webview-task-events');
+const { patchAgentMessages } = require('./webview-agent-messages');
 const { HOST_BADGE_COMM_ATTACH } = require('./badge-iife');
 const {
   buildInstallManifestPreamble,
@@ -3271,6 +3272,10 @@ function patchWebviewIndex(content, features, theme, language, installContracts 
   let taskEventStatus;
   [updated, taskEventStatus] = patchTaskEvents(updated);
   statusLines.push(record('install.taskActivityEvents', taskEventStatus));
+
+  let agentMessageStatus;
+  [updated, agentMessageStatus] = patchAgentMessages(updated);
+  statusLines.push(record('install.agentMessageOwnership', agentMessageStatus));
 
   let markdownStatus;
   [updated, markdownStatus] = patchMarkdownChildren(updated);

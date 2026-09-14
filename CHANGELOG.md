@@ -2,6 +2,15 @@
 
 [中文版 →](CHANGELOG.zh.md)
 
+## 0.2.1 — 2026-09-12
+
+Faster diffs and more responsive long sessions.
+
+- Keep file tools lightweight while collapsed, and load expanded diffs in pages.
+- Automatically recover diff previews when saved results arrive, without a manual refresh.
+- Keep subagent output inside its parent tool call instead of duplicating it in the main conversation.
+- Fix a history-processing issue that could delay the Stop button in long sessions.
+
 ## 0.2.0 — 2026-09-07
 
 The transcript is the release. Tool calls, thinking and diffs used to stack up as separate cards; they now read as one activity column, the way a transcript should. Most of what follows comes out of that — plus a set of installer fixes that close a way incipit could leave your Claude Code panel blank.

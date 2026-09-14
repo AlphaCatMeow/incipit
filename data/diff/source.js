@@ -9,7 +9,7 @@ let getApi = null;
 let listening = false;
 let sequence = 0;
 let active = 0;
-let lastIdentity = '';
+const instanceId = Math.random().toString(36).slice(2);
 
 /** Use the already captured host API; never acquire a second VS Code API object. */
 export function configureDiffSource(apiProvider) {
@@ -35,6 +35,9 @@ function settle(entry, error, payload) {
   entry.finished = true;
   clearTimeout(entry.timer);
   requests.delete(entry.requestId);
+  if (error && entry.started) {
+    try { getApi?.()?.postMessage({ __incipit: true, type: 'tool_diff_cancel', requestId: entry.requestId }); } catch (_) {}
+  }
   if (shared.get(entry.key) === entry) shared.delete(entry.key);
   if (entry.started) active--;
   for (const waiter of entry.waiters) {
@@ -47,7 +50,12 @@ function settle(entry, error, payload) {
 
 function pump() {
   while (active < MAX_ACTIVE && queue.length) {
-    const entry = queue.shift();
+    let index = queue.findIndex(entry => !entry.finished && entry.waiters.size && !entry.statsOnly);
+    if (index < 0) {
+      if (active) return;
+      index = 0;
+    }
+    const entry = queue.splice(index, 1)[0];
     if (entry.finished || !entry.waiters.size) continue;
     try {
       const api = getApi && getApi();
@@ -55,28 +63,24 @@ function pump() {
       entry.started = true; active++;
       requests.set(entry.requestId, entry);
       entry.timer = setTimeout(() => settle(entry, new Error('Historical diff lookup timed out. Retry to reload it.')), TIMEOUT_MS);
-      const identity = JSON.stringify([entry.identity.sessionId, entry.identity.cwd]);
-      if (identity !== lastIdentity) {
-        api.postMessage({ __incipit: true, type: 'badge_identity_update', sessionId: entry.identity.sessionId,
-          cwd: entry.identity.cwd, includeHistory: false });
-        lastIdentity = identity;
-      }
-      api.postMessage({ __incipit: true, type: 'tool_diff_request', requestId: entry.requestId, ...entry.identity });
+      api.postMessage({ __incipit: true, type: 'badge_identity_update', sessionId: entry.identity.sessionId,
+        cwd: entry.identity.cwd, includeHistory: false, bindOnly: true });
+      api.postMessage({ __incipit: true, type: 'tool_diff_request', requestId: entry.requestId, ...entry.identity, statsOnly: entry.statsOnly });
     } catch (error) { settle(entry, error); }
   }
 }
 
 /** Coalesce read-only requests while allowing a detached view to release its reader. */
-export function fetchToolDiff(identity, { signal } = {}) {
+export function fetchToolDiff(identity, { signal, statsOnly = false } = {}) {
   if (signal?.aborted) return Promise.reject(diffAbortError());
   if (!identity.sessionId || !identity.cwd || !identity.toolUseId || !identity.filePath) {
     return Promise.reject(new Error('The session or file identity is not available yet.'));
   }
-  const key = JSON.stringify([identity.sessionId, identity.cwd, identity.toolUseId, identity.filePath]);
+  const key = JSON.stringify([identity.sessionId, identity.cwd, identity.toolUseId, identity.filePath, statsOnly]);
   let entry = shared.get(key);
   if (!entry) {
-    if (shared.size >= 32) return Promise.reject(new Error('Too many file previews are loading. Retry shortly.'));
-    entry = { key, identity, requestId: 'tool-diff-' + (++sequence), waiters: new Set(), started: false,
+    if (shared.size >= (statsOnly ? 30 : 32)) return Promise.reject(new Error('Too many file previews are loading. Retry shortly.'));
+    entry = { key, identity, statsOnly, requestId: 'tool-diff-' + instanceId + '-' + (++sequence), waiters: new Set(), started: false,
       finished: false, timer: null };
     shared.set(key, entry); queue.push(entry);
   }
@@ -98,5 +102,4 @@ export function fetchToolDiff(identity, { signal } = {}) {
 export function clearDiffSource() {
   queue.length = 0;
   for (const entry of [...shared.values()]) settle(entry, diffAbortError());
-  lastIdentity = '';
 }

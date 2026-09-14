@@ -102,7 +102,9 @@ function pumpQueue() {
 export async function getDiffModel(payload, { key = '', signal } = {}) {
   const epoch = generation;
   if (signal?.aborted) throw diffAbortError();
-  const id = String(key) + ':' + await contentKey(payload, signal, epoch);
+  const revision = key && typeof payload.revision === 'string' && /^[a-f0-9]{64}$/.test(payload.revision)
+    ? JSON.stringify([payload.schemaVersion, payload.source, payload.sessionId, payload.toolUseId, payload.filePath, payload.revision]) : null;
+  const id = String(key) + ':' + (revision || await contentKey(payload, signal, epoch));
   const hit = cache.get(id);
   if (hit) { cache.delete(id); cache.set(id, hit); cacheHits++; return hit.model; }
   let entry = entries.get(id);

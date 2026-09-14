@@ -16,8 +16,10 @@ function sourceError(code, message) {
   return Object.assign(new Error(message), { code });
 }
 
-function hash(buffer) {
-  return crypto.createHash('sha256').update(buffer).digest('hex');
+function hash(buffer, extra) {
+  const digest = crypto.createHash('sha256').update(buffer);
+  if (extra) digest.update(extra);
+  return digest.digest('hex');
 }
 
 function sameFile(a, b) {
@@ -235,19 +237,20 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
   async function scan(item, handle, stat, requestedId, epoch, runGeneration, fromBeginning = false, signal) {
     let position = fromBeginning ? 0 : item.size;
     let lineStart = fromBeginning ? 0 : item.lineStart;
-    let carry = fromBeginning ? Buffer.alloc(0) : item.partial;
+    const partial = fromBeginning ? Buffer.alloc(0) : item.partial;
+    let pieces = partial.length ? [partial] : [], length = partial.length;
     const found = { assistant: [], result: [] };
     while (position < stat.size) {
       checkCurrent(item, epoch, runGeneration);
       const bytes = await readBytes(handle, position, Math.min(CHUNK_BYTES, stat.size - position), signal);
       position += bytes.length;
-      const data = carry.length ? Buffer.concat([carry, bytes]) : bytes;
       let begin = 0;
       let newline;
-      while ((newline = data.indexOf(10, begin)) !== -1) {
-        const length = newline - begin;
+      while ((newline = bytes.indexOf(10, begin)) !== -1) {
+        const part = bytes.subarray(begin, newline);
+        length += part.length;
         if (length > MAX_RECORD_BYTES) throw sourceError('record-too-large', 'A session history record is too large to inspect safely.');
-        const line = data.subarray(begin, newline);
+        const line = pieces.length ? Buffer.concat([...pieces, part], length) : part;
         if (line.includes('"tool_use"') || line.includes('"tool_result"')) {
           const entry = parseLine(line);
           if (!entry) item.corrupt = true;
@@ -257,14 +260,16 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
           }
         }
         lineStart += length + 1;
+        pieces = []; length = 0;
         begin = newline + 1;
       }
-      carry = Buffer.from(data.subarray(begin));
-      if (carry.length > MAX_RECORD_BYTES) throw sourceError('record-too-large', 'A session history record exceeds the inspection limit.');
+      if (begin < bytes.length) { pieces.push(bytes.subarray(begin)); length += bytes.length - begin; }
+      if (length > MAX_RECORD_BYTES) throw sourceError('record-too-large', 'A session history record exceeds the inspection limit.');
       await new Promise(resolve => setImmediate(resolve));
     }
     // A complete final JSON value is readable without a newline, but remains
     // provisional so a later delimiter cannot index the same result twice.
+    const carry = pieces.length ? Buffer.concat(pieces, length) : Buffer.alloc(0);
     if (carry.length) {
       for (const record of identities(parseLine(carry), { start: lineStart, end: stat.size })) {
         if (record.id === requestedId) found[record.role].push(record);
@@ -296,6 +301,7 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
   }
 
   function cachePayload(item, key, payload) {
+    if (((payload.oldText?.length || 0) + (payload.newText?.length || 0)) * 2 > MAX_CACHE_BYTES) return;
     const bytes = Buffer.byteLength(JSON.stringify(payload));
     if (bytes > MAX_CACHE_BYTES) return;
     const previous = item.cache.get(key);
@@ -316,6 +322,9 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
     if (!group.result.length) return { ...base, ok: true, state: group.assistant.length ? 'pending' : 'unavailable',
       notice: group.assistant.length ? 'The tool result has not been saved yet.' :
         (item.corrupt ? 'Some session records could not be read; this tool result is unavailable.' : 'This tool was not found in the session history.') };
+    const cacheKey = JSON.stringify([message.toolUseId, canonicalPath(message.filePath, item.cwd), group]);
+    const cached = item.cache.get(cacheKey);
+    if (cached) { item.cache.delete(cacheKey); item.cache.set(cacheKey, cached); return cached.payload; }
     const saved = await loadEntry(handle, group.result[0], signal);
     const content = saved.entry.message && saved.entry.message.content;
     const resultBlocks = Array.isArray(content) ? content.filter(block => block && block.type === 'tool_result') : [];
@@ -324,8 +333,10 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
     if (resultBlocks.length !== 1) throw sourceError('ambiguous-result', 'This result cannot be associated with one file change.');
     if (resultBlock.is_error) return { ...base, ok: true, state: 'unavailable', notice: 'The tool failed; no completed file change is available.' };
     let tool = null;
+    let inputRaw = null;
     if (group.assistant.length) {
-      const assistant = (await loadEntry(handle, group.assistant[0], signal)).entry;
+      const savedInput = await loadEntry(handle, group.assistant[0], signal);
+      const assistant = savedInput.entry; inputRaw = savedInput.raw;
       const blocks = assistant.message && assistant.message.content;
       const matches = Array.isArray(blocks) ? blocks.filter(block => block?.type === 'tool_use' && block.id === message.toolUseId) : [];
       if (matches.length > 1) throw sourceError('ambiguous-tool-id', 'Multiple tool inputs share this identity in one message.');
@@ -348,9 +359,7 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
         (tool && tool.input && tool.input.file_path && actual !== canonicalPath(tool.input.file_path, item.cwd))) {
       throw sourceError('file-mismatch', 'The historical tool result belongs to a different file.');
     }
-    const revision = hash(saved.raw);
-    const cached = item.cache.get(revision);
-    if (cached) { item.cache.delete(revision); item.cache.set(revision, cached); return cached.payload; }
+    const revision = hash(saved.raw, inputRaw);
     let payload;
     let snapshot;
     const getSnapshot = () => snapshot === undefined ? (snapshot = verifiedSnapshot(result, tool)) : snapshot;
@@ -364,21 +373,14 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
         ok: true, state: 'ready', source: 'structured-patch', lineNumbers: 'absolute', notice: '' };
     } else {
       if (getSnapshot()) {
-        const { buildDiffModel } = await import('./diff/model.js');
-        const model = await buildDiffModel({ ...snapshot, source: 'snapshot' }, {
-          signal,
-          budgetMs: 4,
-          yieldControl: () => new Promise(resolve => setImmediate(resolve)),
-        });
         payload = { ...base, filePath: path.resolve(item.cwd, actualPath), revision, ok: true, state: 'ready',
-          source: 'snapshot', lineNumbers: 'absolute', rows: model.rows, stats: model.stats,
-          quality: model.quality, notice: model.notice };
+          source: 'snapshot', lineNumbers: 'absolute', ...snapshot, notice: '' };
       } else {
         payload = { ...base, revision, ok: true, state: 'unavailable',
           notice: 'No verified patch or complete before/after snapshot was saved for this change.' };
       }
     }
-    cachePayload(item, revision, payload);
+    cachePayload(item, cacheKey, payload);
     return payload;
   }
 
@@ -433,11 +435,44 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
       signal?.addEventListener('abort', abort, { once: true });
       lifetime.addEventListener('abort', abort, { once: true });
       if (signal?.aborted || lifetime.aborted) abort();
-      const work = item.queue.then(() => inspect(item, message, runGeneration, epoch, controller.signal)).finally(() => {
-        signal?.removeEventListener('abort', abort); lifetime.removeEventListener('abort', abort);
-      });
+      const work = item.queue.then(() => inspect(item, message, runGeneration, epoch, controller.signal));
       item.queue = work.then(() => undefined, () => undefined);
-      return await work;
+      try {
+        const payload = await work;
+        if (payload.state !== 'ready') return payload;
+        if (message.statsOnly !== true) {
+          // Sparse changes in large existing files stay in the host; creations
+          // travel as compact text instead of thousands of repeated row fields.
+          if (payload.source !== 'snapshot' || !payload.oldText) return payload;
+          const previewKey = 'preview:' + payload.revision;
+          const cached = item.cache.get(previewKey);
+          if (cached) return cached.payload;
+          const { buildDiffModel } = await import('./diff/model.js');
+          const model = await buildDiffModel(payload, { signal: controller.signal, budgetMs: 4,
+            yieldControl: () => new Promise(resolve => setImmediate(resolve)) });
+          checkAbort(controller.signal); checkCurrent(item, epoch, runGeneration);
+          const { oldText, newText, ...metadata } = payload;
+          const result = { ...metadata, rows: model.rows, stats: model.stats, quality: model.quality, notice: model.notice };
+          cachePayload(item, previewKey, result);
+          return result;
+        }
+        let stats = payload.stats, quality = payload.quality;
+        const statsKey = 'stats:' + payload.revision;
+        const cached = item.cache.get(statsKey);
+        if (cached) return cached.payload;
+        if (!stats) {
+          const { countSnapshotLines } = await import('./diff/model.js');
+          const counted = await countSnapshotLines(payload.oldText, payload.newText, { signal: controller.signal, budgetMs: 4,
+            yieldControl: () => new Promise(resolve => setImmediate(resolve)) });
+          stats = counted.stats; quality = counted.quality;
+        }
+        checkAbort(controller.signal); checkCurrent(item, epoch, runGeneration);
+        const result = { ...base, revision: payload.revision, ok: true, state: 'ready', stats, quality };
+        cachePayload(item, statsKey, result);
+        return result;
+      } finally {
+        signal?.removeEventListener('abort', abort); lifetime.removeEventListener('abort', abort);
+      }
     } catch (error) {
       if (error.name === 'AbortError') throw error;
       const denied = error.code === 'EACCES' || error.code === 'EPERM';

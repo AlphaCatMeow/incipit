@@ -108,9 +108,9 @@ export function createAgentHistoryView(scope, options) {
         const host = element('div', 'data-incipit-agent-diff'); fold.inner.append(host);
         diff = createDiffPreview(host, { filePath: block.input.file_path, async loadModel({ signal }) {
           const response = await fetchAgentActivity({ ...scope, op: 'tool-diff', innerToolUseId: block.id, filePath: block.input.file_path }, { signal });
-          if (!response.ok) throw Object.assign(new Error(response.error), { code: response.code });
+          if (!response.ok) throw Object.assign(new Error(response.error), { code: response.code, retryable: true });
           const payload = response.diff;
-          if (!payload?.ok || payload.state !== 'ready') throw new Error(payload?.notice || payload?.error || 'The saved diff is not available yet.');
+          if (!payload?.ok || payload.state !== 'ready') throw Object.assign(new Error(payload?.notice || payload?.error || 'The saved diff is not available yet.'), { retryable: true });
           return getDiffModel(payload, { key: key + ':diff', signal });
         }, onStats: stats => headline.setCounts(stats) });
         diff.setVisible(true);
