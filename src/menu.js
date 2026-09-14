@@ -3010,15 +3010,16 @@ async function checkForUpdate() {
     return { current: null, latest: null, outdated: false, reason: 'no-version' };
   }
   const current = pkg.version;
+  const name = pkg.name;
 
   if (isUpdateCheckDisabled()) {
-    return { current, latest: null, outdated: false, reason: 'disabled' };
+    return { current, name, latest: null, outdated: false, reason: 'disabled' };
   }
 
   const now = Date.now();
   const latest = await fetchLatestVersion(pkg.name, UPDATE_CHECK_TIMEOUT_MS);
   if (!latest) {
-    return { current, latest: null, outdated: false, reason: 'network' };
+    return { current, name, latest: null, outdated: false, reason: 'network' };
   }
 
   try {
@@ -3030,6 +3031,7 @@ async function checkForUpdate() {
 
   return {
     current,
+    name,
     latest,
     outdated: compareVersions(current, latest) < 0,
     reason: 'fresh',
@@ -3055,6 +3057,22 @@ async function finishWithUpdateNotice(code, updatePromise) {
   return code;
 }
 
+// Pure spec-building split out from the spawn below so the anti-regression
+// test can call it directly instead of mocking `spawn`/the network.
+//
+// `pkgName` comes from `checkForUpdate()`'s own `pkg.name` read, not a
+// literal here — a literal is exactly how this regressed once already
+// (a rename migration updated the registry-check URL and both i18n hint
+// strings but missed this call, so the auto-upgrade kept installing the
+// unrelated, unscoped `incipit` package, which never carries this fork's
+// version numbers and 404s forever).
+function buildUpdateSpec(pkgName, targetVersion) {
+  const name = typeof pkgName === 'string' && pkgName ? pkgName : '@alphacatmeow/incipit';
+  const safe = typeof targetVersion === 'string' &&
+    /^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$/.test(targetVersion);
+  return safe ? `${name}@${targetVersion}` : `${name}@latest`;
+}
+
 // Spawns the global upgrade, pipes stdio straight to the terminal so the
 // user sees npm's own progress output, and resolves with the exit code.
 // `shell: true` lets Windows `npm.cmd` and Unix `npm` resolve through the
@@ -3071,10 +3089,8 @@ async function finishWithUpdateNotice(code, updatePromise) {
 // of silently reinstalling the cached old one, and `--prefer-online`
 // revalidates stale cached metadata. Fall back to `@latest` only if the
 // discovered version string is missing/malformed.
-function runNpmUpdate(targetVersion) {
-  const safe = typeof targetVersion === 'string' &&
-    /^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$/.test(targetVersion);
-  const spec = safe ? `incipit@${targetVersion}` : 'incipit@latest';
+function runNpmUpdate(pkgName, targetVersion) {
+  const spec = buildUpdateSpec(pkgName, targetVersion);
   return new Promise(resolve => {
     try {
       const child = spawn(`npm install -g ${spec} --prefer-online`, {
@@ -3116,7 +3132,7 @@ async function handleUpdatePrompt(info) {
   console.log();
   console.log('  ' + color(t('update.upgrading'), Ansi.CYAN));
   console.log();
-  const code = await runNpmUpdate(info && info.latest);
+  const code = await runNpmUpdate(info && info.name, info && info.latest);
   console.log();
   if (code === 0) {
     console.log('  ' + color(t('update.upgrade_succeeded'), Ansi.GREEN));
@@ -3243,4 +3259,7 @@ async function main(argv) {
   }
 }
 
-module.exports = { main, __test: { collectApplyWarnings, isHostRouteProvenanceLine } };
+module.exports = {
+  main,
+  __test: { collectApplyWarnings, isHostRouteProvenanceLine, buildUpdateSpec, compareVersions },
+};
