@@ -5757,7 +5757,10 @@ import {
   async function saveAndRerunInlineEditor(uuid, button) {
     const state = inlineEditByUuid.get(uuid);
     if (!state) return;
-    if (state.record?.type !== 'user') return;
+    if (state.kind !== 'user') {
+      await saveInlineEditor(uuid);
+      return;
+    }
     if (blockMutationWhileBusyOrUnknown()) return;
     const text = state.textarea.value;
     const blocksSpec = buildUserEditBlocksSpec(state, text);
@@ -5781,7 +5784,7 @@ import {
 
   async function saveInlineEditor(uuid) {
     const state = inlineEditByUuid.get(uuid);
-    if (!state || state.record?.type !== 'user') return;
+    if (!state) return;
     if (blockMutationWhileBusyOrUnknown()) return;
     const text = state.textarea.value;
     const op = state.kind === 'assistant' ? 'edit_assistant_text' : 'edit_user';
@@ -5806,23 +5809,31 @@ import {
     }
     state.saveBtn.dataset.incipitInflight = '1';
     state.cancelBtn.dataset.incipitInflight = '1';
+    let payload;
     try {
       const liveIdentity = transcriptRecordIdentity(liveTranscriptRecord(uuid, state.record)) || state.identity || {};
-      await requestTranscriptMutation('edit_user', { uuid, blocks: blocksSpec, ...liveIdentity });
+      const requestPayload = blocksSpec
+        ? { uuid, blocks: blocksSpec, ...liveIdentity }
+        : { uuid, text, ...liveIdentity };
+      payload = await requestTranscriptMutation(op, requestPayload);
     } catch (error) {
       state.saveBtn?.removeAttribute('data-incipit-inflight');
       state.cancelBtn?.removeAttribute('data-incipit-inflight');
       showTranscriptToast(error.message || String(error), 'error');
       return;
     }
-    // Release the editor before React replaces the saved user bubble.
+    // Release the editor before React replaces the saved bubble.
     teardownInlineEditor(uuid);
     await new Promise(resolve => setTimeout(resolve, 0));
-    reflectUserEditBlocks(uuid, blocksSpec);
+    if (blocksSpec) {
+      reflectUserEditBlocks(uuid, blocksSpec);
+    } else {
+      reflectTranscriptMutation(op, payload, text);
+    }
   }
 
-  function openInlineEditor({ record, bubbleHost, contentEl, originalActionRow, identity }) {
-    if (!record || record.type !== 'user' || !bubbleHost || !contentEl) return;
+  function openInlineEditor({ kind, record, bubbleHost, contentEl, originalActionRow, identity, initialText }) {
+    if (!record || !bubbleHost || !contentEl) return;
     if (conversationIsBusy()) return;
     const existing = inlineEditByUuid.get(record.uuid);
     if (existing) {
@@ -5923,55 +5934,57 @@ import {
     textarea.rows = 1;
     shell.appendChild(textarea);
 
-    // Image paste/drop handlers. Paste captures
+    // Image paste/drop handlers (user kind only). Paste captures
     // clipboardData image items; drop captures dragged-in files.
     // Text paste falls through to the textarea's natural behaviour.
-    textarea.addEventListener('paste', (ev) => {
-      const items = (ev.clipboardData && ev.clipboardData.items) || [];
-      let handled = false;
-      const state = inlineEditByUuid.get(record.uuid);
-      for (const it of items) {
-        if (it.kind === 'file' && /^image\//.test(it.type || '')) {
-          const file = it.getAsFile && it.getAsFile();
-          if (file && state) {
-            addInlineEditImageFromFile(state, file);
-            handled = true;
+    if (kind === 'user') {
+      textarea.addEventListener('paste', (ev) => {
+        const items = (ev.clipboardData && ev.clipboardData.items) || [];
+        let handled = false;
+        const state = inlineEditByUuid.get(record.uuid);
+        for (const it of items) {
+          if (it.kind === 'file' && /^image\//.test(it.type || '')) {
+            const file = it.getAsFile && it.getAsFile();
+            if (file && state) {
+              addInlineEditImageFromFile(state, file);
+              handled = true;
+            }
           }
         }
-      }
-      if (handled) {
+        if (handled) {
+          ev.preventDefault();
+          ev.stopPropagation();
+        }
+      });
+      shell.addEventListener('dragover', (ev) => {
+        // Only signal accept when an image-ish file is being dragged;
+        // suppresses VS Code's editor-level default for image drops.
+        const dt = ev.dataTransfer;
+        if (!dt) return;
+        const types = dt.types || [];
+        const looksLikeFile = Array.prototype.indexOf.call(types, 'Files') !== -1;
+        if (looksLikeFile) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          try { dt.dropEffect = 'copy'; } catch (_) {}
+        }
+      });
+      shell.addEventListener('drop', (ev) => {
+        const dt = ev.dataTransfer;
+        if (!dt) return;
+        const files = Array.from(dt.files || []).filter(f => /^image\//.test(f.type || ''));
+        if (!files.length) return;
         ev.preventDefault();
         ev.stopPropagation();
-      }
-    });
-    shell.addEventListener('dragover', (ev) => {
-      // Only signal accept when an image-ish file is being dragged;
-      // suppresses VS Code's editor-level default for image drops.
-      const dt = ev.dataTransfer;
-      if (!dt) return;
-      const types = dt.types || [];
-      const looksLikeFile = Array.prototype.indexOf.call(types, 'Files') !== -1;
-      if (looksLikeFile) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        try { dt.dropEffect = 'copy'; } catch (_) {}
-      }
-    });
-    shell.addEventListener('drop', (ev) => {
-      const dt = ev.dataTransfer;
-      if (!dt) return;
-      const files = Array.from(dt.files || []).filter(f => /^image\//.test(f.type || ''));
-      if (!files.length) return;
-      ev.preventDefault();
-      ev.stopPropagation();
-      const state = inlineEditByUuid.get(record.uuid);
-      if (!state) return;
-      for (const f of files) addInlineEditImageFromFile(state, f);
-    });
+        const state = inlineEditByUuid.get(record.uuid);
+        if (!state) return;
+        for (const f of files) addInlineEditImageFromFile(state, f);
+      });
+    }
 
     const editActions = document.createElement('div');
     editActions.className = 'incipit-transcript-action-row incipit-inline-edit-actions';
-    editActions.setAttribute('data-incipit-inline-edit-actions', 'user');
+    editActions.setAttribute('data-incipit-inline-edit-actions', kind);
 
     // SVG icon buttons (matching the original three-icon row family).
     // makeTranscriptActionButton wires stopPropagation, the
@@ -6004,12 +6017,13 @@ import {
     // too). Hide Save, keep only Cancel + Rerun so the user can't hit
     // that dead end. Read from messages.value, not DOM (virtualization).
     const hasDownstreamThinking =
-      userRecordHasDownstreamSignedThinking(record);
+      kind === 'user' && userRecordHasDownstreamSignedThinking(record);
 
     if (hasDownstreamThinking) {
       editActions.append(cancelBtn, saveRerunBtn);
     } else {
-      editActions.append(cancelBtn, saveBtn, saveRerunBtn);
+      editActions.append(cancelBtn, saveBtn);
+      if (saveRerunBtn) editActions.appendChild(saveRerunBtn);
     }
 
     // DOM injection.
@@ -6019,12 +6033,20 @@ import {
     } else {
       bubbleHost.appendChild(shell);
     }
-    // Keep the editing controls inside the user's bubble when available.
+    // Edit-actions — placement depends on kind:
+    //  - user: inside the bubble itself, after the shell, so the
+    //    cancel/save pair sits at the bottom-right of the expanded
+    //    draft card (the bubble carries the visual identity).
+    //  - assistant: outside the markdown root, next to the original
+    //    icon row at message-host level, matching the original AI
+    //    action row position (below the warm draft card).
     let editActionsPlaced = false;
-    const userBubbleEl = contentEl.closest('[data-incipit-user-bubble]');
-    if (userBubbleEl) {
-      userBubbleEl.appendChild(editActions);
-      editActionsPlaced = true;
+    if (kind === 'user') {
+      const userBubbleEl = contentEl.closest('[data-incipit-user-bubble]');
+      if (userBubbleEl) {
+        userBubbleEl.appendChild(editActions);
+        editActionsPlaced = true;
+      }
     }
     if (!editActionsPlaced) {
       if (originalActionRow && originalActionRow.parentElement) {
@@ -6037,18 +6059,21 @@ import {
     // Hide originals via attr (CSS handles display:none).
     contentEl.setAttribute('data-incipit-inline-edit-hidden', '');
     if (originalActionRow) originalActionRow.setAttribute('data-incipit-inline-edit-hidden', '');
-    // Also hide the host-rendered attachment pill row
+    // For user kind: also hide the host-rendered attachment pill row
     // (`[data-incipit-user-attachments]`). The host renders it either
     // inside the user bubble (short messages) or as a sibling above the
     // bubble (long messages). Without this hide, both the host's pills
     // *and* our chip strip render simultaneously, showing the same
     // images twice with two different visual styles. Scope query at the
     // userMessageContainer level to cover both layouts.
-    const attachmentsEl = bubbleHost.querySelector(SEL.userAttachments);
-    if (attachmentsEl) {
-      attachmentsEl.setAttribute('data-incipit-inline-edit-hidden', '');
+    let attachmentsEl = null;
+    if (kind === 'user') {
+      attachmentsEl = bubbleHost.querySelector(SEL.userAttachments);
+      if (attachmentsEl) {
+        attachmentsEl.setAttribute('data-incipit-inline-edit-hidden', '');
+      }
     }
-    bubbleHost.setAttribute('data-incipit-inline-editing', 'user');
+    bubbleHost.setAttribute('data-incipit-inline-editing', kind);
 
     const autoGrow = () => {
       textarea.style.height = 'auto';
@@ -6071,6 +6096,7 @@ import {
       }
     });
     inlineEditByUuid.set(record.uuid, {
+      kind,
       record,
       bubbleHost,
       contentEl,
@@ -6082,7 +6108,7 @@ import {
       editActionsEl: editActions,
       originalActionRow: originalActionRow || null,
       identity: identity || null,
-      // Chip strip state. chips is mutated in place
+      // Chip strip state (user kind only). chips is mutated in place
       // by removeInlineEditChip / addInlineEditImageFromFile;
       // renderInlineEditChipStrip clears + repaints `chipsContainerEl`
       // each time. chipsCounter namespace 'n-N' keeps new-image chip
@@ -6096,8 +6122,10 @@ import {
       attachmentsEl,
     });
 
-    const seedState = inlineEditByUuid.get(record.uuid);
-    renderInlineEditChipStrip(seedState);
+    if (kind === 'user') {
+      const seedState = inlineEditByUuid.get(record.uuid);
+      renderInlineEditChipStrip(seedState);
+    }
 
     applyInlineSaveBusyState(saveBtn, conversationIsBusy());
 
@@ -6293,12 +6321,15 @@ import {
         () => {
           const cur = liveRecord();
           const userContentEl = userBubbleContentElement(bubbleEl) || bubbleEl;
+          const initialText = transcriptText(cur) || userBubbleText(bubbleEl).trim();
           openInlineEditor({
+            kind: 'user',
             record: cur,
             bubbleHost: host,
             contentEl: userContentEl,
             originalActionRow: row,
             identity,
+            initialText,
           });
         }
       ));

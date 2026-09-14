@@ -925,9 +925,6 @@ function resolveConversationMutation(state, message) {
 
   const op = typeof message.op === 'string' ? message.op : '';
   if (!op) throw new Error('Missing transcript mutation operation');
-  if (op === 'edit_assistant_text') {
-    throw new Error('Assistant messages are read-only. Edit a user message and rerun instead.');
-  }
 
   const uuid = typeof message.uuid === 'string' ? message.uuid : '';
   if (!uuid) throw new Error('Missing message uuid');
@@ -970,6 +967,8 @@ function resolveConversationMutation(state, message) {
     } else {
       result = applyUserEdit(transcript, uuid, textPayload(message));
     }
+  } else if (op === 'edit_assistant_text') {
+    result = applyAssistantTextEdit(transcript, uuid, textPayload(message));
   } else if (op === 'truncate_from_user') {
     result = applyTruncateFromUser(transcript, uuid);
   } else {
@@ -1456,6 +1455,23 @@ function applyBlockSpecToEntry(entry, blocks) {
   return true;
 }
 
+function applyAssistantTextEdit(transcript, uuid, text) {
+  const rows = requireTranscriptRows(transcript, uuid);
+  const sample = rows[rows.length - 1].entry;
+  if (sample.type !== 'assistant') throw new Error('Only assistant messages can be edited with this operation');
+  if (!canEditAssistantTextEntry(sample)) {
+    throw new Error('This assistant record has no editable text block');
+  }
+  let any = false;
+  for (const row of rows) {
+    if (replaceTextContent(row.entry, text, { requireExistingText: true })) {
+      row.changed = true;
+      any = true;
+    }
+  }
+  return { changed: any };
+}
+
 function requireTranscriptRows(transcript, uuid) {
   const rows = transcript.rowsByUuid.get(uuid);
   if (!rows || !rows.length) throw new Error(`Message ${uuid} was not found`);
@@ -1581,6 +1597,15 @@ const COMMAND_RECORD_PREFIX_RE = /^\s*<\/?(?:local-)?command-[a-z]+\b/i;
 function entryLooksLikeCommandRecord(entry) {
   const firstText = editableTextFromEntry(entry);
   return typeof firstText === 'string' && COMMAND_RECORD_PREFIX_RE.test(firstText);
+}
+
+function canEditAssistantTextEntry(entry) {
+  if (!entry || entry.type !== 'assistant') return false;
+  const content = entry.message && entry.message.content;
+  if (typeof content === 'string') return true;
+  return Array.isArray(content) && content.some(block =>
+    block && block.type === 'text' && typeof block.text === 'string'
+  );
 }
 
 const SIGNED_THINKING_USER_EDIT_ERROR =
@@ -5200,6 +5225,8 @@ module.exports.__test = {
   atomicWriteTranscript,
   applyUserEdit,
   applyUserBlockEdit,
+  applyAssistantTextEdit,
+  canEditAssistantTextEntry,
   applyTruncateFromUser,
   userEditHasDownstreamSignedThinking,
   canEditUserEntry,
