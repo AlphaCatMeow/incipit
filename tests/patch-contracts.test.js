@@ -1028,13 +1028,14 @@ function assertRuntimeSourceContracts() {
   assert(
     theme.includes('--vscode-list-activeSelectionBackground: #121212 !important;') &&
       theme.includes('--vscode-list-focusBackground: #121212 !important;') &&
-      theme.includes('--vscode-list-hoverBackground: #1a1a19 !important;') &&
+      theme.includes('--vscode-list-hoverBackground: rgba(255,255,255,0.06) !important;') &&
       warmWhite.includes('--vscode-list-activeSelectionBackground: #E6E4DE !important;') &&
       warmWhite.includes('--vscode-list-focusBackground: #E6E4DE !important;') &&
       warmWhite.includes('--vscode-list-hoverBackground: #F4F2EC !important;') &&
       !theme.includes('--vscode-list-focusBackground: rgba(248, 248, 246, 0.055) !important;') &&
+      !theme.includes('--vscode-list-focusBackground: rgba(255,255,255,0.06) !important;') &&
       !warmWhite.includes('--vscode-list-focusBackground: #F4F2EC !important;'),
-    'menu selection palette must stay on the original active/focus colors; stale slash-command state is fixed in runtime cleanup, not by recoloring selection',
+    'menu selection/focus must stay on their strong original colors — stale slash-command state is fixed in runtime cleanup, not by recoloring focus. Hover (2026-09-14) is a different property from the one this guard protects: it legitimately moved off a near-black literal that was numerically copy-pasted from an unrelated surface token, onto the same subtle-lighten overlay --ink-surface-hover-bg already uses elsewhere, and must not collapse into focus\'s value either way.',
   );
   assert(
     legacy.includes('function setupCommandMenuTransientSelectionCleanup()') &&
