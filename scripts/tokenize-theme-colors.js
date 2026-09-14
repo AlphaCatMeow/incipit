@@ -99,7 +99,7 @@ const CORE_TOKENS = Object.freeze([
   ['--ink-scrollbar-track', 'transparent', 'transparent', 'transparent'],
   ['--ink-list-active-bg', '#121212', '#e6e4de', '#1a1b1c'],
   ['--ink-list-active-fg', '#f5f2e8', '#0d0d0d', '#fbfbfc'],
-  ['--ink-list-hover-bg', '#1a1a19', '#f4f2ec', '#141516'],
+  ['--ink-list-hover-bg', 'rgba(255,255,255,0.06)', '#f4f2ec', 'rgba(255,255,255,0.06)'],
   ['--ink-diff-surface', '#1f1f1e', '#fafaf5', '#0a0b0b'],
   ['--ink-diff-text', '#f0eee8', '#0d0d0d', '#fbfbfc'],
   ['--ink-diff-muted', '#9c9c9a', '#666258', '#838484'],
@@ -851,6 +851,25 @@ function main() {
     '',
     '.cceBadgeVal {',
     '  color: var(--ink-composer-badge-value) !important;',
+    '}',
+    '',
+    // Not produced by the body-rewrite pass above: `--ink-list-active-bg` /
+    // `--ink-list-hover-bg` aren't in `coreTokenFor`'s pairCandidates, so
+    // nothing in theme.css's body ever gets *auto*-mapped to them — this
+    // rule only exists in theme.css because it was hand-written with an
+    // explicit `var()` reference. ink-black needs that same hand-written
+    // copy; it has no equivalent auto-detection path either.
+    '/* Normalize list selection colors across menus and dropdowns. */',
+    ':root,',
+    '[data-incipit-menu-popup],',
+    '[data-incipit-dropdown],',
+    '[data-incipit-command-list],',
+    '[data-incipit-command-item] {',
+    '  --app-list-active-background: var(--ink-list-active-bg) !important;',
+    '  --app-list-active-foreground: var(--ink-list-active-fg) !important;',
+    '  --vscode-list-activeSelectionBackground: var(--ink-list-active-bg) !important;',
+    '  --vscode-list-focusBackground: var(--ink-list-active-bg) !important;',
+    '  --vscode-list-hoverBackground: var(--ink-list-hover-bg) !important;',
     '}',
     '',
   ].join('\n');

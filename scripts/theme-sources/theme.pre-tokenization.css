@@ -4633,7 +4633,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   --app-list-active-foreground: #F5F2E8 !important;
   --vscode-list-activeSelectionBackground: #121212 !important;
   --vscode-list-focusBackground: #121212 !important;
-  --vscode-list-hoverBackground: #1a1a19 !important;
+  --vscode-list-hoverBackground: rgba(255,255,255,0.06) !important;
 }
 [data-incipit-command-item-active],
 [data-incipit-command-item][aria-selected="true"],

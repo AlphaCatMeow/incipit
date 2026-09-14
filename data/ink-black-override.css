@@ -281,7 +281,7 @@
   --ink-keys-border-override: rgba(55,55,55,0.26);
   --ink-list-active-bg: #1a1b1c;
   --ink-list-active-fg: #fbfbfc;
-  --ink-list-hover-bg: #141516;
+  --ink-list-hover-bg: rgba(255,255,255,0.06);
   --ink-markdown-root-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
   --ink-markdown-root-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-menu-divider-bg: rgba(255,255,255,0.14);
@@ -573,4 +573,17 @@
 
 .cceBadgeVal {
   color: var(--ink-composer-badge-value) !important;
+}
+
+/* Normalize list selection colors across menus and dropdowns. */
+:root,
+[data-incipit-menu-popup],
+[data-incipit-dropdown],
+[data-incipit-command-list],
+[data-incipit-command-item] {
+  --app-list-active-background: var(--ink-list-active-bg) !important;
+  --app-list-active-foreground: var(--ink-list-active-fg) !important;
+  --vscode-list-activeSelectionBackground: var(--ink-list-active-bg) !important;
+  --vscode-list-focusBackground: var(--ink-list-active-bg) !important;
+  --vscode-list-hoverBackground: var(--ink-list-hover-bg) !important;
 }

@@ -2,7 +2,7 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "c8c18710996ddeaf6f741a61b83b5891baa51204c15b475197e40d3800094e6e",
+    "themeSha256": "0f359403fde6a22f5d4a461e94e2a592b91c543fac4f5380bc37b64e058be40c",
     "warmWhiteSha256": "1a6c2601349e79e4df18a10aebb8c2873b64ec8dd1b900e945f8871cb641fafc"
   },
   "themeSequence": [
@@ -6500,7 +6500,7 @@
     {
       "key": "\u0001:root\u0001--vscode-list-hoverbackground",
       "important": true,
-      "resolved": "#1a1a19"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001:root[data-incipit-handoff] .incipit-assistant-action-row\u0001opacity",
@@ -18350,7 +18350,7 @@
     {
       "key": "\u0001[data-incipit-command-item]\u0001--vscode-list-hoverbackground",
       "important": true,
-      "resolved": "#1a1a19"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item].active\u0001background",
@@ -18420,7 +18420,7 @@
     {
       "key": "\u0001[data-incipit-command-list]\u0001--vscode-list-hoverbackground",
       "important": true,
-      "resolved": "#1a1a19"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-ref]\u0001font-family",
@@ -21640,7 +21640,7 @@
     {
       "key": "\u0001[data-incipit-dropdown]\u0001--vscode-list-hoverbackground",
       "important": true,
-      "resolved": "#1a1a19"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001[data-incipit-dropdown]\u0001background",
@@ -23250,7 +23250,7 @@
     {
       "key": "\u0001[data-incipit-menu-popup]\u0001--vscode-list-hoverbackground",
       "important": true,
-      "resolved": "#1a1a19"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001[data-incipit-menu-popup]\u0001background",

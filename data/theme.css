@@ -280,7 +280,7 @@
   --ink-keys-border-override: rgba(60,55,40,0.26);
   --ink-list-active-bg: #121212;
   --ink-list-active-fg: #f5f2e8;
-  --ink-list-hover-bg: #1a1a19;
+  --ink-list-hover-bg: rgba(255,255,255,0.06);
   --ink-markdown-root-focus-visible-outline: 1px solid rgba(217,119,87,0.6);
   --ink-markdown-root-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
   --ink-menu-divider-bg: rgba(248,246,240,0.14);
@@ -5078,7 +5078,7 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   --app-list-active-foreground: var(--ink-list-active-fg) !important;
   --vscode-list-activeSelectionBackground: #121212 !important;
   --vscode-list-focusBackground: #121212 !important;
-  --vscode-list-hoverBackground: #1a1a19 !important;
+  --vscode-list-hoverBackground: rgba(255,255,255,0.06) !important;
 }
 [data-incipit-command-item-active],
 [data-incipit-command-item][aria-selected="true"],
