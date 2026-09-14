@@ -958,13 +958,20 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   --vscode-list-focusBackground: #E6E4DE !important;
   --vscode-list-hoverBackground: #F4F2EC !important;
 }
-[data-incipit-command-item-active],
-[data-incipit-command-item][aria-selected="true"],
-[data-incipit-command-item].active,
 [data-incipit-dropdown] [aria-selected="true"],
 [data-incipit-dropdown] .active {
   background: #E6E4DE !important;
   background-color: #E6E4DE !important;
+  color: #0d0d0d !important;
+}
+/* Command-menu rows: see the matching note in theme.pre-tokenization.css.
+   A light surface needs the overlay darkened rather than lightened, so this
+   is the warm-white counterpart of that rule's subtle hover tint. */
+[data-incipit-command-item-active],
+[data-incipit-command-item][aria-selected="true"],
+[data-incipit-command-item].active {
+  background: rgba(60,55,40,0.06) !important;
+  background-color: rgba(60,55,40,0.06) !important;
   color: #0d0d0d !important;
 }
 

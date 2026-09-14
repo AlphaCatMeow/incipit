@@ -525,6 +525,16 @@ function looksLikeHostLeaf(element) {
     (element.tagName === 'SPAN' && element.closest?.('[class*="footerButton"]'));
 }
 
+// Probe attributes that mirror *transient host state* rather than structure.
+// The host renders the command menu's active row as
+// `active ? styles.activeCommandItem : ''` (React), so this class lands on
+// and comes off the same long-lived element as the pointer moves. Structural
+// probes are add-only on purpose — a row never stops being a row — but a
+// state mirror has to come off again, or the background it paints stays
+// behind on every row the pointer ever visited and the menu ends up with a
+// trail of "highlighted" rows instead of one (2026-09-15).
+const TRANSIENT_STATE_ATTRS = new Set([ATTR.commandItemActive]);
+
 function tagStaticElement(element) {
   if (element.isContentEditable) return;
   const classes = elementClassText(element);
@@ -532,6 +542,8 @@ function tagStaticElement(element) {
     if ((!rule.hint || classes.includes(rule.hint)) && element.matches(rule.selector)) {
       ensureAttr(element, rule.attr);
       if (rule.attr === ATTR.messagesContainer) observeTranscriptLayout(element);
+    } else if (TRANSIENT_STATE_ATTRS.has(rule.attr) && element.hasAttribute(rule.attr)) {
+      element.removeAttribute(rule.attr);
     }
   }
 }

@@ -2,8 +2,8 @@
   "version": 1,
   "generatedFrom": "scripts/theme-sources pre-tokenization inputs",
   "sources": {
-    "themeSha256": "0f359403fde6a22f5d4a461e94e2a592b91c543fac4f5380bc37b64e058be40c",
-    "warmWhiteSha256": "1a6c2601349e79e4df18a10aebb8c2873b64ec8dd1b900e945f8871cb641fafc"
+    "themeSha256": "0dd5430623811575674ee75dcf5605b32c5196597edb424f826bb36f532cfd88",
+    "warmWhiteSha256": "83f7413765889c7a76eccd31df7ae9f8bc480d24dba7b88f1a673f2639629e5a"
   },
   "themeSequence": [
     "\u0001@font-face#1\u0001font-family\u0001",
@@ -3445,21 +3445,21 @@
     "\u0001[data-incipit-dropdown]\u0001--vscode-list-hoverbackground\u0001!",
     "\u0001[data-incipit-command-list]\u0001--vscode-list-hoverbackground\u0001!",
     "\u0001[data-incipit-command-item]\u0001--vscode-list-hoverbackground\u0001!",
+    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001background\u0001!",
+    "\u0001[data-incipit-dropdown] .active\u0001background\u0001!",
+    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001background-color\u0001!",
+    "\u0001[data-incipit-dropdown] .active\u0001background-color\u0001!",
+    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001color\u0001!",
+    "\u0001[data-incipit-dropdown] .active\u0001color\u0001!",
     "\u0001[data-incipit-command-item-active]\u0001background\u0001!",
     "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001background\u0001!",
     "\u0001[data-incipit-command-item].active\u0001background\u0001!",
-    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001background\u0001!",
-    "\u0001[data-incipit-dropdown] .active\u0001background\u0001!",
     "\u0001[data-incipit-command-item-active]\u0001background-color\u0001!",
     "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001background-color\u0001!",
     "\u0001[data-incipit-command-item].active\u0001background-color\u0001!",
-    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001background-color\u0001!",
-    "\u0001[data-incipit-dropdown] .active\u0001background-color\u0001!",
     "\u0001[data-incipit-command-item-active]\u0001color\u0001!",
     "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001color\u0001!",
     "\u0001[data-incipit-command-item].active\u0001color\u0001!",
-    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001color\u0001!",
-    "\u0001[data-incipit-dropdown] .active\u0001color\u0001!",
     "\u0001[data-incipit-dropdown]\u0001background\u0001!",
     "\u0001[data-incipit-dropdown]\u0001background-color\u0001!",
     "\u0001[data-incipit-dropdown]\u0001border\u0001!",
@@ -5802,21 +5802,21 @@
     "\u0001[data-incipit-dropdown]\u0001--vscode-list-hoverbackground\u0001!",
     "\u0001[data-incipit-command-list]\u0001--vscode-list-hoverbackground\u0001!",
     "\u0001[data-incipit-command-item]\u0001--vscode-list-hoverbackground\u0001!",
+    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001background\u0001!",
+    "\u0001[data-incipit-dropdown] .active\u0001background\u0001!",
+    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001background-color\u0001!",
+    "\u0001[data-incipit-dropdown] .active\u0001background-color\u0001!",
+    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001color\u0001!",
+    "\u0001[data-incipit-dropdown] .active\u0001color\u0001!",
     "\u0001[data-incipit-command-item-active]\u0001background\u0001!",
     "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001background\u0001!",
     "\u0001[data-incipit-command-item].active\u0001background\u0001!",
-    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001background\u0001!",
-    "\u0001[data-incipit-dropdown] .active\u0001background\u0001!",
     "\u0001[data-incipit-command-item-active]\u0001background-color\u0001!",
     "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001background-color\u0001!",
     "\u0001[data-incipit-command-item].active\u0001background-color\u0001!",
-    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001background-color\u0001!",
-    "\u0001[data-incipit-dropdown] .active\u0001background-color\u0001!",
     "\u0001[data-incipit-command-item-active]\u0001color\u0001!",
     "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001color\u0001!",
     "\u0001[data-incipit-command-item].active\u0001color\u0001!",
-    "\u0001[data-incipit-dropdown] [aria-selected=\"true\"]\u0001color\u0001!",
-    "\u0001[data-incipit-dropdown] .active\u0001color\u0001!",
     "\u0001.claude-show-more-btn\u0001color\u0001",
     "\u0001.claude-show-more-btn:hover\u0001color\u0001",
     "\u0001[data-incipit-spinner-row] [data-incipit-spinner-container] [data-incipit-spinner-icon]\u0001color\u0001!",
@@ -18315,12 +18315,12 @@
     {
       "key": "\u0001[data-incipit-command-item-active]\u0001background",
       "important": true,
-      "resolved": "#121212"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item-active]\u0001background-color",
       "important": true,
-      "resolved": "#121212"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item-active]\u0001color",
@@ -18355,12 +18355,12 @@
     {
       "key": "\u0001[data-incipit-command-item].active\u0001background",
       "important": true,
-      "resolved": "#121212"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item].active\u0001background-color",
       "important": true,
-      "resolved": "#121212"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item].active\u0001color",
@@ -18370,12 +18370,12 @@
     {
       "key": "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001background",
       "important": true,
-      "resolved": "#121212"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001background-color",
       "important": true,
-      "resolved": "#121212"
+      "resolved": "rgba(255,255,255,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001color",
@@ -44772,12 +44772,12 @@
     {
       "key": "\u0001[data-incipit-command-item-active]\u0001background",
       "important": true,
-      "resolved": "#e6e4de"
+      "resolved": "rgba(60,55,40,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item-active]\u0001background-color",
       "important": true,
-      "resolved": "#e6e4de"
+      "resolved": "rgba(60,55,40,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item-active]\u0001color",
@@ -44812,12 +44812,12 @@
     {
       "key": "\u0001[data-incipit-command-item].active\u0001background",
       "important": true,
-      "resolved": "#e6e4de"
+      "resolved": "rgba(60,55,40,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item].active\u0001background-color",
       "important": true,
-      "resolved": "#e6e4de"
+      "resolved": "rgba(60,55,40,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item].active\u0001color",
@@ -44827,12 +44827,12 @@
     {
       "key": "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001background",
       "important": true,
-      "resolved": "#e6e4de"
+      "resolved": "rgba(60,55,40,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001background-color",
       "important": true,
-      "resolved": "#e6e4de"
+      "resolved": "rgba(60,55,40,0.06)"
     },
     {
       "key": "\u0001[data-incipit-command-item][aria-selected=\"true\"]\u0001color",

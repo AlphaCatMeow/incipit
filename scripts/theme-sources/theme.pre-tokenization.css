@@ -4635,13 +4635,26 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
   --vscode-list-focusBackground: #121212 !important;
   --vscode-list-hoverBackground: rgba(255,255,255,0.06) !important;
 }
-[data-incipit-command-item-active],
-[data-incipit-command-item][aria-selected="true"],
-[data-incipit-command-item].active,
 [data-incipit-dropdown] [aria-selected="true"],
 [data-incipit-dropdown] .active {
   background: #121212 !important;
   background-color: #121212 !important;
+  color: #F5F2E8 !important;
+}
+/* Command-menu rows are a separate case from real dropdown selection above.
+   The host marks the row under the pointer as active (React
+   `active ? styles.activeCommandItem : ''`), so for mouse users this rule IS
+   the hover highlight — a filled near-black bar reads as the row going dead
+   rather than as a light touch, especially next to the panel fill. Keep the
+   strong recessed fill for genuine dropdown selection and give these rows the
+   same subtle-lighten overlay the rest of the theme uses for hover.
+   host_probe removes the mirrored attribute again when the class comes off,
+   so this paints one row at a time and clears on pointer-out. */
+[data-incipit-command-item-active],
+[data-incipit-command-item][aria-selected="true"],
+[data-incipit-command-item].active {
+  background: rgba(255,255,255,0.06) !important;
+  background-color: rgba(255,255,255,0.06) !important;
   color: #F5F2E8 !important;
 }
 

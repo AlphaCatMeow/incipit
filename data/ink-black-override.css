@@ -145,6 +145,7 @@
   --ink-chip-bg: #343434;
   --ink-chip-bg-hover: #3d3d3d;
   --ink-chip-fg: #dadce0;
+  --ink-command-item-bg: rgba(255,255,255,0.06);
   --ink-composer-badge-label: #fbfbfc;
   --ink-composer-badge-value: #838484;
   --ink-composer-input-bg: #212121;
