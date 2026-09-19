@@ -66,6 +66,7 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'enhance_legacy.js'),      'enhance_legacy.js'],
   [path.join('data', 'host_probe.js'),           'host_probe.js'],
   [path.join('data', 'host-badge.cjs'),          'host-badge.cjs'],
+  [path.join('data', 'editor-reference.cjs'),    'editor-reference.cjs'],
   [path.join('data', 'tool-diff-source.cjs'),    'tool-diff-source.cjs'],
   [path.join('data', 'change-review-source.cjs'), 'change-review-source.cjs'],
   [path.join('data', 'tool_cards.js'),           'tool_cards.js'],
@@ -2803,9 +2804,18 @@ function patchAtMentionDeliveryFamily(content) {
 }
 
 function patchAtMentionCommand(content) {
-  return patchAtMentionEmitterFamily(content) ||
+  const result = patchAtMentionEmitterFamily(content) ||
     patchAtMentionDeliveryFamily(content) ||
     [content, `${padLabel('@引用命令桥')}: 降级 (未找到命令 setup 锚点; companion 引用不可用)`];
+  const marker = 'require("./webview/editor-reference.cjs").registerEditorReferences(';
+  if (result[0].includes(marker) || /降级/.test(result[1])) return result;
+  const pattern = /([\w$]+)\.push\(([\w$]+)\.commands\.registerCommand\("incipit\.claudeCode\.insertAtMention"/g;
+  const matches = [...result[0].matchAll(pattern)];
+  if (matches.length !== 1) return [content, `${padLabel('@引用命令桥')}: 降级 (未找到唯一编辑器引用入口)`];
+  const match = matches[0];
+  result[0] = result[0].slice(0, match.index) + `${marker}${match[2]},${match[1]}),` + result[0].slice(match.index);
+  result[1] = `${padLabel('@引用命令桥')}: 已写入`;
+  return result;
 }
 
 function patchDisableImplicitSelectionSend(content) {

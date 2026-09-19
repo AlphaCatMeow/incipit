@@ -1,10 +1,10 @@
 # Incipit: Claude Selection Reference
 
-Tiny VS Code companion extension proof for Claude Code.
+Optional VS Code CodeLens companion for Claude Code.
 
 When the active editor has a non-empty selection, it normally shows two clickable CodeLens actions above the selection's first line: `◆ Selection` and `▣ File`. Clicking either action opens Claude Code if needed and inserts a visible official `@file#x-y` or `@file` reference in the composer.
 
-If incipit's experimental Workbench editor overlay is enabled in the CLI config, this extension hides CodeLens entirely. The overlay must then apply successfully and call `incipitClaudeReference.referenceActiveSelection` or `incipitClaudeReference.referenceActiveFile` directly; incipit no longer masks an overlay failure with a CodeLens fallback.
+If incipit's Workbench editor overlay is enabled in the CLI config, this extension hides CodeLens. The overlay calls `incipit.claudeCode.referenceSelection` and `incipit.claudeCode.referenceFile`, registered inside the patched Claude Code extension. It does not require this companion to be installed.
 
 ## Local Test
 
