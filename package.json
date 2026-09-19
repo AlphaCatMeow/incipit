@@ -80,5 +80,8 @@
   },
   "homepage": "https://github.com/yc-duan/incipit#readme",
   "author": "",
-  "license": "AGPL-3.0-or-later"
+  "license": "AGPL-3.0-or-later",
+  "dependencies": {
+    "acorn": "8.15.0"
+  }
 }
