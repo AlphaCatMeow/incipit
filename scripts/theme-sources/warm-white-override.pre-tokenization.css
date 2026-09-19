@@ -66,6 +66,8 @@
    in `enhance.js > applyAppVarOverrides()` continues to handle inline-
    style drift via its MutationObserver. */
 :root {
+  --incipit-activity-canvas: #f8f8f6;
+  --incipit-tool-base-surface: #e6e4de;
   --app-background: #f8f8f6 !important;
   --app-primary-background: #f8f8f6 !important;
   --app-root-background: #f8f8f6 !important;
@@ -311,16 +313,16 @@
    `toolBodyGrid_ZUQaOA / toolBodyRow / toolBodyRowLabel /
    toolBodyRowContent` template so Bash, PowerShell, LSP, MCP,
    Read, TodoWrite etc. share the same paper-leaf look as Grep. */
-[data-incipit-tool-use] [class*="toolBodyGrid"] {
-  border-color: rgba(0, 0, 0, 0.16);
+[data-incipit-tool-use] :is([class*="toolBodyGrid"], [data-incipit-tool-io]) {
+  border: 0;
 }
-[data-incipit-tool-use] [class*="toolBodyRow"] {
-  border-top-color: rgba(0, 0, 0, 0.10);
+[data-incipit-tool-use] :is([class*="toolBodyRow"], [data-incipit-tool-io-row]) {
+  border-top: 0;
 }
-[data-incipit-tool-use] [class*="toolBodyRowLabel"] {
+[data-incipit-tool-use] :is([class*="toolBodyRowLabel"], [data-incipit-tool-io-label]) {
   color: #797569;
 }
-[data-incipit-tool-use] [class*="toolBodyRowContent"] {
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) {
   color: #0d0d0d;
 }
 
@@ -373,8 +375,8 @@
    surrounding paper instead of blocking out as code panels. */
 [data-incipit-tool-use] [class*="toolBody_"] pre,
 [data-incipit-tool-use] [class*="toolBody_"] pre code,
-[data-incipit-tool-use] [class*="toolBodyRowContent"] pre,
-[data-incipit-tool-use] [class*="toolBodyRowContent"] pre code,
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) pre,
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) pre code,
 [data-incipit-tool-use] [class*="toolResult_"] {
   background: transparent !important;
   background-color: transparent !important;
@@ -399,13 +401,13 @@
   [class*="diffEditorWrapper"],
   [class*="modalContent_"]:has([class*="diffEditorContainer"])
 ) {
-  --incipit-diff-surface: #fafaf5;
+  --incipit-diff-surface: var(--incipit-tool-surface);
   --incipit-diff-text: #0d0d0d;
   --incipit-diff-muted: #666258;
   --incipit-diff-border: rgba(0, 0, 0, 0.10);
   --incipit-diff-divider: rgba(0, 0, 0, 0.08);
   --incipit-diff-shadow: rgba(60, 55, 40, 0.10);
-  --incipit-diff-header-bg: #E6E4DE;
+  --incipit-diff-header-bg: var(--incipit-tool-header-surface);
   --incipit-diff-header-text: #3f3d38;
   --incipit-diff-header-border: rgba(31, 35, 40, 0.08);
   --incipit-diff-gradient-start: rgba(250, 250, 245, 0);
@@ -438,7 +440,7 @@
    paper-proof surface so the modal reads as "the same diff, just full
    screen" rather than a different theme. */
 [class*="modalContent_"]:has([class*="diffEditorContainer"]) {
-  border: 1px solid var(--incipit-diff-border) !important;
+  border: 0 !important;
   border-radius: 8px !important;
   background: var(--incipit-diff-surface) !important;
   background-color: var(--incipit-diff-surface) !important;
@@ -446,7 +448,7 @@
 }
 
 [class*="modalContent_"]:has([class*="diffEditorContainer"]) [class*="modalHeader_"] {
-  border-bottom: 1px solid var(--incipit-diff-header-border) !important;
+  border-bottom: 0 !important;
   background-color: var(--incipit-diff-header-bg) !important;
   color: var(--incipit-diff-header-text) !important;
 }
@@ -1711,7 +1713,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 /* ---------- Activity rail, tool rows and group headers ----------
    Same selectors as theme.css; paper canvas behind glyphs, ash text, the
    light accent for focus rings. */
-[data-incipit-message][data-incipit-activity]::after {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity]::after {
   background-color: rgba(60,55,40,0.16) !important;
 }
 [data-incipit-activity-header] {
@@ -1726,7 +1728,7 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
 }
 [data-incipit-activity="thinking"] details[data-incipit-thinking]::before,
 [data-incipit-activity="thinking"] [data-incipit-thinking-static]::before {
-  background-color: #f8f8f6;
+  background-color: var(--incipit-activity-surface, var(--incipit-activity-canvas));
 }
 details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:hover,
 details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
@@ -1752,7 +1754,7 @@ button[data-incipit-tool-file-link]:focus-visible { outline: 1px solid rgba(191,
   color: #8c897e;
 }
 [data-incipit-activity] [data-incipit-tool-icon] {
-  background-color: #f8f8f6;
+  background-color: var(--incipit-activity-surface, var(--incipit-activity-canvas));
 }
 [data-incipit-tool-row]:hover [data-incipit-tool-icon] {
   color: #0d0d0d;
@@ -1766,4 +1768,11 @@ button[data-incipit-tool-file-link]:focus-visible { outline: 1px solid rgba(191,
 [data-incipit-agent-card], [data-incipit-workflow] {
   --incipit-agent-rule: rgba(13,13,13,0.14);
   --incipit-agent-muted: #8c897e;
+}
+
+:root {
+  --incipit-tool-surface: #e6e4de;
+  --incipit-tool-header-surface: #f4f2ec;
+  --incipit-tool-divider: rgba(0, 0, 0, 0.08);
+  --incipit-tool-input-surface: #f8f8f6;
 }

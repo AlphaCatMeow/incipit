@@ -7,10 +7,15 @@ const { createToolDiffSource } = require('./tool-diff-source.cjs');
 
 const AGENT_TOOLS = new Set(['Agent', 'Task']);
 const WORKFLOW_TOOLS = new Set(['Workflow', 'RunWorkflow']);
-const PAGE_SIZE = 24;
+const PAGE_SIZE = 120;
 const MAX_JSON_BYTES = 16 * 1024 * 1024;
-const MAX_PAGE_BYTES = 1024 * 1024;
+const MAX_PAGE_BYTES = 2 * 1024 * 1024;
 const PREVIEW_CHARS = 16000;
+const MAX_DIFF_FILES = 4;
+
+function checkAbort(signal) {
+  if (signal?.aborted) throw Object.assign(new Error('Activity reading was cancelled.'), { name: 'AbortError' });
+}
 
 function identifier(value) { return typeof value === 'string' && /^[A-Za-z0-9_-]{1,160}$/.test(value); }
 function textContent(entry) { return blocks(entry).filter(block => block?.type === 'text').map(block => block.text || '').join('\n'); }
@@ -52,6 +57,8 @@ function previewBlock(block, full) {
 function createAgentActivitySource({ resolveTargetFromIdentity } = {}) {
   const journal = createAgentJournal();
   const metadata = new Map();
+  const diffSources = new Map();
+  let lifetime = new AbortController();
   const queue = [];
   let active = 0, epoch = 0;
 
@@ -194,8 +201,10 @@ function createAgentActivitySource({ resolveTargetFromIdentity } = {}) {
       transcriptPath: info.source };
   }
 
-  async function projectRecord(file, row, index, full = false) {
+  async function projectRecord(file, row, index, full = false, signal) {
+    checkAbort(signal);
     const entry = await journal.read(file, row);
+    checkAbort(signal);
     if (!entry || (entry.uuid && entry.uuid !== row.key)) throw historyError('history-changed', 'The agent transcript changed. Refresh this page.');
     const projected = [];
     for (let i = 0; i < blocks(entry).length; i++) {
@@ -207,6 +216,7 @@ function createAgentActivitySource({ resolveTargetFromIdentity } = {}) {
         continue;
       }
       const resultEntry = await journal.read(file, index.results.get(block.id));
+      checkAbort(signal);
       const result = blocks(resultEntry).find(value => value?.type === 'tool_result' && value.tool_use_id === block.id);
       const inputText = JSON.stringify(block.input || {}, null, 2);
       const inputTruncated = inputText.length > PREVIEW_CHARS && !full;
@@ -220,25 +230,35 @@ function createAgentActivitySource({ resolveTargetFromIdentity } = {}) {
       line: row.line, compact: entry.isCompactSummary === true, blocks: projected };
   }
 
-  async function execute(message) {
+  async function execute(message, signal) {
     const identity = { sessionId: message.sessionId, toolUseId: message.toolUseId, agentId: message.agentId || null };
     try {
       const { info } = await resolve(message);
+      checkAbort(signal);
       if (!message.agentId) return { ok: true, state: 'ready', ...identity, activity: overview(info) };
       const { file, index } = await agentFile(info, message.agentId);
+      checkAbort(signal);
       if (message.op === 'tool-diff') {
         if (!identifier(message.innerToolUseId) || typeof message.filePath !== 'string') throw historyError('invalid-identity', 'The nested tool identity is invalid.');
-        const source = createToolDiffSource({ resolveTargetFromIdentity: () => file });
+        let cached = diffSources.get(file);
+        if (!cached) cached = { source: createToolDiffSource({ resolveTargetFromIdentity: () => file }), readers: 0 };
+        diffSources.delete(file); diffSources.set(file, cached); cached.readers++;
+        while (diffSources.size > MAX_DIFF_FILES) {
+          const oldest = [...diffSources].find(([, value]) => !value.readers)?.[0];
+          if (!oldest) break;
+          diffSources.get(oldest).source.dispose(); diffSources.delete(oldest);
+        }
         try {
-          const diff = await source.request({ sessionId: message.sessionId, cwd: index.cwd || message.cwd, toolUseId: message.innerToolUseId, filePath: message.filePath });
+          const diff = await cached.source.request({ sessionId: message.sessionId, cwd: index.cwd || message.cwd, toolUseId: message.innerToolUseId, filePath: message.filePath }, { signal });
+          checkAbort(signal);
           return { ok: true, state: 'ready', ...identity, diff };
-        } finally { source.dispose(); }
+        } finally { cached.readers--; }
       }
       if (message.op === 'record') {
         const row = index.latest.get(message.recordId);
         if (!row) throw historyError('not-found', 'This record is no longer present in the current transcript.');
-        const record = await projectRecord(file, row, index, true);
-        if (JSON.stringify(record).length > MAX_JSON_BYTES) throw historyError('record-too-large', 'This record is too large for the inline viewer. Open the original transcript to read it.');
+        const record = await projectRecord(file, row, index, true, signal);
+        if (Buffer.byteLength(JSON.stringify(record)) > MAX_JSON_BYTES) throw historyError('record-too-large', 'This record is too large for the inline viewer. Open the original transcript to read it.');
         return { ok: true, state: 'ready', ...identity, record, transcriptPath: file };
       }
       const count = index.records.length;
@@ -247,16 +267,17 @@ function createAgentActivitySource({ resolveTargetFromIdentity } = {}) {
       const safePage = Math.min(page, Math.max(0, Math.ceil(count / PAGE_SIZE) - 1));
       const records = []; let bytes = 0;
       for (const row of index.records.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE)) {
-        const record = await projectRecord(file, row, index);
-        const size = JSON.stringify(record).length;
-        if (size + bytes > MAX_PAGE_BYTES) {
+        const record = await projectRecord(file, row, index, false, signal);
+        const size = Buffer.byteLength(JSON.stringify(record));
+        if (size + bytes > MAX_PAGE_BYTES - PAGE_SIZE * 2048) {
           record.blocks = [{ type: 'text', text: 'This record is available through Show full record.', truncated: true, key: record.id + ':large' }];
         }
-        records.push(record); bytes += JSON.stringify(record).length;
+        records.push(record); bytes += Buffer.byteLength(JSON.stringify(record));
       }
       return { ok: true, state: count ? 'ready' : 'empty', ...identity, records, page: safePage, pages: Math.max(1, Math.ceil(count / PAGE_SIZE)),
-        total: count, partial: index.partial, revision: index.revision, transcriptPath: file };
+        total: count, pageSize: PAGE_SIZE, partial: index.partial, revision: index.revision, transcriptPath: file };
     } catch (error) {
+      if (error.name === 'AbortError') throw error;
       const code = error.code === 'EACCES' || error.code === 'EPERM' ? 'permission-denied' : error.code === 'ENOENT' ? 'not-found' : error.code || 'source-failure';
       return { ok: false, state: code === 'not-found' ? 'unavailable' : code === 'permission-denied' ? 'permission' : 'error',
         code, error: code === 'not-found' ? 'The host has not recorded this activity yet. Refresh after it starts or finishes.' : error.message || String(error), transcriptPath: error.transcriptPath || null, ...identity };
@@ -268,10 +289,17 @@ function createAgentActivitySource({ resolveTargetFromIdentity } = {}) {
       const job = queue.shift();
       if (job.signal?.aborted || job.epoch !== epoch) { job.reject(Object.assign(new Error('Activity reading was cancelled.'), { name: 'AbortError' })); continue; }
       active++;
-      execute(job.message).then(value => {
+      const controller = new AbortController(), currentLifetime = lifetime.signal;
+      const abort = () => controller.abort();
+      job.signal?.addEventListener('abort', abort, { once: true });
+      currentLifetime.addEventListener('abort', abort, { once: true });
+      execute(job.message, controller.signal).then(value => {
         if (job.signal?.aborted || job.epoch !== epoch) job.reject(Object.assign(new Error('Activity reading was cancelled.'), { name: 'AbortError' }));
         else job.resolve(value);
-      }, job.reject).finally(() => { active--; pump(); });
+      }, job.reject).finally(() => {
+        job.signal?.removeEventListener('abort', abort); currentLifetime.removeEventListener('abort', abort);
+        active--; pump();
+      });
     }
   }
 
@@ -280,7 +308,15 @@ function createAgentActivitySource({ resolveTargetFromIdentity } = {}) {
     return new Promise((resolve, reject) => { queue.push({ message, signal, resolve, reject, epoch }); pump(); });
   }
 
-  return { request, dispose() { epoch++; journal.clear(); metadata.clear(); pump(); }, get cachedFiles() { return journal.size; } };
+  return { request,
+    dispose() {
+      epoch++; lifetime.abort(); lifetime = new AbortController(); journal.clear(); metadata.clear();
+      for (const cached of diffSources.values()) cached.source.dispose(); diffSources.clear(); pump();
+    },
+    get cachedFiles() { return journal.size; },
+    getHealth() { return { active, queued: queue.length, cachedFiles: journal.size, diffFiles: diffSources.size,
+      maxDiffFiles: MAX_DIFF_FILES, diffs: [...diffSources.values()].map(cached => cached.source.getHealth()) }; },
+  };
 }
 
 module.exports = { createAgentActivitySource };

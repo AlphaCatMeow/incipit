@@ -39,6 +39,7 @@ const groupAliases = new Map();
 let groupSequence = 0;
 const animatingRows = new Map();
 const pendingRows = new Map();
+const ownedHeaderLayouts = new WeakMap();
 const enteringRows = new Map();
 const seenTools = new Set();
 let knownTurns = new WeakSet();
@@ -122,6 +123,7 @@ function publishRow(row) {
 /** Queue the turn that contains `node` for re-layout on the next frame. */
 export function markActivityDirty(node) {
   const element = node?.nodeType === 1 ? node : node?.parentElement;
+  if (element?.closest?.('[data-incipit-agent-history]')) return;
   const turn = element?.closest?.(TURN_SELECTOR);
   if (!turn) return;
   dirtyTurns.add(turn);
@@ -207,21 +209,44 @@ function removeHeader(row) {
 }
 
 function layoutTurn(turn, animate = false) {
-  const rows = Array.from(turn.children);
+  layoutRows(Array.from(turn.children).map(row => ({ row, kind: classifyRow(row) })), animate);
+  knownTurns.add(turn);
+}
+
+function layoutRows(rows, animate, context = {}) {
   const groups = [];
   let current = null;
-  for (const row of rows) {
-    const kind = classifyRow(row);
+  for (const member of rows) {
+    const { row, kind } = member;
     if (kind === 'tool' || kind === 'thinking') {
       if (!current) { current = []; groups.push(current); }
-      current.push({ row, kind });
+      current.push(member);
       continue;
     }
     if (kind !== 'skip') current = null;
     clearRow(row);
   }
-  for (const group of groups) applyGroup(group, animate);
-  knownTurns.add(turn);
+  for (const group of groups) applyGroup(group, animate, context);
+}
+
+/** Reuse the main activity presentation for explicitly owned nested rows. */
+export function createOwnedActivityGroups(keyPrefix, getRows) {
+  let frame = 0, disposed = false;
+  let previous = new Set();
+  const layout = (animate = false) => {
+    if (disposed) return;
+    if (frame) cancelAnimationFrame(frame);
+    frame = 0;
+    const rows = getRows(), keep = new Set(rows.map(member => member.row));
+    for (const row of previous) if (!keep.has(row)) clearRow(row);
+    previous = keep;
+    layoutRows(rows, animate, { keyPrefix, onToggle: layout, owned: true });
+  };
+  return {
+    layout,
+    schedule() { if (!disposed && !frame) frame = requestAnimationFrame(() => layout()); },
+    dispose() { disposed = true; if (frame) cancelAnimationFrame(frame); for (const row of previous) clearRow(row); previous.clear(); },
+  };
 }
 
 function isLiveThinking(row) {
@@ -237,14 +262,14 @@ function livePhrase(root) {
 
 function collectStats(members) {
   const stats = { read: 0, edit: 0, command: 0, search: 0, agent: 0, workflow: 0, other: 0, tools: 0, thinking: 0, failed: 0, live: '', key: '' };
-  for (const { row, kind } of members) {
+  for (const { row, kind, tools } of members) {
     if (kind === 'thinking') {
       stats.thinking++;
       if (isLiveThinking(row)) stats.live = 'Thinking';
       continue;
     }
-    for (const root of row.querySelectorAll(TOOL_SELECTOR)) {
-      if (root.parentElement?.closest(TOOL_SELECTOR)) continue;
+    for (const root of tools || row.querySelectorAll(TOOL_SELECTOR)) {
+      if (!tools && root.parentElement?.closest(TOOL_SELECTOR)) continue;
       stats.tools++;
       const toolKind = root.dataset.incipitToolKind;
       stats[toolKind in LIVE_PHRASES ? toolKind : 'other']++;
@@ -280,11 +305,13 @@ function onHeaderClick(event) {
   const key = header.dataset.incipitActivityGroup;
   if (!key) return;
   rememberCollapsed(key, collapsedGroups.get(key) !== true);
+  const ownedLayout = ownedHeaderLayouts.get(header);
+  if (ownedLayout) { ownedLayout(true); return; }
   const turn = header.closest(TURN_SELECTOR);
   if (turn) layoutTurn(turn, true);
 }
 
-function mountHeader(row, key, label, collapsed) {
+function mountHeader(row, key, label, collapsed, onToggle) {
   let header = row.querySelector(':scope > [' + HEADER_ATTR + ']');
   if (!header) {
     header = document.createElement('button');
@@ -295,6 +322,7 @@ function mountHeader(row, key, label, collapsed) {
     header.addEventListener('click', onHeaderClick);
   }
   header.dataset.incipitActivityGroup = key;
+  if (onToggle) ownedHeaderLayouts.set(header, onToggle);
   const text = header.firstElementChild;
   if (text.textContent !== label) text.textContent = label;
   setAttribute(header, 'aria-expanded', String(!collapsed));
@@ -302,8 +330,9 @@ function mountHeader(row, key, label, collapsed) {
   setAttribute(row, 'data-incipit-activity-has-header', '1');
 }
 
-function applyGroup(members, animate) {
+function applyGroup(members, animate, context = {}) {
   const stats = collectStats(members);
+  if (stats.key && context.keyPrefix) stats.key = context.keyPrefix + ':' + stats.key;
   const previous = members.map(({ row }) => row.getAttribute('data-incipit-activity-group')).find(Boolean);
   const key = (previous && collapsedGroups.has(previous) ? previous : null) || groupAliases.get(stats.key) || previous || stats.key || 'incipit-activity-' + (++groupSequence);
   if (stats.key) {
@@ -312,14 +341,15 @@ function applyGroup(members, animate) {
   }
   const collapsed = collapsedGroups.get(key) === true;
   const label = describe(stats) || (stats.thinking ? 'Thinking' : 'Activity');
-  members.forEach(({ row, kind }, index) => {
+  members.forEach(({ row, kind, setActive }, index) => {
     setAttribute(row, 'data-incipit-activity', kind);
     setAttribute(row, 'data-incipit-activity-group', key);
     setAttribute(row, 'data-incipit-activity-edge',
       members.length === 1 ? 'only' : index === 0 ? 'first' : index === members.length - 1 ? 'last' : 'middle');
-    if (index === 0) mountHeader(row, key, label, collapsed);
+    if (index === 0) mountHeader(row, key, label, collapsed, context.onToggle);
     else removeHeader(row);
     setCollapsed(row, collapsed, animate);
-    publishRow(row);
+    setActive?.(!collapsed);
+    if (!context.owned) publishRow(row);
   });
 }

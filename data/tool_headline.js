@@ -89,6 +89,7 @@ export function buildHeadline(root, options) {
   root.dataset.incipitToolHeadline = '1';
   let lastName = '', lastStatus = '', lastSubject = '', lastPaths = '', missingAction = false;
   let isOpen = false, expandable = true;
+  let countsKey = '';
 
   function sync() {
     setAttribute(root, 'data-incipit-tool-expandable', String(expandable));
@@ -161,7 +162,7 @@ export function buildHeadline(root, options) {
     fingerprint.hidden = !print;
     expandable = canExpand !== false;
     sync();
-    if (lastStatus !== status) { lastStatus = status; markActivityDirty(root); }
+    if (lastStatus !== status) { lastStatus = status; markActivityDirty(root); options.onStateChange?.(); }
   }
 
   toggle.addEventListener('click', event => { event.stopPropagation(); if (expandable) options.toggle(); });
@@ -173,8 +174,18 @@ export function buildHeadline(root, options) {
     invalidatePaths() { lastPaths = ''; },
     setOpen(value) { isOpen = value; sync(); },
     setCounts(stats) {
+      const key = stats ? stats.added + ':' + stats.removed : '';
+      if (key === countsKey) return;
+      countsKey = key; counts.removeAttribute('title');
       counts.replaceChildren(); counts.hidden = !stats;
       if (stats) counts.append(node('span', 'data-incipit-tool-added', '+' + stats.added), node('span', 'data-incipit-tool-removed', '−' + stats.removed));
+    },
+    setCountsState(status, detail = '') {
+      const key = status + ':' + detail;
+      if (countsKey === key) return;
+      countsKey = key; counts.hidden = false;
+      counts.textContent = status === 'loading' ? '…' : '—';
+      counts.title = detail || (status === 'loading' ? 'Loading saved change counts' : 'Saved change counts are unavailable');
     },
   };
 }

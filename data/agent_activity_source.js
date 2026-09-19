@@ -44,7 +44,7 @@ function pump() {
       if (!api || typeof api.postMessage !== 'function') throw new Error('The Claude Code host connection is unavailable.');
       request.started = true; active++;
       request.timer = setTimeout(() => settle(request, new Error('Reading agent activity timed out. Retry to reload it.')), 15000);
-      api.postMessage({ __incipit: true, type: 'badge_identity_update', sessionId: request.identity.sessionId, cwd: request.identity.cwd, includeHistory: false });
+      api.postMessage({ __incipit: true, type: 'badge_identity_update', sessionId: request.identity.sessionId, cwd: request.identity.cwd, includeHistory: false, bindOnly: true });
       api.postMessage({ __incipit: true, type: 'agent_activity_request', requestId: request.id, ...request.identity });
     } catch (error) { settle(request, error); }
   }

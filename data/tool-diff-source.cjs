@@ -169,6 +169,7 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
   if (typeof resolveTargetFromIdentity !== 'function') throw new TypeError('resolveTargetFromIdentity is required');
   const sessions = new Map();
   let generation = 0;
+  let scannedBytes = 0, parsedRecords = 0, payloadCacheHits = 0;
 
   function release(item) {
     item.epoch++;
@@ -243,6 +244,7 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
     while (position < stat.size) {
       checkCurrent(item, epoch, runGeneration);
       const bytes = await readBytes(handle, position, Math.min(CHUNK_BYTES, stat.size - position), signal);
+      scannedBytes += bytes.length;
       position += bytes.length;
       let begin = 0;
       let newline;
@@ -253,6 +255,7 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
         const line = pieces.length ? Buffer.concat([...pieces, part], length) : part;
         if (line.includes('"tool_use"') || line.includes('"tool_result"')) {
           const entry = parseLine(line);
+          parsedRecords++;
           if (!entry) item.corrupt = true;
           for (const record of identities(entry, { start: lineStart, end: lineStart + length })) {
             if (!fromBeginning) putIndex(item, record);
@@ -265,6 +268,11 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
       }
       if (begin < bytes.length) { pieces.push(bytes.subarray(begin)); length += bytes.length - begin; }
       if (length > MAX_RECORD_BYTES) throw sourceError('record-too-large', 'A session history record exceeds the inspection limit.');
+      if (!fromBeginning) {
+        // Commit complete records even if a scrolling card cancels this read.
+        // The unfinished record is reread, without retaining a chunk chain.
+        item.size = lineStart; item.lineStart = lineStart; item.partial = Buffer.alloc(0);
+      }
       await new Promise(resolve => setImmediate(resolve));
     }
     // A complete final JSON value is readable without a newline, but remains
@@ -324,7 +332,7 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
         (item.corrupt ? 'Some session records could not be read; this tool result is unavailable.' : 'This tool was not found in the session history.') };
     const cacheKey = JSON.stringify([message.toolUseId, canonicalPath(message.filePath, item.cwd), group]);
     const cached = item.cache.get(cacheKey);
-    if (cached) { item.cache.delete(cacheKey); item.cache.set(cacheKey, cached); return cached.payload; }
+    if (cached) { payloadCacheHits++; item.cache.delete(cacheKey); item.cache.set(cacheKey, cached); return cached.payload; }
     const saved = await loadEntry(handle, group.result[0], signal);
     const content = saved.entry.message && saved.entry.message.content;
     const resultBlocks = Array.isArray(content) ? content.filter(block => block && block.type === 'tool_result') : [];
@@ -394,7 +402,13 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
         (stat.size === item.size && stat.mtimeMs !== item.stat.mtimeMs);
       if (!reset && item.guard && !sameGuard(await guardAt(handle, item.guard.size), item.guard)) reset = true;
       if (reset) resetIndex(item);
-      const extra = await scan(item, handle, stat, message.toolUseId, epoch, runGeneration, false, signal);
+      let extra;
+      try {
+        extra = await scan(item, handle, stat, message.toolUseId, epoch, runGeneration, false, signal);
+      } finally {
+        item.stat = stat;
+        item.guard = await guardAt(handle, item.size);
+      }
       let group = mergeRecords(item.records.get(message.toolUseId), extra);
       if (!group.assistant.length || !group.result.length) {
         // Old identities evicted from the bounded index remain reachable.
@@ -454,6 +468,8 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
           const { oldText, newText, ...metadata } = payload;
           const result = { ...metadata, rows: model.rows, stats: model.stats, quality: model.quality, notice: model.notice };
           cachePayload(item, previewKey, result);
+          cachePayload(item, 'stats:' + payload.revision, { ...base, revision: payload.revision,
+            ok: true, state: 'ready', stats: model.stats, quality: model.quality });
           return result;
         }
         let stats = payload.stats, quality = payload.quality;
@@ -486,7 +502,8 @@ function createToolDiffSource({ resolveTargetFromIdentity, includeSnapshots = fa
     let cacheBytes = 0;
     for (const item of sessions.values()) { indexEntries += item.records.size; cacheBytes += item.cacheBytes; }
     return { sessions: sessions.size, indexEntries, cacheBytes, maxSessions: MAX_SESSIONS,
-      maxIndexEntries: MAX_INDEX_ENTRIES, maxCacheBytesPerSession: MAX_CACHE_BYTES };
+      maxIndexEntries: MAX_INDEX_ENTRIES, maxCacheBytesPerSession: MAX_CACHE_BYTES,
+      scannedBytes, parsedRecords, payloadCacheHits };
   }
 
   return { request, dispose, disposeSession, getHealth };

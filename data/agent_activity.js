@@ -4,7 +4,7 @@ import { initTaskActivityState, bindTaskSignal, getTaskActivity, subscribeTaskAc
 import { createAgentHistoryView } from './agent_history_view.js';
 import { createWorkflowActivityView, workflowModel } from './workflow_activity.js';
 import { createAgentRichText } from './agent_rich_text.js';
-import { element, action, activityStatus, statusLabel, usageLabel, errorView, foldBody, sourceAction } from './agent_activity_dom.js';
+import { element, action, iconAction, setToolSurface, activityStatus, statusLabel, usageLabel, errorView, foldBody, sourceAction } from './agent_activity_dom.js';
 
 const choices = new Map();
 const cards = new Set();
@@ -40,10 +40,13 @@ export function createAgentActivityCard(root, initial, options = {}) {
   let contentView = null, bodyMode = '', lastFallback = '', taskCleanup = null, toolCleanup = null, statusSignature = '';
   let reloadPending = false;
   root.setAttribute('data-incipit-agent-card', workflow ? 'workflow' : 'agent');
-  const headline = buildHeadline(root, { getIdentity: () => scope, toggle: () => toggle(!fold.open) });
-  const body = element('div', 'data-incipit-agent-body');
+  const headline = buildHeadline(root, { getIdentity: () => scope, onStateChange: options.onActivityChange, toggle: () => toggle(!fold.open) });
+  const body = setToolSurface(element('div', 'data-incipit-agent-body'), options.surfaceLevel);
+  body.setAttribute('data-incipit-diff-island', '');
   const toolbar = element('div', 'data-incipit-agent-toolbar');
-  const refresh = action('Refresh', () => load(true)); toolbar.append(refresh);
+  toolbar.setAttribute('data-incipit-diff-header', '');
+  const bodyTitle = element('span', 'data-incipit-diff-title');
+  const refresh = iconAction('Refresh', 'refresh', () => load(true)); toolbar.append(bodyTitle, refresh);
   const status = element('div', 'data-incipit-agent-card-status');
   const content = element('div', 'data-incipit-agent-card-content');
   body.append(toolbar, status, content);
@@ -90,6 +93,7 @@ export function createAgentActivityCard(root, initial, options = {}) {
   function viewOptions() {
     const { onDispose, ...childOptions } = options;
     return { ...childOptions, key, choices: { get: value => choices.get(value), set: remember }, isRunning: () => state === 'running' || state === 'queued',
+      title: () => activity?.title || data.block.input?.description || data.block.input?.name || (workflow ? 'Workflow' : 'Agent'),
       createInvocation: (target, value, nested) => createAgentActivityCard(target, value, { ...childOptions, ...nested, onDispose: undefined }) };
   }
 
@@ -147,6 +151,7 @@ export function createAgentActivityCard(root, initial, options = {}) {
     if (state !== previousState && !['running', 'queued'].includes(state) && fold.open) contentView?.refresh?.();
     const input = data.block.input || {};
     const description = activity?.title || input.description || input.name || (input.scriptPath ? String(input.scriptPath).split(/[/\\]/).pop() : '') || live?.title || '';
+    bodyTitle.textContent = description || (workflow ? 'Workflow' : 'Agent'); bodyTitle.title = bodyTitle.textContent;
     const label = workflow ? state === 'running' ? 'Running workflow' : 'Workflow' : state === 'running' ? 'Running agent' : state === 'complete' ? 'Ran agent' : state === 'queued' ? 'Queued agent' : 'Agent';
     let detail = usageLabel(live?.usage);
     if (workflow) {

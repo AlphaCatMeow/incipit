@@ -44,6 +44,7 @@ export function initThinking() {
   const FOLD_MS = 220;
 
   const keyFor = (details) => {
+    if (details.hasAttribute('data-incipit-owned-thinking')) return null;
     const msg = details.closest(SEL.message);
     if (!msg) return null;
     const container = msg.closest(SEL.messagesContainer) || document.body;
@@ -80,7 +81,7 @@ export function initThinking() {
   // attribute so arrow state cannot drift away from the content state.
 
   const reconcileAll = () => {
-    const all = document.querySelectorAll(SEL.thinking);
+    const all = [...document.querySelectorAll(SEL.thinking)].filter(node => !node.hasAttribute('data-incipit-owned-thinking'));
     if (!all.length) return;
     // Build msgIdx and tIdx in one pass instead of calling keyFor per node.
     // keyFor on its own is O(messages) for the message index lookup, so
@@ -92,7 +93,7 @@ export function initThinking() {
     for (let i = 0; i < msgs.length; i++) msgIdxOf.set(msgs[i], i);
     const tIdxOf = new Map();
     for (let i = 0; i < msgs.length; i++) {
-      const ts = msgs[i].querySelectorAll(SEL.thinking);
+      const ts = [...msgs[i].querySelectorAll(SEL.thinking)].filter(node => !node.hasAttribute('data-incipit-owned-thinking'));
       for (let j = 0; j < ts.length; j++) tIdxOf.set(ts[j], j);
     }
     for (let i = 0; i < all.length; i++) {
@@ -149,17 +150,18 @@ export function initThinking() {
   // microtask + rAF pair on every keystroke.
   const mightContainThinking = (node) => {
     if (!node || node.nodeType !== 1) return false;
+    if (node.closest('[data-incipit-agent-history]')) return false;
     if (node.tagName === 'DETAILS') return true;
     // A node with no element children cannot contain a descendant
     // <details>. Streaming appends leaf text/inline spans into the prose
     // root constantly; skip the querySelector for that dominant case.
     if (!node.firstElementChild) return false;
-    return typeof node.querySelector === 'function' && node.querySelector('details') !== null;
+    return typeof node.querySelector === 'function' && node.querySelector('details:not([data-incipit-owned-thinking])') !== null;
   };
   const thinkingObserver = new MutationObserver((mutations) => {
     for (const m of mutations) {
       if (m.type === 'attributes') {
-        if (m.target && m.target.tagName === 'DETAILS') {
+        if (m.target && m.target.tagName === 'DETAILS' && !m.target.closest('[data-incipit-agent-history]')) {
           scheduleReconcile();
           return;
         }
@@ -183,7 +185,7 @@ export function initThinking() {
   // emits during streaming.
   document.addEventListener('toggle', (e) => {
     const t = e.target;
-    if (t && t.matches && t.matches(SEL.thinking)) {
+    if (t && t.matches && t.matches(SEL.thinking) && !t.hasAttribute('data-incipit-owned-thinking')) {
       if (t.__claudeAllowHostToggleOnce) {
         t.__claudeAllowHostToggleOnce = false;
         if (t.__claudeAllowHostToggleReset) {
@@ -212,7 +214,7 @@ export function initThinking() {
     const summary = t.closest(SEL.thinkingSummary);
     if (!summary) return;
     const details = summary.closest('details');
-    if (!details) return;
+    if (!details || details.hasAttribute('data-incipit-owned-thinking')) return;
 
     e.preventDefault();
     e.stopImmediatePropagation();

@@ -2,7 +2,8 @@ import { buildHeadline } from './tool_headline.js';
 import { createAgentHistoryView } from './agent_history_view.js';
 import { normalizeWorkflowProgress } from './agent_activity_state.js';
 import { createAgentRichText } from './agent_rich_text.js';
-import { element, action, activityStatus, statusLabel, usageLabel, setText, foldBody, copyAction } from './agent_activity_dom.js';
+import { createOwnedActivityGroups } from './activity_groups.js';
+import { element, iconAction, activityStatus, statusLabel, usageLabel, setText, foldBody, copyAction, disposeActions } from './agent_activity_dom.js';
 
 function agentState(agent) {
   if (agent.skipped) return 'stopped';
@@ -61,9 +62,10 @@ function countLabel(agents) {
 function createWorkflowAgent(initial, scope, options, phaseKey) {
   let agent = initial, history = null, agentId = '', disposed = false;
   const root = element('div', 'data-incipit-workflow-agent'); root.setAttribute('data-incipit-agent-card', ''); root.setAttribute('data-incipit-tool-use', '');
+  const row = element('div', 'data-incipit-activity-row'); row.append(root);
   const key = options.key + ':' + phaseKey + ':agent:' + agent.index;
   const data = () => ({ block: { type: 'tool_use', id: key, name: 'Agent', input: { description: agent.label || 'Agent ' + agent.index } } });
-  const headline = buildHeadline(root, { getIdentity: () => scope, toggle: () => toggle(!fold.open) });
+  const headline = buildHeadline(root, { getIdentity: () => scope, onStateChange: options.onActivityChange, toggle: () => toggle(!fold.open) });
   const fold = foldBody(headline.toggle, { onOpen: show, onClose: () => history?.setActive(false), onClosed: () => { history?.dispose(); history = null; fold.inner.replaceChildren(); } });
   root.append(fold.root);
 
@@ -74,7 +76,8 @@ function createWorkflowAgent(initial, scope, options, phaseKey) {
       if (!history || agentId !== agent.agentId) {
         history?.dispose(); agentId = agent.agentId; fold.inner.replaceChildren();
         if (agent.attempt > 1) fold.inner.append(element('div', 'data-incipit-agent-notice', `Attempt ${agent.attempt}${agent.lastAttemptReason ? ' · ' + agent.lastAttemptReason : ''}`));
-        history = createAgentHistoryView({ ...scope, agentId }, { ...options, isRunning: () => agent.displayState === 'running' });
+        history = createAgentHistoryView({ ...scope, agentId }, { ...options, surfaceLevel: (options.surfaceLevel || 0) + 1,
+          title: () => agent.label || 'Agent', isRunning: () => agent.displayState === 'running' });
         fold.inner.append(history.root);
       } else history.setActive(true);
     } else {
@@ -91,7 +94,7 @@ function createWorkflowAgent(initial, scope, options, phaseKey) {
     }
   }
 
-  const controller = { root,
+  const controller = { root: row, tool: root,
     update(next) {
       const oldId = agent.agentId, oldState = agent.displayState; agent = next;
       const state = agent.displayState;
@@ -99,7 +102,7 @@ function createWorkflowAgent(initial, scope, options, phaseKey) {
       const detail = usageLabel({ tokens: agent.tokens, toolCalls: agent.toolCalls, durationMs: agent.durationMs });
       headline.update(data(), true, { state, label, description: '',
         ariaLabel: `${label} · ${statusLabel(state)}${detail ? ' · ' + detail : ''}`,
-        stateText: agent.cached ? 'Cached' : agent.blocked ? 'Blocked' : agent.skipped ? 'Skipped' : state === 'unknown' ? 'Recorded' : state === 'complete' ? 'Done' : statusLabel(state), detail });
+        stateText: agent.blocked ? 'Blocked' : agent.skipped ? 'Skipped' : state === 'error' ? 'Failed' : '', detail: '' });
       if (root.dataset.incipitAgentState !== state) root.dataset.incipitAgentState = state;
       headline.toggle.title = `${label} · ${statusLabel(state)}${detail ? ' · ' + detail : ''}`;
       if (fold.open && (oldId !== agent.agentId || oldState !== state || !history)) {
@@ -130,7 +133,7 @@ export function createWorkflowActivityView(scope, options) {
   let disposed = false, resultSignature = null, modelSignature = '', invocationSignature = '';
 
   function createPhase(phase) {
-    let current = phase, limit = 40;
+    let current = phase, limit = 120, renderGeneration = 0, phaseActive = true;
     const node = element('section', 'data-incipit-workflow-phase');
     const heading = element('button', 'data-incipit-workflow-phase-heading'); heading.type = 'button';
     const number = element('span', 'data-incipit-workflow-phase-number');
@@ -139,25 +142,35 @@ export function createWorkflowActivityView(scope, options) {
     const caret = element('span', 'data-incipit-workflow-caret'); caret.setAttribute('aria-hidden', 'true');
     heading.append(number, title, stats, caret); node.append(heading);
     const list = element('div', 'data-incipit-workflow-agent-list');
-    const more = action('Show more agents', () => { limit += 40; render(); });
+    const more = iconAction('Show more agents', 'pageNext', () => { limit += 120; render(); });
     const rows = new Map(), choiceKey = options.key + ':' + phase.key;
-    const fold = foldBody(heading, { onOpen: () => { render(); for (const row of rows.values()) row.setActive(true); }, onClose: () => { for (const row of rows.values()) row.setActive(false); }, onClosed: () => { for (const row of rows.values()) row.dispose(); rows.clear(); list.replaceChildren(); } });
+    const rail = createOwnedActivityGroups(choiceKey, () => [...rows.values()].map(row => ({ row: row.root, kind: 'tool', tools: [row.tool],
+      setActive: value => row.setActive(phaseActive && fold.open && value) })));
+    const fold = foldBody(heading, { onOpen: () => { render(); }, onClose: () => { renderGeneration++; for (const row of rows.values()) row.setActive(false); }, onClosed: () => { for (const row of rows.values()) row.dispose(); rows.clear(); list.replaceChildren(); rail.layout(); } });
     fold.inner.append(list, more); node.append(fold.root);
     heading.addEventListener('click', event => { event.stopPropagation(); const open = !fold.open; options.choices.set(choiceKey, open); heading.setAttribute('aria-expanded', String(open)); fold.setOpen(open); });
 
-    function render() {
-      if (!fold.open) return;
+    async function render() {
+      if (!fold.open || !phaseActive) return;
+      const token = ++renderGeneration;
       const keep = new Set();
-      current.agents.slice(0, limit).forEach((agent, index) => {
+      let deadline = performance.now() + 4;
+      for (const [index, agent] of current.agents.slice(0, limit).entries()) {
         const key = agent.index; keep.add(key);
         let row = rows.get(key);
-        if (!row) { row = createWorkflowAgent(agent, scope, options, current.key); rows.set(key, row); }
+        if (!row) { row = createWorkflowAgent(agent, scope, { ...options, onActivityChange: rail.schedule }, current.key); rows.set(key, row); }
         row.update(agent);
         if (list.children[index] !== row.root) list.insertBefore(row.root, list.children[index] || null);
-      });
+        if (performance.now() >= deadline) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+          if (disposed || token !== renderGeneration) return;
+          deadline = performance.now() + 4;
+        }
+      }
       for (const [key, row] of rows) if (!keep.has(key)) { row.dispose(); row.root.remove(); rows.delete(key); }
       more.hidden = current.agents.length <= limit;
-      more.textContent = `Show more agents (${Math.max(0, current.agents.length - limit)} remaining)`;
+      more.title = `Show more agents (${Math.max(0, current.agents.length - limit)} remaining)`;
+      rail.layout();
     }
     const view = { root: node,
       update(next) {
@@ -165,8 +178,8 @@ export function createWorkflowActivityView(scope, options) {
         setText(title, current.title); title.title = current.title; setText(stats, countLabel(current.agents));
         node.dataset.incipitWorkflowPhaseState = current.agents.some(agent => agent.displayState === 'error') ? 'error' : current.agents.some(agent => agent.displayState === 'running') ? 'running' : 'idle';
         render();
-      }, setActive(value) { for (const row of rows.values()) row.setActive(value && fold.open); },
-      dispose() { fold.dispose(); for (const row of rows.values()) row.dispose(); rows.clear(); },
+      }, setActive(value) { phaseActive = value; if (!value) renderGeneration++; else render(); rail.layout(); },
+      dispose() { renderGeneration++; rail.dispose(); fold.dispose(); for (const row of rows.values()) row.dispose(); rows.clear(); },
     };
     const open = options.choices.get(choiceKey) !== false;
     heading.setAttribute('aria-expanded', String(open)); fold.setOpen(open, false); view.update(phase);
@@ -203,7 +216,7 @@ export function createWorkflowActivityView(scope, options) {
       const text = model.result === undefined ? '' : typeof model.result === 'string' ? model.result : JSON.stringify(model.result, null, 2);
       const resultKey = JSON.stringify([model.result !== undefined, text, model.resultTruncated, model.logs, model.logsTruncated, model.snapshotPath]);
       if (resultKey !== resultSignature) {
-        resultSignature = resultKey; resultRoot.replaceChildren();
+        resultSignature = resultKey; disposeActions(resultRoot); resultRoot.replaceChildren();
         if (model.result !== undefined) {
           const details = element('details', 'data-incipit-agent-raw-details'); details.append(element('summary', '', 'Workflow result'), text ? createAgentRichText(text, options) : element('div', 'data-incipit-agent-notice', 'The workflow returned an empty result.')); resultRoot.append(details);
           details.append(copyAction(() => text));
@@ -214,10 +227,10 @@ export function createWorkflowActivityView(scope, options) {
           if (model.logsTruncated) details.append(element('div', 'data-incipit-agent-notice', 'More run notes are available in the original run record.'));
         }
         const source = model.snapshotPath && options.fileAction?.(model.snapshotPath);
-        if (source) resultRoot.append(action('Open run record', () => source.open()));
+        if (source) resultRoot.append(iconAction('Open run record', 'source', () => source.open()));
       }
     },
     setActive(value) { for (const phase of phases.values()) phase.setActive(value); },
-    dispose() { disposed = true; for (const phase of phases.values()) phase.dispose(); phases.clear(); },
+    dispose() { disposed = true; for (const phase of phases.values()) phase.dispose(); phases.clear(); disposeActions(root); },
   };
 }
