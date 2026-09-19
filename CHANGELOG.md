@@ -2,6 +2,16 @@
 
 [中文版 →](CHANGELOG.zh.md)
 
+## 0.2.2 — 2026-09-19
+
+Updated Claude Code support, faster diffs, and a quieter tool interface.
+
+- Restore compatibility with Claude Code 2.1.278.
+- Fix Selection / File references on machines without the optional companion extension.
+- Load diffs sooner and keep subagent histories responsive, with shared tool styling and larger pages.
+- Refresh all three themes with solid tool surfaces, compact headers, balanced diff search, and animated copy feedback. Interface controls use English throughout.
+- Simplify the composer: group cache statistics and countdown, move Agent map beside the conversation edit counts, and hide duplicate native controls.
+
 ## 0.2.1 — 2026-09-12
 
 Faster diffs and more responsive long sessions.
