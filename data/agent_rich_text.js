@@ -1,7 +1,22 @@
 import { assetURL, pageNonce } from './enhance_shared.js';
 import { ensureHighlighter, normalizeLanguage } from './syntax_highlight.js';
+import { scheduleRender } from './render_queue.js';
 
 let runtime = null;
+let visibilityObserver = null;
+const waiting = new WeakMap();
+
+function renderWhenVisible(root, render, signal) {
+  if (signal?.aborted) return;
+  if (!signal || typeof IntersectionObserver !== 'function') { render(); return; }
+  if (!visibilityObserver) visibilityObserver = new IntersectionObserver(entries => {
+    for (const entry of entries) if (entry.isIntersecting) waiting.get(entry.target)?.();
+  }, { rootMargin: '240px' });
+  const cleanup = () => { visibilityObserver.unobserve(root); waiting.delete(root); signal?.removeEventListener('abort', cleanup); };
+  waiting.set(root, () => { cleanup(); if (!signal?.aborted) render(); });
+  signal?.addEventListener('abort', cleanup, { once: true });
+  visibilityObserver.observe(root);
+}
 
 function loadParser() {
   if (runtime) return runtime;
@@ -34,14 +49,18 @@ function loadParser() {
 export function createAgentRichText(text, { fileAction, signal } = {}) {
   const root = document.createElement('div'); root.setAttribute('data-incipit-agent-prose', '');
   const raw = document.createElement('div'); raw.setAttribute('data-incipit-agent-raw', ''); raw.textContent = String(text || ''); root.append(raw);
-  if (!text || text.length > 200000) return root;
+  // Keep unusually large full records readable without a synchronous parser stall.
+  if (!text || text.length > 48000) return root;
   let generation = 0;
   async function render() {
     const token = ++generation;
     try {
       const parser = await loadParser();
       if (signal?.aborted || token !== generation) return;
-      const content = document.createElement('div'); content.innerHTML = parser.render(text);
+      const content = await scheduleRender(() => {
+        const node = document.createElement('div'); node.innerHTML = parser.render(text); return node;
+      }, signal);
+      if (signal?.aborted || token !== generation) return;
       for (const link of content.querySelectorAll('a[href]')) {
         const href = link.getAttribute('href');
         if (/^(https?:\/\/|mailto:)/i.test(href)) { link.target = '_blank'; link.rel = 'noopener noreferrer'; continue; }
@@ -61,7 +80,9 @@ export function createAgentRichText(text, { fileAction, signal } = {}) {
         try {
           const highlighter = await ensureHighlighter(language);
           if (signal?.aborted || token !== generation) return;
-          if (highlighter.getLanguage(language)) { code.innerHTML = highlighter.highlight(code.textContent, { language, ignoreIllegals: true }).value; code.classList.add('hljs'); }
+          if (highlighter.getLanguage(language)) await scheduleRender(() => {
+            code.innerHTML = highlighter.highlight(code.textContent, { language, ignoreIllegals: true }).value; code.classList.add('hljs');
+          }, signal);
         } catch (error) {
           if (signal?.aborted) return;
           const note = document.createElement('span'); note.setAttribute('data-incipit-agent-notice', ''); note.textContent = 'Code shown without syntax color.'; note.title = error.message;
@@ -75,6 +96,6 @@ export function createAgentRichText(text, { fileAction, signal } = {}) {
       retry.addEventListener('click', event => { event.stopPropagation(); retry.disabled = true; render(); }); root.append(retry);
     }
   }
-  render();
+  renderWhenVisible(root, render, signal);
   return root;
 }

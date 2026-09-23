@@ -433,7 +433,6 @@
   --ink-tool-filepath-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-tool-fingerprint-aux-fg: #93959a;
   --ink-tool-fingerprint-aux-hover-fg-override: #93959a;
-  --ink-tool-grep-expansion-border: 1px solid rgba(255,255,255,0.16);
   --ink-tool-grep-filename-image: radial-gradient(circle,rgba(194,196,199,0.92) 1px,transparent 1.6px);
   --ink-tool-grep-more-fg: #aaaaab;
   --ink-tool-icon-before-bg: #fbfbfc;
@@ -444,10 +443,6 @@
   --ink-tool-summary-hover-fg-override: inherit;
   --ink-tool-toggle-focus-visible-fg-override: #0d0d0d;
   --ink-tool-toggle-focus-visible-outline: 1px solid rgba(194,196,199,0.6);
-  --ink-tool-use-border: 1px solid rgba(255,255,255,0.16);
-  --ink-tool-use-border-override: rgba(0,0,0,0.16);
-  --ink-tool-use-border-top: 1px solid rgba(255,255,255,0.10);
-  --ink-tool-use-border-top-color-override: rgba(0,0,0,0.10);
   --ink-track-on-bg: #c2c4c7;
   --ink-transcript-toast-border: 1px solid rgba(255,255,255,0.12);
   --ink-transcript-toast-border-2: rgba(201,106,106,0.42);
@@ -483,13 +478,13 @@
   [class*="diffEditorWrapper"],
   [class*="modalContent_"]:has([class*="diffEditorContainer"])
 ) {
-  --incipit-diff-surface: var(--ink-diff-surface);
+  --incipit-diff-surface: var(--ink-surface-code);
   --incipit-diff-text: var(--ink-diff-text);
   --incipit-diff-muted: var(--ink-diff-muted);
   --incipit-diff-border: var(--ink-diff-border);
   --incipit-diff-divider: var(--ink-diff-divider);
   --incipit-diff-shadow: var(--ink-diff-shadow);
-  --incipit-diff-header-bg: var(--ink-diff-header-bg);
+  --incipit-diff-header-bg: var(--ink-surface-raised);
   --incipit-diff-header-text: var(--ink-diff-header-text);
   --incipit-diff-header-border: var(--ink-diff-header-border);
   --incipit-diff-gradient-start: var(--ink-diff-gradient-start);
@@ -509,8 +504,8 @@
   --incipit-diff-add-bar: var(--ink-add-bar);
   --incipit-diff-del-bar: var(--ink-del-bar);
   --incipit-diff-overview: var(--ink-diff-overview);
-  --incipit-diff-scrollbar-track-x: var(--ink-diff-header-bg);
-  --incipit-diff-scrollbar-track-y: var(--ink-diff-surface);
+  --incipit-diff-scrollbar-track-x: var(--ink-surface-raised);
+  --incipit-diff-scrollbar-track-y: var(--ink-surface-raised);
   --incipit-diff-scrollbar-thumb: var(--ink-scrollbar-thumb);
   --incipit-diff-scrollbar-thumb-hover: var(--ink-scrollbar-thumb-hover);
   --incipit-diff-scrollbar-thumb-active: var(--ink-scrollbar-thumb-active);

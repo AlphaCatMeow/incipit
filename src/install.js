@@ -16,6 +16,8 @@ const crypto = require('crypto');
 const vm = require('vm');
 
 const { atomicWrite } = require('./fs-atomic');
+const { parseHostExpression, visitSyntax, propertyName } = require('./host-source');
+const { privateMessageListeners } = require('./host-message-guard');
 const { patchTranscriptFollow } = require('./webview-scroll');
 const { patchTaskEvents, taskEventPreamble } = require('./webview-task-events');
 const { patchAgentMessages } = require('./webview-agent-messages');
@@ -63,6 +65,8 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'execution_lifecycle.js'), 'execution_lifecycle.js'],
   [path.join('data', 'capability.js'),          'capability.js'],
   [path.join('data', 'enhance_footer_badge.js'), 'enhance_footer_badge.js'],
+  [path.join('data', 'cache-window.js'),         'cache-window.js'],
+  [path.join('data', 'agent-map.js'),            'agent-map.js'],
   [path.join('data', 'enhance_thinking.js'),    'enhance_thinking.js'],
   [path.join('data', 'enhance_typography.js'),  'enhance_typography.js'],
   [path.join('data', 'syntax_highlight.js'),     'syntax_highlight.js'],
@@ -71,6 +75,7 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'enhance_legacy.js'),      'enhance_legacy.js'],
   [path.join('data', 'host_probe.js'),           'host_probe.js'],
   [path.join('data', 'host-badge.cjs'),          'host-badge.cjs'],
+  [path.join('data', 'editor-reference.cjs'),    'editor-reference.cjs'],
   [path.join('data', 'tool-diff-source.cjs'),    'tool-diff-source.cjs'],
   [path.join('data', 'change-review-source.cjs'), 'change-review-source.cjs'],
   [path.join('data', 'tool_cards.js'),           'tool_cards.js'],
@@ -81,6 +86,8 @@ const ROOT_WEBVIEW_FILES = [
   [path.join('data', 'agent_activity_dom.js'),   'agent_activity_dom.js'],
   [path.join('data', 'agent_history_view.js'),   'agent_history_view.js'],
   [path.join('data', 'agent_rich_text.js'),      'agent_rich_text.js'],
+  [path.join('data', 'render_queue.js'),         'render_queue.js'],
+  [path.join('data', 'tool_row_preview.js'),     'tool_row_preview.js'],
   [path.join('data', 'workflow_activity.js'),    'workflow_activity.js'],
   [path.join('data', 'agent-activity-source.cjs'), 'agent-activity-source.cjs'],
   [path.join('data', 'agent-journal.cjs'),        'agent-journal.cjs'],
@@ -261,6 +268,11 @@ const HOST_CONTACT_ROUTE_CATALOG = Object.freeze([
     extensionSha256: '8d0ec100338102e52f3fce91abfa8ddb91281b5922206e56f655869dfdbf4348',
     webviewSha256: '559c3a4f04c143e05c52893a95394c1d77b2cda760dad7dbb732ba2dd91bac70',
   },
+  {
+    version: '2.1.278',
+    extensionSha256: '3f6e126db2dc28d21d1745ae75089d5041e7f594c0d31a1a9ebd4daeb968d60d',
+    webviewSha256: '8f9ed42eab7b64602b042f23649225e28dea388c4cb2d9ca0443e5ca82d721f3',
+  },
 ]);
 
 function sanitizeFontFamilyValue(raw) {
@@ -372,14 +384,10 @@ const BADGE_REQUIRE_VIEW_RE =
 const BADGE_REQUIRE_PANEL_RE =
   /(setupPanel\(K,V,B,j\)\{let G=\{isVisible:\(\)=>K\.visible\};this\.webviews\.add\(G\);)require\("\.\/webview\/host-badge\.cjs"\)\.attach\(K(?:,P0)?\);/;
 const BADGE_COMM_ATTACH_LITERAL = HOST_BADGE_COMM_ATTACH;
-const INCIPIT_MESSAGE_GUARD_PATTERN =
-  /\.webview\.onDidReceiveMessage\(\(([A-Za-z_$][\w$]*)\)=>\{(?!if\(\1&&\1\.__incipit===true\)return;)([\s\S]{0,500}?[A-Za-z_$][\w$]*\?\.fromClient\(\1\)[\s\S]{0,80}?)\},null,this\.disposables\)/g;
-const INCIPIT_MESSAGE_GUARD_PATCHED_RE =
-  /\.webview\.onDidReceiveMessage\(\(([A-Za-z_$][\w$]*)\)=>\{if\(\1&&\1\.__incipit===true\)return;[\s\S]{0,500}?[A-Za-z_$][\w$]*\?\.fromClient\(\1\)[\s\S]{0,80}?\},null,this\.disposables\)/g;
 
 // Give the host's Monaco diff editor an incipit-owned theme, font, and gutter.
-// Claude Code 2.1.x hard-codes both inline and expanded Edit diff editors to
-// `theme:"vs-dark"` and `fontSize:12`, which makes warm-white render a dark
+// Older Claude Code builds hard-code both inline and expanded Edit diff editors
+// to `theme:"vs-dark"` and `fontSize:12`, which makes warm-white render a dark
 // Monaco island using the default editor font, and `lineNumbers:"off"`, which
 // leaves inline diff rows with `--` placeholders instead of a useful gutter.
 // We patch those options to use a bundled GitHub-like Monaco theme, Rec Mono
@@ -401,11 +409,6 @@ const MONACO_DIFF_THEME_FALLBACK_EXPR =
   '(globalThis.__incipitConfig&&globalThis.__incipitConfig.theme&&globalThis.__incipitConfig.theme.palette==="warm-white"?"vs":"vs-dark")';
 const MONACO_DIFF_THEME_EXPR =
   `(globalThis.__incipitPickMonacoDiffTheme?globalThis.__incipitPickMonacoDiffTheme(m$):${MONACO_DIFF_THEME_FALLBACK_EXPR})`;
-const MONACO_DIFF_THEME_HARDCODED_RE = /theme:"vs-dark"/g;
-const MONACO_DIFF_THEME_LEGACY_PATCHED_RE =
-  /theme:\(globalThis\.__incipitConfig&&globalThis\.__incipitConfig\.theme&&globalThis\.__incipitConfig\.theme\.palette==="warm-white"\?"vs":"vs-dark"\)/g;
-const MONACO_DIFF_THEME_PATCHED_RE =
-  /theme:\(globalThis\.__incipitPickMonacoDiffTheme\?globalThis\.__incipitPickMonacoDiffTheme\(m\$\):\(globalThis\.__incipitConfig&&globalThis\.__incipitConfig\.theme&&globalThis\.__incipitConfig\.theme\.palette==="warm-white"\?"vs":"vs-dark"\)\)/g;
 // ---- Monaco diff option anchors (span-scoped, 2026-06-09) ----
 // Anchor law: every Monaco option patch first locates the two
 // `.createDiffEditor(<node>,{...})` option objects via the business-literal
@@ -487,9 +490,9 @@ const MONACO_DIFF_THEMES = (() => {
       { token: 'delimiter', foreground: '000000' },
     ],
     colors: {
-      'editor.background': '#fafaf5',
+      'editor.background': '#e6e4de',
       'editor.foreground': '#1f2328',
-      'editorGutter.background': '#fafaf5',
+      'editorGutter.background': '#e6e4de',
       'editorLineNumber.foreground': '#6e7781',
       'editorLineNumber.activeForeground': '#24292f',
       'editor.lineHighlightBackground': '#00000000',
@@ -555,9 +558,9 @@ const MONACO_DIFF_THEMES = (() => {
       { token: 'delimiter', foreground: 'dcdcdc' },
     ],
     colors: {
-      'editor.background': '#1f1f1e',
+      'editor.background': '#272727',
       'editor.foreground': '#e6edf3',
-      'editorGutter.background': '#1f1f1e',
+      'editorGutter.background': '#272727',
       'editorLineNumber.foreground': '#8b949e',
       'editorLineNumber.activeForeground': '#e6edf3',
       'editor.lineHighlightBackground': '#ffffff08',
@@ -585,9 +588,9 @@ const MONACO_DIFF_THEMES = (() => {
     rules: themes[MONACO_DIFF_DARK_THEME].rules,
     colors: {
       ...themes[MONACO_DIFF_DARK_THEME].colors,
-      'editor.background': '#0a0b0b',
+      'editor.background': '#1a1b1c',
       'editor.foreground': '#fbfbfc',
-      'editorGutter.background': '#0a0b0b',
+      'editorGutter.background': '#1a1b1c',
       'editorLineNumber.foreground': '#838484',
       'editorLineNumber.activeForeground': '#c7c6c7',
       'diffEditor.border': '#ffffff1a',
@@ -1848,17 +1851,48 @@ function patchCspDirective(content, { directive, requiredTokens, label }) {
 }
 
 function badgeCommAttachCandidates(content) {
+  // Identify the comm by its constructor-owned state, not by the distance to
+  // the surface manager's message listener (which moved past 70 KB in 2.1.278).
+  const classStarts = [...content.matchAll(/\bclass(?:\s+[\w$]+)?(?:\s+extends\s+[\w$.]+)?\s*\{/g)]
+    .map(match => match.index);
   const candidates = [];
-  const pattern = /this\.webview=([A-Za-z_$][\w$]*);/g;
+  const pattern = /this\s*\.\s*webview\s*=\s*([A-Za-z_$][\w$]*)\s*;/g;
   let match;
   while ((match = pattern.exec(content))) {
     const insertIndex = match.index + match[0].length;
-    const context = content.slice(Math.max(0, match.index - 5000), Math.min(content.length, match.index + 70000));
-    const semantic = (
-      context.includes('fromClient(') &&
-      context.includes('.webview.onDidReceiveMessage') &&
-      /shutdown\s*\(/.test(context)
-    );
+    const start = classStarts.filter(index => index < match.index).pop();
+    const parsed = start === undefined ? null : parseHostExpression(content, start);
+    const owner = parsed?.type === 'SequenceExpression' ? parsed.expressions[0] : parsed;
+    const methods = owner?.type === 'ClassExpression' ? owner.body.body : [];
+    const constructor = methods.find(node => node.kind === 'constructor')?.value;
+    const assignments = new Map();
+    const events = new Set();
+    let hasSuper = false;
+    if (constructor?.start < match.index && constructor.end > insertIndex) {
+      for (const statement of constructor.body.body) {
+        if (statement.type !== 'ExpressionStatement') continue;
+        const expressions = statement.expression.type === 'SequenceExpression' ?
+          statement.expression.expressions : [statement.expression];
+        for (const expression of expressions) {
+          if (expression.type === 'CallExpression' && expression.callee.type === 'Super') hasSuper = true;
+          if (expression.type === 'AssignmentExpression' && expression.operator === '=' &&
+              expression.left.type === 'MemberExpression' && expression.left.object.type === 'ThisExpression') {
+            assignments.set(propertyName(expression.left), expression);
+          }
+        }
+      }
+      visitSyntax(constructor.body, node => {
+        if (node.type === 'Property' && propertyName(node) === 'type' && node.value.type === 'Literal') {
+          events.add(node.value.value);
+        }
+      });
+    }
+    const webview = assignments.get('webview');
+    const semantic = hasSuper && webview?.start === match.index &&
+      methods.some(node => !node.static && node.kind === 'method' && propertyName(node) === 'fromClient') &&
+      methods.some(node => !node.static && node.kind === 'method' && propertyName(node) === 'shutdown') && [
+      'context', 'cwd', 'settings', 'getCurrentSelection', 'isVisible', 'makeVisible',
+    ].every(name => assignments.has(name)) && events.has('selection_changed');
     const patched = content.slice(insertIndex, insertIndex + BADGE_COMM_ATTACH_LITERAL.length) ===
       BADGE_COMM_ATTACH_LITERAL;
     candidates.push({
@@ -1925,8 +1959,9 @@ function patchBadgeCommAttach(content) {
 }
 
 function assessPrivateMessageGuardContact(content) {
-  const guardedMessages = (content.match(INCIPIT_MESSAGE_GUARD_PATCHED_RE) || []).length;
-  const unguardedMessages = (content.match(INCIPIT_MESSAGE_GUARD_PATTERN) || []).length;
+  const listeners = privateMessageListeners(content);
+  const guardedMessages = listeners.filter(listener => listener.patched).length;
+  const unguardedMessages = listeners.length - guardedMessages;
   const status = guardedMessages > 0 && unguardedMessages === 0 ? 'patched' : 'failed';
   let anchorReason;
   if (guardedMessages > 0 && unguardedMessages === 0) anchorReason = 'fromClient-message-guard';
@@ -2433,15 +2468,15 @@ function patchExtensionJs(content) {
   contracts.push(installContractFromAssessment('install.hostBadgeCommAttach', statusBadge, badgeAssessment));
   statusLines.push(statusBadge);
 
-  const guardedMessages = (updated.match(INCIPIT_MESSAGE_GUARD_PATCHED_RE) || []).length;
-  const unguardedMessages = (updated.match(INCIPIT_MESSAGE_GUARD_PATTERN) || []).length;
+  const listeners = privateMessageListeners(updated);
+  const pendingListeners = listeners.filter(listener => !listener.patched);
+  const guardedMessages = listeners.length - pendingListeners.length;
+  const unguardedMessages = pendingListeners.length;
   let privateMessageStatus;
   if (unguardedMessages > 0) {
-    updated = updated.replace(
-      INCIPIT_MESSAGE_GUARD_PATTERN,
-      (_match, message, body) =>
-        `.webview.onDidReceiveMessage((${message})=>{if(${message}&&${message}.__incipit===true)return;${body}},null,this.disposables)`,
-    );
+    for (const { insertIndex, guard } of pendingListeners.sort((a, b) => b.insertIndex - a.insertIndex)) {
+      updated = updated.slice(0, insertIndex) + guard + updated.slice(insertIndex);
+    }
     privateMessageStatus = `${padLabel('私有消息过滤')}: 已写入 (${unguardedMessages})`;
   } else if (guardedMessages > 0) {
     privateMessageStatus = `${padLabel('私有消息过滤')}: 已存在 (${guardedMessages})`;
@@ -2841,9 +2876,18 @@ function patchAtMentionDeliveryFamily(content) {
 }
 
 function patchAtMentionCommand(content) {
-  return patchAtMentionEmitterFamily(content) ||
+  const result = patchAtMentionEmitterFamily(content) ||
     patchAtMentionDeliveryFamily(content) ||
     [content, `${padLabel('@引用命令桥')}: 降级 (未找到命令 setup 锚点; companion 引用不可用)`];
+  const marker = 'require("./webview/editor-reference.cjs").registerEditorReferences(';
+  if (result[0].includes(marker) || /降级/.test(result[1])) return result;
+  const pattern = /([\w$]+)\.push\(([\w$]+)\.commands\.registerCommand\("incipit\.claudeCode\.insertAtMention"/g;
+  const matches = [...result[0].matchAll(pattern)];
+  if (matches.length !== 1) return [content, `${padLabel('@引用命令桥')}: 降级 (未找到唯一编辑器引用入口)`];
+  const match = matches[0];
+  result[0] = result[0].slice(0, match.index) + `${marker}${match[2]},${match[1]}),` + result[0].slice(match.index);
+  result[1] = `${padLabel('@引用命令桥')}: 已写入`;
+  return result;
 }
 
 function patchDisableImplicitSelectionSend(content) {
@@ -3027,10 +3071,13 @@ function monacoDiffEditorOptionSpans(content) {
       if (ch === '(') { parenDepth += 1; continue; }
       if (ch === ')') { parenDepth -= 1; continue; }
       if (ch === '{') {
-        const close = findMatchingBrace(content, i);
+        const parsed = parseHostExpression(content, i);
+        const object = parsed?.type === 'SequenceExpression' ? parsed.expressions[0] : parsed;
+        const close = object?.type === 'ObjectExpression' ? object.end - 1 : -1;
         if (close < 0) break;
         if (parenDepth === 1) {
-          spans.push({ start: i, end: close + 1 });
+          const api = content.slice(0, hit).match(/([A-Za-z_$][\w$]*(?:\.[A-Za-z_$][\w$]*)*)$/)?.[1];
+          spans.push({ start: i, end: close + 1, api });
           break;
         }
         // Object literal nested inside another argument expression: skip it.
@@ -3075,20 +3122,26 @@ function patchMonacoDiffTheme(content) {
   }
   const pending = [];
   for (const span of spans) {
-    const hardcoded = countInMonacoDiffSpan(content, span, MONACO_DIFF_THEME_HARDCODED_RE);
-    const legacy = countInMonacoDiffSpan(content, span, MONACO_DIFF_THEME_LEGACY_PATCHED_RE);
-    const patched = countInMonacoDiffSpan(content, span, MONACO_DIFF_THEME_PATCHED_RE);
-    if (hardcoded + legacy + patched !== 1) {
+    const options = parseHostExpression(content, span.start);
+    const themes = options?.type === 'ObjectExpression' ?
+      options.properties.filter(node => propertyName(node) === 'theme') : [];
+    if (!span.api || options?.end !== span.end || themes.length > 1 || themes.some(node => node.kind !== 'init')) {
       return [content, `${label}: 降级 (未找到唯一渲染锚点)`];
     }
-    if (hardcoded || legacy) pending.push(span);
+    const expression = MONACO_DIFF_THEME_EXPR.replace('(m$)', `(${span.api})`);
+    const theme = themes[0];
+    if (!theme || content.slice(theme.value.start, theme.value.end) !== expression) {
+      pending.push({ ...span, theme, expression });
+    }
   }
   if (pending.length === 0) return [content, `${label}: 已存在`];
   let updated = content;
   for (const span of pending.sort((a, b) => b.start - a.start)) {
-    updated = rewriteMonacoDiffSpan(updated, span, text => text
-      .replace(MONACO_DIFF_THEME_HARDCODED_RE, `theme:${MONACO_DIFF_THEME_EXPR}`)
-      .replace(MONACO_DIFF_THEME_LEGACY_PATCHED_RE, `theme:${MONACO_DIFF_THEME_EXPR}`));
+    const start = span.theme ? span.theme.start : span.end - 1;
+    const end = span.theme ? span.theme.end : start;
+    const needsComma = !/[{,]\s*$/.test(updated.slice(span.start, start));
+    const replacement = `${!span.theme && needsComma ? ',' : ''}theme:${span.expression}`;
+    updated = updated.slice(0, start) + replacement + updated.slice(end);
   }
   return [updated, `${label}: 已写入`];
 }
@@ -3186,6 +3239,33 @@ function patchMonacoDiffInlineLayout(content) {
   const label = padLabel('diff inline 布局');
   const spans = monacoDiffEditorOptionSpans(content);
   const inlineSpans = monacoDiffInlineSpans(content, spans);
+  if (inlineSpans.length === 1) {
+    const options = parseHostExpression(content, inlineSpans[0].start);
+    const spreads = options?.properties.filter(node => node.type === 'SpreadElement' &&
+      node.argument.type === 'CallExpression' && node.argument.callee.type === 'Identifier') || [];
+    if (spreads.length === 1) {
+      const call = spreads[0].argument;
+      const definitions = [...content.matchAll(/\bfunction\s+([\w$]+)\s*\(/g)]
+        .filter(match => match[1] === call.callee.name)
+        .map(match => parseHostExpression(content, match.index)).filter(Boolean);
+      if (definitions.length === 1) {
+        const fn = definitions[0];
+        const returned = fn.body.body.length === 1 && fn.body.body[0].type === 'ReturnStatement' ?
+          fn.body.body[0].argument : null;
+        const sides = returned?.type === 'ObjectExpression' ?
+          returned.properties.filter(node => propertyName(node) === 'renderSideBySide') : [];
+        if (sides.length === 1) {
+          const value = sides[0].value;
+          if (content.slice(value.start, value.end) === '!1') return [content, `${label}: 已存在`];
+          if (value.type === 'Identifier' && value.name === fn.params[0]?.name && fn.params.length === 1) {
+            // Creation and ResizeObserver both consume the same option factory.
+            return [content.slice(0, value.start) + '!1' + content.slice(value.end), `${label}: 已写入`];
+          }
+        }
+      }
+      return [content, `${label}: 降级 (未找到唯一布局选项函数)`];
+    }
+  }
   const resizeHardcoded = (content.match(MONACO_DIFF_INLINE_RESIZE_HARDCODED_RE) || []).length;
   const resizePatched = (content.match(MONACO_DIFF_INLINE_RESIZE_PATCHED_RE) || []).length;
   if (inlineSpans.length !== 1 || resizeHardcoded + resizePatched !== 1) {

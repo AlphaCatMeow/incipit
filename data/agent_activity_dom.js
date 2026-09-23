@@ -1,3 +1,5 @@
+import { iconButton, copyButton } from './diff/controls.js';
+
 export function element(tag, attr, text) {
   const node = document.createElement(tag);
   if (attr) node.setAttribute(attr, '');
@@ -5,10 +7,23 @@ export function element(tag, attr, text) {
   return node;
 }
 
+export function setToolSurface(node, level = 0) {
+  node.setAttribute('data-incipit-tool-surface-level', String(level % 2));
+  return node;
+}
+
 export function action(label, onClick) {
   const button = element('button', 'data-incipit-agent-action', label); button.type = 'button';
   button.addEventListener('click', event => { event.stopPropagation(); onClick(event); });
   return button;
+}
+
+export function iconAction(label, icon, onClick) {
+  return iconButton(label, icon, onClick, 'data-incipit-agent-action');
+}
+
+export function disposeActions(root) {
+  root.querySelectorAll('[data-incipit-agent-copy]').forEach(button => button.dispose?.());
 }
 
 export function setText(node, text) { if (node.textContent !== text) node.textContent = text; }
@@ -41,26 +56,23 @@ export function usageLabel(usage) {
 }
 
 export function copyAction(textProvider) {
-  let timer;
-  const button = action('Copy', async () => {
-    clearTimeout(timer);
-    try { await navigator.clipboard.writeText(textProvider()); button.textContent = 'Copied'; button.removeAttribute('data-incipit-copy-error'); }
-    catch (error) { button.textContent = 'Retry copy'; button.title = error.message; button.setAttribute('data-incipit-copy-error', ''); return; }
-    timer = setTimeout(() => { if (button.isConnected) button.textContent = 'Copy'; }, 1400);
-  });
-  return button;
+  const control = copyButton('Copy', textProvider, false);
+  control.button.setAttribute('data-incipit-agent-copy', '');
+  control.button.setAttribute('data-incipit-agent-action', '');
+  control.button.dispose = control.dispose;
+  return control.button;
 }
 
 export function sourceAction(path, options) {
   const target = path && options.fileAction?.(path);
-  return target ? action('Open transcript', () => target.open()) : null;
+  return target ? iconAction('Open original transcript', 'source', () => target.open()) : null;
 }
 
 export function errorView(error, retry) {
   const box = element('div', 'data-incipit-agent-notice'); box.setAttribute('role', 'status');
   box.dataset.incipitAgentNotice = error.state === 'permission' ? 'permission' : error.state === 'unavailable' ? 'empty' : 'error';
   box.append(element('span', '', error.error || error.message || String(error)));
-  if (retry) box.append(action('Retry', retry));
+  if (retry) box.append(iconAction('Retry', 'refresh', retry));
   return box;
 }
 

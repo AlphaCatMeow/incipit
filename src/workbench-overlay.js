@@ -573,8 +573,8 @@ ${PATCH_START}
     if (typeof document !== 'object' || typeof window !== 'object') return;
     globalThis.__incipitEditorSelectionOverlayInstalled = true;
 
-    const COMMAND_SELECTION = 'incipitClaudeReference.referenceActiveSelection';
-    const COMMAND_FILE = 'incipitClaudeReference.referenceActiveFile';
+    const COMMAND_SELECTION = 'incipit.claudeCode.referenceSelection';
+    const COMMAND_FILE = 'incipit.claudeCode.referenceFile';
     const COMMAND_CLAUDE_VISIBLE = 'incipit.claudeCode.hasVisibleWebview';
     const ROOT_ID = 'incipit-editor-selection-overlay';
     const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -587,6 +587,7 @@ ${PATCH_START}
     let claudeVisible = false;
     let claudeVisibilityCheckedAt = 0;
     let claudeVisibilityPending = false;
+    let selectionEditor = null;
 
     function logFailure(error) {
       try { console.warn('[incipit] editor overlay disabled', error); } catch (_) {}
@@ -670,6 +671,7 @@ ${PATCH_START}
       root = document.createElement('div');
       root.id = ROOT_ID;
       root.setAttribute('aria-hidden', 'true');
+      root.inert = true;
       const frame = document.createElement('div');
       frame.className = 'incipit-overlay-frame';
       frame.appendChild(createButton(
@@ -691,7 +693,7 @@ ${PATCH_START}
         const button = event.target && event.target.closest && event.target.closest('button[data-command]');
         if (!button) return;
         stopEditorBlur(event);
-        executeWorkbenchCommand(button.getAttribute('data-command'));
+        executeWorkbenchCommand(button);
       }, true);
       document.body.appendChild(root);
       return root;
@@ -702,6 +704,7 @@ ${PATCH_START}
       button.type = 'button';
       button.setAttribute('data-command', command);
       button.title = title;
+      button.dataset.referenceTitle = title;
       button.appendChild(createIcon(paths));
       const span = document.createElement('span');
       span.textContent = label;
@@ -726,14 +729,26 @@ ${PATCH_START}
       event.stopPropagation();
     }
 
-    function executeWorkbenchCommand(command) {
+    async function executeWorkbenchCommand(button) {
       const bridge = globalThis.${COMMAND_BRIDGE_NAME};
-      if (typeof bridge !== 'function') return;
+      if (button.disabled) return;
+      const label = button.querySelector('span');
+      const original = label.textContent;
+      button.disabled = true;
       try {
-        Promise.resolve(bridge(command)).catch(error => console.warn('[incipit] editor overlay command failed', error));
+        if (typeof bridge !== 'function') throw new Error('The editor command bridge is unavailable.');
+        const accepted = await bridge(button.getAttribute('data-command'));
+        if (accepted !== true) throw new Error('The reference was not accepted. Check the VS Code notification.');
       } catch (error) {
         console.warn('[incipit] editor overlay command failed', error);
+        label.textContent = 'Retry';
+        button.title = error.message + ' Run incipit apply and reload VS Code if this persists.';
+        return;
+      } finally {
+        button.disabled = false;
       }
+      label.textContent = original === 'Retry' ? (button.getAttribute('data-command') === COMMAND_FILE ? 'File' : 'Selection') : original;
+      button.title = button.dataset.referenceTitle;
     }
 
     function refreshClaudeVisibility(force) {
@@ -765,6 +780,7 @@ ${PATCH_START}
     }
 
     function activeEditor() {
+      if (root && root.contains(document.activeElement)) return selectionEditor && selectionEditor.isConnected ? selectionEditor : null;
       const active = document.activeElement && document.activeElement.closest && document.activeElement.closest('.monaco-editor');
       if (active) return active;
       const focusedChild = document.querySelector('.monaco-editor .focused');
@@ -798,6 +814,7 @@ ${PATCH_START}
       if (!root || !visible) return;
       visible = false;
       root.dataset.visible = 'false';
+      root.setAttribute('aria-hidden', 'true'); root.inert = true;
       root.style.transform = 'translate3d(-9999px, -9999px, 0)';
     }
 
@@ -812,7 +829,9 @@ ${PATCH_START}
       const rect = selectionRect(editor);
       if (!editor || !rect) return hide();
       const overlay = ensureRoot();
+      selectionEditor = editor;
       overlay.dataset.visible = 'true';
+      overlay.setAttribute('aria-hidden', 'false'); overlay.inert = false;
       visible = true;
       const editorRect = editor.getBoundingClientRect();
       const width = overlay.offsetWidth || 174;

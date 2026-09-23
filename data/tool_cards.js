@@ -1,5 +1,6 @@
 import { configureDiffSource, fetchToolDiff, clearDiffSource } from './diff/source.js';
-import { getDiffModel, clearDiffModels } from './diff/client.js';
+import { clearDiffModels } from './diff/client.js';
+import { loadHistoricalDiff } from './diff/history.js';
 import { createDiffPreview, closeFullDiff } from './diff/view.js';
 import { subscribe } from './runtime_kernel.js';
 import { markActivityDirty } from './activity_groups.js';
@@ -139,6 +140,7 @@ function createFileCard(root, initial, options) {
   function schedulePendingRetry() {
     if (disposed || pendingTimer || publicState(data) !== 'complete') return;
     retryExhausted = pendingAttempts >= PENDING_RETRY_MS.length;
+    if (retryExhausted && !verifiedCounts && !provisional) headline.setCountsState('unavailable', 'Saved change counts are not ready. Retry to load them.');
     retryCounts.hidden = !!(verifiedCounts || provisional) || !retryExhausted;
     if (retryExhausted || !controller.intersecting) return;
     pendingTimer = setTimeout(() => {
@@ -168,6 +170,7 @@ function createFileCard(root, initial, options) {
           if (open && !statsOnly) sourcePayload = payload;
           if (payload.stats) verifiedCounts = payload.quality === 'coarse' ? null : payload.stats;
           headline.setCounts(verifiedCounts || provisional);
+          if (!verifiedCounts && !provisional) headline.setCountsState('unavailable', 'Exact change counts are unavailable for this saved result.');
           retryCounts.hidden = !!(verifiedCounts || provisional);
           if (statsOnly && open && waitingForSource) view?.refresh();
         } else schedulePendingRetry();
@@ -179,35 +182,11 @@ function createFileCard(root, initial, options) {
     return promise;
   }
 
-  async function loadModel({ signal, refresh }) {
+  async function loadModel({ signal, refresh, onPreview }) {
     if (publicState(data) === 'error') throw new Error('This tool failed; there is no completed file change.');
-    let payload;
-    try {
-      payload = publicState(data) === 'running'
-        ? { state: 'pending', notice: 'The file operation is still running.' }
-        : await loadSource(signal, refresh);
-    }
-    catch (error) {
-      if (error.name === 'AbortError') throw error;
-      schedulePendingRetry();
-      payload = { state: 'unavailable', notice: error.message };
-    }
-    waitingForSource = payload.state !== 'ready';
-    if (payload.state !== 'ready') {
-      const input = data.block.input;
-      const edits = Array.isArray(input.edits) ? input.edits.map(edit => ({ oldText: edit.old_string, newText: edit.new_string })) :
-        [{ oldText: input.old_string, newText: input.new_string }];
-      if (edits.every(edit => typeof edit.oldText === 'string' && typeof edit.newText === 'string')) {
-        return getDiffModel({ source: 'tool-input', filePath: input.file_path, edits, lineNumbers: 'relative',
-          notice: 'Showing the replacement while saved context is unavailable. ' + (payload.error || payload.notice || '') }, { signal });
-      }
-      if (data.block.name === 'Write' && typeof input.content === 'string') {
-        return getDiffModel({ source: 'tool-input', filePath: input.file_path, proposedText: input.content,
-          notice: 'Showing the requested contents while the saved original is unavailable; line counts are unverified. ' + (payload.error || payload.notice || '') }, { signal });
-      }
-      throw new Error('No saved file snapshot. Open the current file to inspect it.');
-    }
-    return getDiffModel(payload, { key, signal });
+    return loadHistoricalDiff({ block: data.block, key, signal, onPreview,
+      request: () => publicState(data) === 'running' ? { state: 'pending', notice: 'The file operation is still running.' } : loadSource(signal, refresh),
+      onPending: value => { waitingForSource = value; }, onError: schedulePendingRetry });
   }
 
   function ensureView() {
@@ -215,7 +194,8 @@ function createFileCard(root, initial, options) {
     view = createDiffPreview(diff, { filePath: data.block.input.file_path, loadModel,
       onStats: stats => {
         if (stats && !waitingForSource) verifiedCounts = stats;
-        headline.setCounts(verifiedCounts || stats || provisional);
+        if (verifiedCounts || stats || provisional) headline.setCounts(verifiedCounts || stats || provisional);
+        else if (!waitingForSource) headline.setCountsState('unavailable');
         if (verifiedCounts || stats || provisional) retryCounts.hidden = true;
       } });
   }
@@ -233,6 +213,7 @@ function createFileCard(root, initial, options) {
     headline.setOpen(value);
     root.dataset.incipitToolCollapsed = String(!value);
     if (value) {
+      if (sourcePromise) { sourceController?.abort(); sourceController = null; sourcePromise = null; }
       body.hidden = false; body.inert = false; ensureView(); view.setVisible(true);
       requestAnimationFrame(() => { if (token === transitionGeneration) body.dataset.incipitExpanded = '1'; });
     } else {
@@ -266,8 +247,9 @@ function createFileCard(root, initial, options) {
       clearTimeout(pendingTimer); pendingTimer = null; pendingAttempts = 0; retryExhausted = false; controller.prefetch();
     },
     prefetch() {
-      if (disposed || publicState(data) !== 'complete' || sourceKnown || sourcePromise || pendingTimer || retryExhausted) return;
+      if (disposed || open || publicState(data) !== 'complete' || sourceKnown || sourcePromise || pendingTimer || retryExhausted) return;
       retryCounts.hidden = true;
+      if (!verifiedCounts && !provisional) headline.setCountsState('loading');
       const pending = loadSource(undefined, false, true).catch(error => {
         if (error.name !== 'AbortError') {
           schedulePendingRetry();

@@ -1442,8 +1442,10 @@ function testFixture(root) {
 function assertLowRiskVisualPatchDegrades(root) {
   const webviewPath = path.join(root, 'webview', 'index.js');
   const webviewSource = fs.readFileSync(webviewPath, 'utf8');
-  const mutated = webviewSource.replace('theme:"vs-dark"', 'theme:"__incipit_anchor_miss"');
-  assert.notStrictEqual(mutated, webviewSource, `${root}: test fixture must contain a diff theme anchor`);
+  const [span] = __test.monacoDiffEditorOptionSpans(webviewSource);
+  assert(span, `${root}: test fixture must contain a diff editor options object`);
+  const mutated = webviewSource.slice(0, span.start + 1) + 'theme:"vs",theme:"vs-dark",' +
+    webviewSource.slice(span.start + 1);
   const [, webviewLines] = __test.patchWebviewIndex(
     mutated,
     DEFAULT_FEATURES,

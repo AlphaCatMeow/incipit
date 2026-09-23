@@ -228,10 +228,10 @@ for (const [name, value] of Object.entries({
 const diffSelector = ':where([data-incipit-diff-island],[data-incipit-write-diff],[data-incipit-write-diff-modal-content],[class*="diffEditorWrapper"],[class*="modalContent_"]:has([class*="diffEditorContainer"]))';
 const diffEnvironment = scopedEnvironment(declarations.ink, diffSelector, inkRoot);
 for (const [name, value] of Object.entries({
-  '--incipit-diff-surface': '#0a0b0b',
+  '--incipit-diff-surface': '#1a1b1c',
   '--incipit-diff-text': '#fbfbfc',
   '--incipit-diff-muted': '#838484',
-  '--incipit-diff-header-bg': '#1a1b1c',
+  '--incipit-diff-header-bg': '#141516',
   '--incipit-diff-add-line': '#23863633',
   '--incipit-diff-del-line': '#da363333',
   '--vscode-editorlinenumber-foreground': '#838484',

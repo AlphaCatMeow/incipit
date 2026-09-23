@@ -14,6 +14,7 @@ import { initLegacyTaskIndicator } from './legacy/task_indicator.js';
 import { initLegacyDeferredNext } from './legacy/deferred_next.js';
 import { initLegacyAskRefinement } from './legacy/ask_refinement.js';
 import { initToolCards, enhanceToolCard, sweepToolCards } from './tool_cards.js';
+import { applyToolBodyTruncation } from './tool_row_preview.js';
 import { initActivityGroups, markActivityDirty, scanActivityTurns, configureActivityScheduler, flushActivityGroups, stageActivityTool } from './activity_groups.js';
 import { showDiffPayload } from './diff/view.js';
 import { resolveFileReference, isExternalReference } from './file_reference.js';
@@ -2303,15 +2304,12 @@ import {
   // VS Code owns the actual file-drop routing. incipit no longer intercepts
   // drops, prevents defaults, or inserts @ mentions here; doing so needs a
   // workbench-level bridge and that proved too invasive. This is only a
-  // localized composer hint for drag events that naturally reach the Claude
+  // composer hint for drag events that naturally reach the Claude
   // webview: "hold Shift and drop here to reference the file".
   let fileDragHintBound = false;
   let fileDragHintClearTimer = 0;
 
-  const FILE_DRAG_HINT_TEXT = Object.freeze({
-    zh: '按住 Shift 拖放到这里引用文件',
-    en: 'Hold Shift and drop here to reference the file',
-  });
+  const FILE_DRAG_HINT_TEXT = 'Hold Shift and drop here to reference the file';
 
   function dataTransferTypes(dt) {
     try { return Array.from(dt && dt.types ? dt.types : []); }
@@ -2432,7 +2430,7 @@ import {
   // range, not a sync; do not reintroduce JS here.
 
   function fileDragHintText() {
-    return FILE_DRAG_HINT_TEXT[CFG.language] || FILE_DRAG_HINT_TEXT.en;
+    return FILE_DRAG_HINT_TEXT;
   }
 
   function clearOneFileDragHint(el) {
@@ -8611,147 +8609,6 @@ import {
         }
       });
       outContent.appendChild(btn);
-    }
-
-    // ----------------------------------------------------------------
-    // Generic IN/OUT row truncation for the host's `toolBodyGrid`
-    // template (Bash, PowerShell, LSP, MCP, Read, TodoWrite, Write,
-    // NotebookEdit, WebSearch, etc. — every tool whose body is rendered
-    // through the shared grid). Edit/MultiEdit diff blocks use
-    // diffEditorWrapper, not toolBodyGrid, so they bypass this code
-    // path. Grep takes its own route through `applyGrepOutTruncation`
-    // because it pierces the Preact result signal and replaces text
-    // wholesale; here we cooperate with React-owned <pre> nodes by
-    // CSS-clipping them in place and parking a sibling toggle button
-    // outside the clip box.
-    //
-    // Generic tool output uses the middle allowance: full at ≤ 9 logical
-    // lines and ≤ 1800 chars, otherwise clip to ~7 visual lines. Bash /
-    // PowerShell input commands get a tighter command profile: full at ≤ 4
-    // lines and ≤ 900 chars, otherwise clip to ~3 visual lines. Diff tools
-    // and Grep have their own previews.
-    //
-    // CSS clip vs text-replace: text-replace would lose syntax
-    // highlighting that hljs may apply on the host <pre>, and would
-    // race React's reconcile (host owns this DOM, we don't). CSS clip
-    // leaves DOM untouched; we only set/clear our own data-attr and
-    // add a sibling button. Idempotent across re-decorates.
-    // ----------------------------------------------------------------
-    const TOOL_ROW_PREVIEW = {
-      generic: { keepLines: 7, fullBelowLines: 9, keepChars: 1800 },
-      command: { keepLines: 3, fullBelowLines: 4, keepChars: 900 },
-    };
-
-    function applyToolBodyTruncation(grid, toolName) {
-      const rows = grid.querySelectorAll('[class*="toolBodyRow"]');
-      for (const row of rows) {
-        const content = row.querySelector('[class*="toolBodyRowContent"]');
-        if (!content) continue;
-        applyToolRowTruncation(content, toolRowPreviewProfile(row, toolName));
-      }
-    }
-
-    function toolRowPreviewProfile(row, toolName) {
-      const label = (row.querySelector('[class*="toolBodyRowLabel"]')?.textContent || '')
-        .trim()
-        .toLowerCase();
-      const isCommandInput =
-        (toolName === 'Bash' || toolName === 'PowerShell') &&
-        (label === 'in' || label === 'input' || label === 'command');
-      return isCommandInput ? TOOL_ROW_PREVIEW.command : TOOL_ROW_PREVIEW.generic;
-    }
-
-    function toolMoreText(hiddenLines) {
-      return hiddenLines > 0
-        ? '+ ' + hiddenLines + ' more line' + (hiddenLines === 1 ? '' : 's')
-        : '+ more text';
-    }
-
-    function applyToolRowTruncation(content, profile) {
-      profile = profile || TOOL_ROW_PREVIEW.generic;
-      // Pick the inner element to clip. OUT cells wrap their pre in a
-      // `toolResult_*` div; IN cells expose <pre> directly.
-      const clipTarget = content.querySelector('[class*="toolResult_"]') ||
-                         content.querySelector('pre');
-      if (!clipTarget) return;
-
-      const fullText = clipTarget.textContent || '';
-      const lines = fullText.split('\n');
-      const tooLong = lines.length > profile.fullBelowLines ||
-                      fullText.length > profile.keepChars;
-
-      // Short content — clear any prior truncation state, drop button.
-      if (!tooLong) {
-        if (clipTarget.getAttribute('data-incipit-tool-out-clipped') !== null) {
-          clipTarget.removeAttribute('data-incipit-tool-out-clipped');
-        }
-        clipTarget.style.removeProperty('--incipit-tool-out-preview-max-height');
-        const oldBtn = content.querySelector(':scope > [data-incipit-tool-out-more]');
-        if (oldBtn) oldBtn.remove();
-        if (content.dataset.userExpanded) delete content.dataset.userExpanded;
-        return;
-      }
-
-      // Long content — apply / lift clip based on user-expanded state.
-      const expanded = content.dataset.userExpanded === '1';
-      if (expanded) {
-        if (clipTarget.getAttribute('data-incipit-tool-out-clipped') !== null) {
-          clipTarget.removeAttribute('data-incipit-tool-out-clipped');
-        }
-      } else {
-        if (clipTarget.getAttribute('data-incipit-tool-out-clipped') !== '1') {
-          clipTarget.setAttribute('data-incipit-tool-out-clipped', '1');
-        }
-        clipTarget.style.setProperty(
-          '--incipit-tool-out-preview-max-height',
-          (profile.keepLines * 1.5) + 'em'
-        );
-      }
-
-      // Toggle button. Lives as the LAST child of the content cell so
-      // overflow:hidden on clipTarget never swallows it.
-      const hidden = Math.max(lines.length - profile.keepLines, 0);
-      const moreText = toolMoreText(hidden);
-      const lessText = '− show less'; // U+2212 minus, visually paired with '+'
-      const btnText = expanded ? lessText : moreText;
-
-      let btn = content.querySelector(':scope > [data-incipit-tool-out-more]');
-      if (!btn) {
-        btn = document.createElement('span');
-        btn.setAttribute('data-incipit-tool-out-more', '');
-        btn.addEventListener('click', evt => {
-          // Don't fold the parent tool entry on click of this toggle.
-          evt.stopPropagation();
-          const wasExpanded = content.dataset.userExpanded === '1';
-          if (wasExpanded) {
-            // Collapsing — preserve viewport anchor like the Grep path.
-            // Without this, the user's focus point falls into whatever
-            // tool/message happens to be at that absolute Y after the
-            // OUT body shrinks by hundreds of pixels.
-            const beforeTop = btn.getBoundingClientRect().top;
-            content.dataset.userExpanded = '0';
-            applyToolRowTruncation(content, profile);
-            const newBtn = content.querySelector(':scope > [data-incipit-tool-out-more]');
-            if (newBtn) {
-              const afterTop = newBtn.getBoundingClientRect().top;
-              const delta = afterTop - beforeTop;
-              if (delta !== 0) {
-                const scroller = findScrollAncestor(content);
-                if (scroller === window) window.scrollBy(0, delta);
-                else scroller.scrollTop += delta;
-              }
-            }
-          } else {
-            content.dataset.userExpanded = '1';
-            applyToolRowTruncation(content, profile);
-          }
-        });
-        content.appendChild(btn);
-      }
-      if (btn.textContent !== btnText) btn.textContent = btnText;
-      // React may append elements after our button across reconciles —
-      // keep button at the tail so it sits below the clip box visually.
-      if (content.lastChild !== btn) content.appendChild(btn);
     }
 
     // Grep filename click-to-open.

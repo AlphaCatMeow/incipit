@@ -1,6 +1,7 @@
 import { getDiffModel } from './client.js';
 import { colorDiffRows } from './syntax.js';
 import { getFileLanguage } from '../syntax_highlight.js';
+import { iconButton, copyButton } from './controls.js';
 
 const PAGE_ROWS = 200;
 let activeDialog = null;
@@ -17,10 +18,6 @@ function button(text, action, attribute) {
   node.type = 'button';
   node.addEventListener('click', event => { event.stopPropagation(); action(event); });
   return node;
-}
-
-function basename(filePath) {
-  return String(filePath || '').split(/[/\\]/).pop() || 'File diff';
 }
 
 function updateCounts(node, model) {
@@ -64,7 +61,7 @@ function renderRow(row, index, markup) {
   line.dataset.incipitDiffRowIndex = String(index);
   if (row.kind === 'gap') {
     const count = row.newSkipped ?? row.oldSkipped;
-    const label = row.text || (Number.isFinite(count) ? count + ' unchanged lines' : 'Unchanged lines');
+    const label = row.text || (Number.isFinite(count) ? count + ' unchanged lines' : 'Unchanged content');
     line.append(element('span', 'data-incipit-diff-gap', '⋯ ' + label));
     return line;
   }
@@ -104,10 +101,11 @@ function createRowViewport(parent, model, options = {}) {
   let renderGeneration = 0;
   let disposed = false;
   let colorController = null;
+  let matchTarget = null;
   const syntaxNotice = element('span', 'data-incipit-diff-notice'); syntaxNotice.hidden = true; syntaxNotice.setAttribute('aria-live', 'polite');
-  const syntaxRetry = button('Retry color', () => setPage(page), 'data-incipit-diff-retry'); syntaxRetry.hidden = true;
-  const previous = button('Previous', () => setPage(page - 1), 'data-incipit-diff-page-previous');
-  const next = button('Next', () => setPage(page + 1), 'data-incipit-diff-page-next');
+  const syntaxRetry = button('Retry highlighting', () => setPage(page), 'data-incipit-diff-retry'); syntaxRetry.hidden = true;
+  const previous = button('Previous page', () => setPage(page - 1), 'data-incipit-diff-page-previous');
+  const next = button('Next page', () => setPage(page + 1), 'data-incipit-diff-page-next');
   pager.append(previous, label, next);
   parent.appendChild(viewport);
   (options.pagerHost || parent).appendChild(pager);
@@ -119,12 +117,13 @@ function createRowViewport(parent, model, options = {}) {
     const last = Math.max(0, Math.ceil(model.rows.length / PAGE_ROWS) - 1);
     page = Math.max(0, Math.min(last, value));
     const token = ++renderGeneration;
+    matchTarget = targetRow;
     colorController?.abort(); colorController = new AbortController();
     const start = page * PAGE_ROWS, end = Math.min(model.rows.length, start + PAGE_ROWS);
     previous.disabled = page === 0; next.disabled = page === last; pager.hidden = last === 0;
-    label.textContent = (start + 1) + '–' + end + ' of ' + model.rows.length;
+    label.textContent = (start + 1) + '–' + end + ' / ' + model.rows.length + ' lines';
     viewport.setAttribute('aria-busy', 'true');
-    syntaxNotice.textContent = 'Loading syntax color…'; syntaxNotice.hidden = false; syntaxRetry.hidden = true;
+    syntaxNotice.textContent = 'Loading syntax highlighting…'; syntaxNotice.hidden = false; syntaxRetry.hidden = true;
     let deadline = performance.now() + 4;
     let fragment = document.createDocumentFragment();
     for (let i = start; i < end; i++) {
@@ -137,7 +136,7 @@ function createRowViewport(parent, model, options = {}) {
     }
     if (!model.rows.length) fragment.appendChild(element('div', 'data-incipit-diff-empty', 'No text changes.'));
     body.replaceChildren(fragment); viewport.scrollTop = retainedTop; viewport.removeAttribute('aria-busy');
-    if (targetRow !== null) {
+    if (targetRow !== null && matchTarget === targetRow) {
       const target = body.querySelector('[data-incipit-diff-row-index="' + targetRow + '"]');
       if (target) {
         target.setAttribute('data-incipit-diff-match', '');
@@ -164,7 +163,7 @@ function createRowViewport(parent, model, options = {}) {
       syntaxNotice.textContent = colored.notice; syntaxNotice.hidden = !colored.notice;
     } catch (error) {
       if (disposed || token !== renderGeneration || error.name === 'AbortError') return;
-      syntaxNotice.textContent = 'Code is shown without syntax color.'; syntaxNotice.title = error.message;
+      syntaxNotice.textContent = 'Showing plain text; syntax highlighting is unavailable.'; syntaxNotice.title = error.message;
       syntaxNotice.hidden = false; syntaxRetry.hidden = false;
     }
   }
@@ -179,6 +178,7 @@ function createRowViewport(parent, model, options = {}) {
     ready,
     snapshot() { return { page, top: viewport.scrollTop, left: viewport.scrollLeft }; },
     goToRow(index) { return setPage(Math.floor(index / PAGE_ROWS), index); },
+    clearMatch() { matchTarget = null; body.querySelectorAll('[data-incipit-diff-match]').forEach(node => node.removeAttribute('data-incipit-diff-match')); },
     dispose() { disposed = true; renderGeneration++; colorController?.abort(); pager.remove(); syntaxNotice.remove(); syntaxRetry.remove(); },
   };
 }
@@ -221,35 +221,62 @@ export function openFullDiff(model, options = {}) {
   dialog.setAttribute('aria-label', 'File diff: ' + model.filePath);
   dialog.setAttribute('data-incipit-diff-island', '');
   const header = element('div', 'data-incipit-diff-header');
-  header.appendChild(element('span', 'data-incipit-diff-title', basename(model.filePath)));
+  const title = element('span', 'data-incipit-diff-title', model.filePath || 'File diff');
+  title.title = model.filePath || 'File diff';
+  header.appendChild(title);
   const counts = element('span', 'data-incipit-diff-counts'); updateCounts(counts, model); header.appendChild(counts);
-  const closeButton = button('Close', () => close(), 'data-incipit-diff-close');
-  header.appendChild(closeButton);
-  const fullPath = element('div', 'data-incipit-diff-full-path', model.filePath);
+  const searchToggle = iconButton('Find in diff', 'search', () => setSearchOpen(tools.hidden), 'data-incipit-diff-search-toggle');
+  searchToggle.setAttribute('aria-expanded', 'false');
+  const copy = copyButton(model.statsScope !== 'complete' || model.lineNumbers === 'relative' ? 'Copy changes' : 'Copy patch', () => patchText(model));
+  const closeButton = iconButton('Close', 'close', () => close(), 'data-incipit-diff-close');
+  header.append(searchToggle, copy.button, closeButton);
   const tools = element('div', 'data-incipit-diff-toolbar');
-  const find = element('input', 'data-incipit-diff-find'); find.type = 'search'; find.placeholder = 'Find in diff'; find.setAttribute('aria-label', 'Find in the complete diff');
+  tools.hidden = true;
+  tools.id = 'incipit-diff-search-' + Math.random().toString(36).slice(2);
+  searchToggle.setAttribute('aria-controls', tools.id);
+  const find = element('input', 'data-incipit-diff-find'); find.type = 'search'; find.placeholder = 'Find in diff…'; find.setAttribute('aria-label', 'Find in full diff');
   const searchStatus = element('span', 'data-incipit-diff-search-status'); searchStatus.setAttribute('aria-live', 'polite');
+  const previousMatch = iconButton('Previous match', 'previous', () => moveMatch(-1), 'data-incipit-diff-previous-match');
+  const nextMatch = iconButton('Next match', 'next', () => moveMatch(1), 'data-incipit-diff-next-match');
+  previousMatch.disabled = true; nextMatch.disabled = true;
   const notice = element('div', 'data-incipit-diff-notice', model.notice || ''); notice.hidden = !model.notice; notice.setAttribute('aria-live', 'polite');
   const content = element('div', 'data-incipit-diff-full-content');
   const footer = element('div', 'data-incipit-diff-footer');
-  dialog.append(header, fullPath, tools, notice, content, footer);
+  dialog.append(header, tools, notice, content, footer);
   const rows = createRowViewport(content, model, { ...options, pagerHost: footer });
-  let searchGeneration = 0, timer = null, matches = [], match = -1, closed = false;
-  async function search() {
+  let searchGeneration = 0, timer = null, matches = [], match = -1, closed = false, searchedValue = null;
+  function setSearchOpen(value) {
+    tools.hidden = !value;
+    searchToggle.setAttribute('aria-expanded', String(value));
+    if (value) { find.focus(); find.select(); if (find.value !== searchedValue) search(); }
+    else {
+      searchGeneration++; clearTimeout(timer); rows.clearMatch(); searchedValue = null;
+      searchToggle.focus({ preventScroll: true });
+    }
+  }
+  async function search(direction = 1) {
     const token = ++searchGeneration;
+    searchedValue = null;
     const needle = find.value.toLowerCase(); matches = []; match = -1;
-    if (!needle) { searchStatus.textContent = ''; return; }
+    previousMatch.disabled = true; nextMatch.disabled = true;
+    rows.clearMatch();
+    if (!needle) { searchStatus.textContent = ''; searchedValue = find.value; return; }
+    const value = find.value;
     searchStatus.textContent = 'Searching…';
     let deadline = performance.now() + 4;
     for (let i = 0; i < model.rows.length; i++) {
       if (model.rows[i].kind !== 'gap' && model.rows[i].text.toLowerCase().includes(needle)) matches.push(i);
       if (performance.now() >= deadline) {
         await new Promise(resolve => setTimeout(resolve, 0));
-        if (closed || token !== searchGeneration) return;
+        if (closed || tools.hidden || token !== searchGeneration) return;
         deadline = performance.now() + 4;
       }
     }
-    moveMatch(1);
+    if (closed || tools.hidden || token !== searchGeneration) return;
+    searchedValue = value;
+    previousMatch.disabled = !matches.length; nextMatch.disabled = !matches.length;
+    match = direction < 0 ? 0 : -1;
+    moveMatch(direction);
   }
   function moveMatch(direction) {
     if (!matches.length) { searchStatus.textContent = 'No matches'; return; }
@@ -257,17 +284,22 @@ export function openFullDiff(model, options = {}) {
     searchStatus.textContent = (match + 1) + ' / ' + matches.length;
     rows.goToRow(matches[match]);
   }
-  tools.append(find, button('Previous match', () => moveMatch(-1)), button('Next match', () => moveMatch(1)), searchStatus,
-    button(model.statsScope !== 'complete' || model.lineNumbers === 'relative' ? 'Copy changes' : 'Copy patch', async () => {
-      try { await navigator.clipboard.writeText(await patchText(model)); notice.textContent = 'Changes copied.'; }
-      catch (_) { notice.textContent = 'Clipboard access was denied. Select and copy the visible code, or try again.'; }
-      notice.hidden = false;
-    }));
-  find.addEventListener('input', () => { searchGeneration++; clearTimeout(timer); timer = setTimeout(search, 150); });
-  find.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); moveMatch(event.shiftKey ? -1 : 1); } });
+  tools.append(find, searchStatus, previousMatch, nextMatch);
+  find.addEventListener('input', () => {
+    searchGeneration++; clearTimeout(timer); searchedValue = null;
+    previousMatch.disabled = true; nextMatch.disabled = true;
+    timer = setTimeout(search, 150);
+  });
+  find.addEventListener('keydown', event => {
+    if (event.key !== 'Enter' || event.isComposing) return;
+    event.preventDefault(); clearTimeout(timer);
+    const direction = event.shiftKey ? -1 : 1;
+    if (searchedValue !== find.value) search(direction);
+    else moveMatch(direction);
+  });
   function close() {
     if (closed) return;
-    closed = true; searchGeneration++; clearTimeout(timer); rows.dispose();
+    closed = true; searchGeneration++; clearTimeout(timer); rows.dispose(); copy.dispose();
     if (dialog.open && typeof dialog.close === 'function') dialog.close();
     dialog.remove();
     if (activeDialog?.node === dialog) activeDialog = null;
@@ -275,8 +307,13 @@ export function openFullDiff(model, options = {}) {
   }
   dialog.addEventListener('cancel', event => { event.preventDefault(); close(); });
   dialog.addEventListener('keydown', event => {
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') { event.preventDefault(); find.focus(); find.select(); }
-    if (event.key === 'Escape') { event.preventDefault(); close(); }
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'f') {
+      event.preventDefault(); event.stopPropagation(); setSearchOpen(true);
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault(); event.stopPropagation();
+      if (!tools.hidden) setSearchOpen(false); else close();
+    }
   });
   dialog.addEventListener('click', event => { if (event.target === dialog) { const rect = dialog.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) close(); } });
   document.body.appendChild(dialog);
@@ -289,20 +326,24 @@ export function openFullDiff(model, options = {}) {
 
 /**
  * Attach a lazy preview to an incipit-owned body without changing host message
- * state. The tool row already names the file and carries the counts, so the
- * preview is one code viewport plus a footer line for notices, paging and the
- * complete view.
+ * state. A shared path heading owns the complete-view action; the footer only
+ * appears when notices or pagination are needed.
  */
 export function createDiffPreview(container, options) {
   container.setAttribute('data-incipit-diff-view', '');
   container.setAttribute('data-incipit-diff-island', '');
+  const header = element('div', 'data-incipit-diff-header');
+  const title = element('span', 'data-incipit-diff-title', options.filePath || 'File diff');
+  title.title = options.filePath || 'File diff';
   const content = element('div', 'data-incipit-diff-preview-content');
   const footer = element('div', 'data-incipit-diff-footer');
   const notice = element('span', 'data-incipit-diff-notice'); notice.setAttribute('aria-live', 'polite'); notice.hidden = true;
   const retry = button('Retry', () => load(true), 'data-incipit-diff-retry'); retry.hidden = true;
-  const complete = button('Full diff', () => { if (model) openFullDiff(model, options); }, 'data-incipit-diff-full'); complete.hidden = true;
-  footer.append(notice, retry, complete);
-  container.replaceChildren(content, footer);
+  const complete = iconButton('Full diff', 'expand', () => { if (model) openFullDiff(model, options); }, 'data-incipit-diff-full'); complete.disabled = true;
+  complete.setAttribute('aria-haspopup', 'dialog');
+  header.append(title, complete);
+  footer.append(notice, retry);
+  container.replaceChildren(header, content, footer);
   let model = null, rowView = null, controller = null, visible = false, disposed = false, generation = 0, savedPosition = null, positionCaptured = false;
   let retryTimer = null, retryAttempt = 0;
   function setNotice(text) {
@@ -321,19 +362,27 @@ export function createDiffPreview(container, options) {
     clearTimeout(retryTimer); retryTimer = null;
     controller?.abort(); controller = new AbortController();
     const token = ++generation;
-    container.dataset.incipitDiffState = 'loading'; setNotice('Loading…'); retry.hidden = true; complete.hidden = true;
-    try {
-      const next = await options.loadModel({ signal: controller.signal, refresh });
+    container.dataset.incipitDiffState = 'loading'; setNotice('Loading…'); retry.hidden = true; complete.disabled = true;
+    const publish = (next, preliminary = false) => {
       if (disposed || !visible || generation !== token) return;
       model = next; rowView?.dispose(); rowView = null; showRows();
+      title.textContent = model.filePath || options.filePath || 'File diff';
+      title.title = title.textContent;
       options.onStats?.(model.statsScope === 'complete' && model.quality !== 'coarse' ? model.stats : null);
       setNotice(model.notice || '');
-      container.dataset.incipitDiffState = 'ready'; complete.hidden = false;
-      retryAttempt = 0;
+      container.dataset.incipitDiffState = preliminary ? 'preview' : 'ready'; complete.disabled = false;
+    };
+    try {
+      const next = await options.loadModel({ signal: controller.signal, refresh, onPreview: next => publish(next, true) });
+      if (disposed || !visible || generation !== token) return;
+      publish(next);
+      if (options.retryInputPreview && next.statsScope === 'fragment') {
+        if (retryAttempt < 6) retryTimer = setTimeout(() => load(true), 400 * 2 ** retryAttempt++);
+      } else retryAttempt = 0;
     } catch (error) {
       if (disposed || generation !== token || !visible) return;
       container.dataset.incipitDiffState = error.code === 'permission-denied' ? 'permission' : 'error';
-      setNotice(error.message || 'The historical diff could not be loaded.'); retry.hidden = false;
+      setNotice(error.message || 'Could not load the saved diff.'); retry.hidden = false;
       if (error.retryable && retryAttempt < 6) retryTimer = setTimeout(() => load(true), 400 * 2 ** retryAttempt++);
     }
   }
@@ -344,17 +393,20 @@ export function createDiffPreview(container, options) {
     setVisible(value) {
       if (value && visible && container.dataset.incipitDiffState === 'loading' && !controller?.signal.aborted) return;
       visible = value;
-      if (visible) { if (model) showRows(); else load(); }
+      if (visible) {
+        if (model) showRows();
+        if (!model || (container.dataset.incipitDiffState === 'preview' && controller?.signal.aborted)) load(true);
+      }
       else {
         clearTimeout(retryTimer); retryTimer = null; retryAttempt = 0;
         controller?.abort(); generation++;
         if (rowView && !positionCaptured) savedPosition = rowView.snapshot();
         positionCaptured = false;
         rowView?.dispose(); rowView = null; content.replaceChildren();
-        model = null; complete.hidden = true;
+        model = null; complete.disabled = true;
       }
     },
-    invalidate() { model = null; savedPosition = null; complete.hidden = true; clearTimeout(retryTimer); retryTimer = null; retryAttempt = 0; controller?.abort(); generation++; rowView?.dispose(); rowView = null; content.replaceChildren(); if (visible) load(); },
+    invalidate() { model = null; savedPosition = null; complete.disabled = true; clearTimeout(retryTimer); retryTimer = null; retryAttempt = 0; controller?.abort(); generation++; rowView?.dispose(); rowView = null; content.replaceChildren(); if (visible) load(); },
     dispose() { disposed = true; generation++; clearTimeout(retryTimer); controller?.abort(); rowView?.dispose(); },
   };
 }

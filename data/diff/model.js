@@ -1,4 +1,4 @@
-/** Pure, cooperatively scheduled diff models shared by the worker and UI fallback. */
+/** Pure diff models with cooperative scheduling in the host and webview. */
 const NO_NEWLINE = '\\ No newline at end of file';
 const DEFAULT_CONTEXT = 3;
 
@@ -161,27 +161,53 @@ async function middleSplit(old, next, a0, a1, b0, b1, work) {
   return null;
 }
 
-async function snapshotRows(oldText, newText, work, counts = null) {
+async function snapshotRows(oldText, newText, work, counts = null, context = Infinity) {
   const old = await textLines(oldText, work);
   const next = await textLines(newText, work);
   const rows = [];
+  let pendingContext = null;
+  async function appendContext(start, end, newStart) {
+    for (let i = start; i < end; i++) {
+      rows.push(makeRow('ctx', old[i].text, i + 1, newStart + i - start + 1, !old[i].newline));
+      if (work.due()) await work.yield();
+    }
+  }
+  function rememberContext(a0, a1, b0) {
+    if (counts || a0 === a1) return;
+    if (pendingContext) pendingContext.a1 = a1;
+    else pendingContext = { a0, a1, b0 };
+  }
+  async function flushContext(final = false) {
+    if (!pendingContext) return;
+    const { a0, a1, b0 } = pendingContext;
+    pendingContext = null;
+    const size = a1 - a0;
+    if (context === Infinity) await appendContext(a0, a1, b0);
+    else if (final) { if (rows.length) await appendContext(a0, Math.min(a1, a0 + context), b0); }
+    else if (!rows.length) {
+      const start = Math.max(a0, a1 - context);
+      await appendContext(start, a1, b0 + start - a0);
+    } else if (size <= context * 2) await appendContext(a0, a1, b0);
+    else {
+      await appendContext(a0, a0 + context, b0);
+      rows.push({ ...makeRow('gap', '', null, null), oldSkipped: size - context * 2, newSkipped: size - context * 2 });
+      await appendContext(a1 - context, a1, b0 + size - context);
+    }
+  }
   const tasks = [{ a0: 0, a1: old.length, b0: 0, b1: next.length }];
   while (tasks.length) {
     const task = tasks.pop();
     let { a0, a1, b0, b1 } = task;
     if (task.context) {
-      if (counts) continue;
-      for (; a0 < a1; a0++, b0++) {
-        rows.push(makeRow('ctx', old[a0].text, a0 + 1, b0 + 1, !old[a0].newline));
-        if (work.due()) await work.yield();
-      }
+      rememberContext(a0, a1, b0);
       continue;
     }
+    const prefixA = a0, prefixB = b0;
     while (a0 < a1 && b0 < b1 && equalLine(old[a0], next[b0])) {
-      if (!counts) rows.push(makeRow('ctx', old[a0].text, a0 + 1, b0 + 1, !old[a0].newline));
       a0++; b0++;
       if (work.due()) await work.yield();
     }
+    rememberContext(prefixA, a0, prefixB);
     const oldEnd = a1, newEnd = b1;
     while (a0 < a1 && b0 < b1 && equalLine(old[a1 - 1], next[b1 - 1])) {
       a1--; b1--;
@@ -190,6 +216,7 @@ async function snapshotRows(oldText, newText, work, counts = null) {
     if (a1 < oldEnd) tasks.push({ a0: a1, a1: oldEnd, b0: b1, b1: newEnd, context: true });
     if (a0 === a1 || b0 === b1) {
       if (counts) { counts.removed += a1 - a0; counts.added += b1 - b0; continue; }
+      if (a0 < a1 || b0 < b1) await flushContext();
       for (let i = a0; i < a1; i++) { rows.push(makeRow('del', old[i].text, i + 1, null, !old[i].newline)); if (work.due()) await work.yield(); }
       for (let j = b0; j < b1; j++) { rows.push(makeRow('add', next[j].text, null, j + 1, !next[j].newline)); if (work.due()) await work.yield(); }
       continue;
@@ -212,10 +239,12 @@ async function snapshotRows(oldText, newText, work, counts = null) {
       tasks.push({ a0, a1: split[0], b0, b1: split[1] });
     } else {
       if (counts) { counts.removed += a1 - a0; counts.added += b1 - b0; continue; }
+      await flushContext();
       for (let i = a0; i < a1; i++) { rows.push(makeRow('del', old[i].text, i + 1, null, !old[i].newline)); if (work.due()) await work.yield(); }
       for (let j = b0; j < b1; j++) { rows.push(makeRow('add', next[j].text, null, j + 1, !next[j].newline)); if (work.due()) await work.yield(); }
     }
   }
+  await flushContext(true);
   return rows;
 }
 
@@ -278,27 +307,6 @@ async function nativeRows(hunks, work) {
   return rows;
 }
 
-async function retainContext(rows, context, work) {
-  const ranges = [];
-  for (let i = 0; i < rows.length; i++) {
-    if (rows[i].kind !== 'ctx' && rows[i].kind !== 'gap') {
-      const start = Math.max(0, i - context), end = Math.min(rows.length, i + context + 1);
-      const last = ranges[ranges.length - 1];
-      if (last && start <= last[1]) last[1] = end;
-      else ranges.push([start, end]);
-    }
-    if (work.due()) await work.yield();
-  }
-  const output = [];
-  let end = 0;
-  for (const [start, nextEnd] of ranges) {
-    if (output.length && start > end) output.push({ ...makeRow('gap', '', null, null), oldSkipped: start - end, newSkipped: start - end });
-    for (let i = start; i < nextEnd; i++) { output.push(rows[i]); if (work.due()) await work.yield(); }
-    end = nextEnd;
-  }
-  return output;
-}
-
 async function addCharHints(rows, work) {
   let remaining = 64000;
   for (let i = 0; i < rows.length; i++) {
@@ -355,15 +363,14 @@ export async function buildDiffModel(payload, options = {}) {
       const edit = payload.edits[i];
       if (!edit || typeof edit.oldText !== 'string' || typeof edit.newText !== 'string') throw new TypeError('Invalid independent edit.');
       if (i) rows.push({ ...makeRow('gap', 'Separate replacement', null, null), separate: true });
-      const part = await retainContext(await snapshotRows(edit.oldText, edit.newText, work), context, work);
+      const part = await snapshotRows(edit.oldText, edit.newText, work, null, context);
       // Replacement fragments are not files, so a missing trailing newline is
       // not an end-of-file fact worth marking.
       for (const row of part) { rows.push({ ...row, oldLine: null, newLine: null, noNewline: false }); if (work.due()) await work.yield(); }
     }
   } else {
     if (typeof payload.oldText !== 'string' || typeof payload.newText !== 'string') throw new TypeError('A verified text pair or structured patch is required.');
-    rows = await snapshotRows(payload.oldText, payload.newText, work);
-    if (options.contextLines !== Infinity) rows = await retainContext(rows, context, work);
+    rows = await snapshotRows(payload.oldText, payload.newText, work, null, options.contextLines === Infinity ? Infinity : context);
   }
   await addCharHints(rows, work);
   let added = 0, removed = 0, byteSize = 512;

@@ -25,7 +25,7 @@ export async function colorDiffRows(rows, language, signal) {
   if (!name || ['plaintext', 'text', 'none'].includes(name)) return { markup, notice: '' };
   const highlighter = await ensureHighlighter(name);
   if (signal.aborted) throw diffAbortError();
-  if (!highlighter.getLanguage(name)) return { markup, notice: 'Syntax color is unavailable for this language.' };
+  if (!highlighter.getLanguage(name)) return { markup, notice: 'Syntax highlighting is not available for this language.' };
   let limited = false;
   for (const side of ['old', 'new']) {
     let segment = [], chars = 0, hunk = null;
@@ -55,5 +55,5 @@ export async function colorDiffRows(rows, language, signal) {
     await flush();
   }
   if (signal.aborted) throw diffAbortError();
-  return { markup, notice: limited ? 'Syntax color is limited for large source segments.' : '' };
+  return { markup, notice: limited ? 'Syntax highlighting is limited for long code fragments.' : '' };
 }

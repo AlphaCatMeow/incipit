@@ -432,7 +432,6 @@
   --ink-tool-filepath-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
   --ink-tool-fingerprint-aux-fg: #bf5d3a;
   --ink-tool-fingerprint-aux-hover-fg-override: #bf5d3a;
-  --ink-tool-grep-expansion-border: 1px solid rgba(0,0,0,0.16);
   --ink-tool-grep-filename-image: radial-gradient(circle,rgba(191,93,58,0.85) 1px,transparent 1.6px);
   --ink-tool-grep-more-fg: #a39f8e;
   --ink-tool-icon-before-bg: #0d0d0d;
@@ -443,10 +442,6 @@
   --ink-tool-summary-hover-fg-override: #0d0d0d;
   --ink-tool-toggle-focus-visible-fg-override: #0d0d0d;
   --ink-tool-toggle-focus-visible-outline: 1px solid rgba(191,93,58,0.6);
-  --ink-tool-use-border: 1px solid rgba(255,255,255,0.16);
-  --ink-tool-use-border-override: rgba(0,0,0,0.16);
-  --ink-tool-use-border-top: 1px solid rgba(255,255,255,0.10);
-  --ink-tool-use-border-top-color-override: rgba(0,0,0,0.10);
   --ink-track-on-bg: #a8896e;
   --ink-transcript-toast-border: 1px solid rgba(248,246,240,0.12);
   --ink-transcript-toast-border-2: rgba(176,62,54,0.30);
@@ -645,11 +640,11 @@
    `toolBodyGrid_ZUQaOA / toolBodyRow / toolBodyRowLabel /
    toolBodyRowContent` template so Bash, PowerShell, LSP, MCP,
    Read, TodoWrite etc. share the same paper-leaf look as Grep. */
-[data-incipit-tool-use] [class*="toolBodyGrid"] {
-  border-color: var(--ink-tool-use-border-override);
+[data-incipit-tool-use] :is([class*="toolBodyGrid"], [data-incipit-tool-io]) {
+  border: 0;
 }
-[data-incipit-tool-use] [class*="toolBodyRow"] {
-  border-top-color: var(--ink-tool-use-border-top-color-override);
+[data-incipit-tool-use] :is([class*="toolBodyRow"], [data-incipit-tool-io-row]) {
+  border-top: 0;
 }
 
 /* ---------- Path tooltip portal ---------- */
@@ -673,8 +668,8 @@
    surrounding paper instead of blocking out as code panels. */
 [data-incipit-tool-use] [class*="toolBody_"] pre,
 [data-incipit-tool-use] [class*="toolBody_"] pre code,
-[data-incipit-tool-use] [class*="toolBodyRowContent"] pre,
-[data-incipit-tool-use] [class*="toolBodyRowContent"] pre code,
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) pre,
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) pre code,
 [data-incipit-tool-use] [class*="toolResult_"] {
   background: transparent !important;
   background-color: transparent !important;
@@ -699,13 +694,13 @@
   [class*="diffEditorWrapper"],
   [class*="modalContent_"]:has([class*="diffEditorContainer"])
 ) {
-  --incipit-diff-surface: #fafaf5;
+  --incipit-diff-surface: var(--incipit-tool-surface);
   --incipit-diff-text: #0d0d0d;
   --incipit-diff-muted: #666258;
   --incipit-diff-border: rgba(0, 0, 0, 0.10);
   --incipit-diff-divider: rgba(0, 0, 0, 0.08);
   --incipit-diff-shadow: rgba(60, 55, 40, 0.10);
-  --incipit-diff-header-bg: #E6E4DE;
+  --incipit-diff-header-bg: var(--incipit-tool-header-surface);
   --incipit-diff-header-text: #3f3d38;
   --incipit-diff-header-border: rgba(31, 35, 40, 0.08);
   --incipit-diff-gradient-start: rgba(250, 250, 245, 0);
@@ -738,7 +733,7 @@
    paper-proof surface so the modal reads as "the same diff, just full
    screen" rather than a different theme. */
 [class*="modalContent_"]:has([class*="diffEditorContainer"]) {
-  border: 1px solid var(--incipit-diff-border) !important;
+  border: 0 !important;
   border-radius: 8px !important;
   background: var(--incipit-diff-surface) !important;
   background-color: var(--incipit-diff-surface) !important;
@@ -746,7 +741,7 @@
 }
 
 [class*="modalContent_"]:has([class*="diffEditorContainer"]) [class*="modalHeader_"] {
-  border-bottom: 1px solid var(--incipit-diff-header-border) !important;
+  border-bottom: 0 !important;
   background-color: var(--incipit-diff-header-bg) !important;
   color: var(--incipit-diff-header-text) !important;
 }
@@ -1159,12 +1154,19 @@ fieldset[class*="inputContainer_"][data-incipit-file-drag-hint="over"]::after,
   border-color: var(--ink-incipit-edit-chip-add-hover-border-override) !important;
   color: var(--ink-incipit-edit-chip-add-hover-fg-override) !important;
 }
+[data-incipit-activity="thinking"] details[data-incipit-thinking]::before,
+[data-incipit-activity="thinking"] [data-incipit-thinking-static]::before {
+  background-color: var(--incipit-activity-surface, var(--incipit-activity-canvas));
+}
 details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:hover,
 details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-visible {
   color: var(--ink-thinking-summary-hover-fg-override) !important;
 }
 [data-incipit-tool-toggle]:focus-visible {
   color: var(--ink-tool-toggle-focus-visible-fg-override);
+}
+[data-incipit-activity] [data-incipit-tool-icon] {
+  background-color: var(--incipit-activity-surface, var(--incipit-activity-canvas));
 }
 [data-incipit-agent-card], [data-incipit-workflow] {
   --incipit-agent-rule: rgba(13,13,13,0.14);

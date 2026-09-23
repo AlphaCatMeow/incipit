@@ -1,5 +1,7 @@
 import { CFG, getActiveClaudeSessionId } from './enhance_shared.js';
 import { SEL } from './host_probe.js';
+import { syncCacheWindow } from './cache-window.js';
+import { syncAgentMap } from './agent-map.js';
 import {
   getHostState as kernelGetHostState,
   subscribe as subscribeRuntime,
@@ -1460,6 +1462,8 @@ function setupCacheBadge() {
       }
       var textEl = badge.querySelector('.' + TEXT_CLASS);
       renderText(textEl);
+      syncCacheWindow(host.closest(SEL.inputFooter), badge);
+      syncAgentMap(host.closest(SEL.inputFooter), document.querySelector('.cceEditChip'));
     }
   }
 
@@ -1524,6 +1528,8 @@ function setupCacheBadge() {
   }
   function mutationTouchesFooter(m) {
     if (mutationInsideFocusedEditor(m)) return false;
+    var target = m.target.nodeType === 1 ? m.target : m.target.parentElement;
+    if (target && target.closest(SEL.inputFooter) && !target.closest('.' + BADGE_CLASS)) return true;
     for (var i = 0; i < m.addedNodes.length; i++) {
       var n = m.addedNodes[i];
       if (!n || n.nodeType !== 1) continue;
@@ -1698,6 +1704,7 @@ function setupEditActivityHeader() {
     if (before && before !== chip && before.parentNode === header) header.insertBefore(chip, before);
     else if (chip.parentNode !== header) header.appendChild(chip);
     renderActivityChip(chip);
+    syncAgentMap(document.querySelector(SEL.inputFooter), chip);
     return chip;
   }
 

@@ -121,6 +121,12 @@ const CORE_TOKENS = Object.freeze([
 ]);
 
 const CUSTOM_PROPERTY_ALIASES = Object.freeze({
+  '--incipit-tool-surface': '--ink-surface-code',
+  '--incipit-tool-base-surface': '--ink-surface-code',
+  '--incipit-activity-canvas': '--ink-surface-message-canvas',
+  '--incipit-tool-header-surface': '--ink-surface-raised',
+  '--incipit-tool-divider': '--ink-diff-divider',
+  '--incipit-tool-input-surface': '--ink-surface-canvas',
   '--app-background': '--ink-surface-canvas',
   '--app-primary-background': '--ink-surface-canvas',
   '--app-root-background': '--ink-surface-canvas',
@@ -570,7 +576,9 @@ function main() {
 
   for (const group of groupedTheme.values()) {
     const declaration = group[0];
-    const alias = CUSTOM_PROPERTY_ALIASES[declaration.property];
+    // Nested reading surfaces deliberately rebind this property at their own scope.
+    const alias = declaration.property === '--incipit-tool-surface' && !containsLiteralColor(declaration.value)
+      ? undefined : CUSTOM_PROPERTY_ALIASES[declaration.property];
     if (alias) {
       themeReplacements.push({
         start: declaration.valueStart,
@@ -760,13 +768,13 @@ function main() {
     '  [class*="diffEditorWrapper"],',
     '  [class*="modalContent_"]:has([class*="diffEditorContainer"])',
     ') {',
-    '  --incipit-diff-surface: var(--ink-diff-surface);',
+    '  --incipit-diff-surface: var(--ink-surface-code);',
     '  --incipit-diff-text: var(--ink-diff-text);',
     '  --incipit-diff-muted: var(--ink-diff-muted);',
     '  --incipit-diff-border: var(--ink-diff-border);',
     '  --incipit-diff-divider: var(--ink-diff-divider);',
     '  --incipit-diff-shadow: var(--ink-diff-shadow);',
-    '  --incipit-diff-header-bg: var(--ink-diff-header-bg);',
+    '  --incipit-diff-header-bg: var(--ink-surface-raised);',
     '  --incipit-diff-header-text: var(--ink-diff-header-text);',
     '  --incipit-diff-header-border: var(--ink-diff-header-border);',
     '  --incipit-diff-gradient-start: var(--ink-diff-gradient-start);',
@@ -786,8 +794,8 @@ function main() {
     '  --incipit-diff-add-bar: var(--ink-add-bar);',
     '  --incipit-diff-del-bar: var(--ink-del-bar);',
     '  --incipit-diff-overview: var(--ink-diff-overview);',
-    '  --incipit-diff-scrollbar-track-x: var(--ink-diff-header-bg);',
-    '  --incipit-diff-scrollbar-track-y: var(--ink-diff-surface);',
+    '  --incipit-diff-scrollbar-track-x: var(--ink-surface-raised);',
+    '  --incipit-diff-scrollbar-track-y: var(--ink-surface-raised);',
     '  --incipit-diff-scrollbar-thumb: var(--ink-scrollbar-thumb);',
     '  --incipit-diff-scrollbar-thumb-hover: var(--ink-scrollbar-thumb-hover);',
     '  --incipit-diff-scrollbar-thumb-active: var(--ink-scrollbar-thumb-active);',

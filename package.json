@@ -88,5 +88,8 @@
   "license": "AGPL-3.0-or-later",
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "acorn": "8.15.0"
   }
 }

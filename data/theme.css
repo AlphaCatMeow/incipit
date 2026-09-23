@@ -432,7 +432,6 @@
   --ink-tool-filepath-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
   --ink-tool-fingerprint-aux-fg: #bc8c75;
   --ink-tool-fingerprint-aux-hover-fg-override: #bf5d3a;
-  --ink-tool-grep-expansion-border: 1px solid rgba(255,255,255,0.16);
   --ink-tool-grep-filename-image: radial-gradient(circle,rgba(217,119,87,0.92) 1px,transparent 1.6px);
   --ink-tool-grep-more-fg: #9c9c9a;
   --ink-tool-icon-before-bg: #f8f8f6;
@@ -443,10 +442,6 @@
   --ink-tool-summary-hover-fg-override: inherit;
   --ink-tool-toggle-focus-visible-fg-override: #0d0d0d;
   --ink-tool-toggle-focus-visible-outline: 1px solid rgba(217,119,87,0.6);
-  --ink-tool-use-border: 1px solid rgba(255,255,255,0.16);
-  --ink-tool-use-border-override: rgba(0,0,0,0.16);
-  --ink-tool-use-border-top: 1px solid rgba(255,255,255,0.10);
-  --ink-tool-use-border-top-color-override: rgba(0,0,0,0.10);
   --ink-track-on-bg: #a8896e;
   --ink-transcript-toast-border: 1px solid rgba(248,246,240,0.12);
   --ink-transcript-toast-border-2: rgba(201,106,106,0.42);
@@ -601,6 +596,11 @@
    either — they protect different attack surfaces.
    ============================================================ */
 :root {
+  --incipit-tool-surface: var(--ink-surface-code);
+  --incipit-tool-header-surface: var(--ink-surface-raised);
+  --incipit-tool-divider: var(--ink-diff-divider);
+  --incipit-activity-canvas: var(--ink-surface-message-canvas);
+  --incipit-tool-input-surface: var(--ink-surface-canvas);
   --app-background: var(--ink-surface-canvas) !important;
   --app-primary-background: var(--ink-surface-canvas) !important;
   --app-root-background: var(--ink-surface-canvas) !important;
@@ -747,7 +747,7 @@
    pseudo-element. Hover feedback fades over 180ms on color and opacity only,
    so it never triggers layout.
    ============================================================ */
-[data-incipit-message][data-incipit-activity] {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity] {
   position: relative !important;
   /* A one-column grid: the block sits in an fr track that the collapse
      transition can drive to zero, which a flex column cannot. */
@@ -757,17 +757,17 @@
   justify-items: stretch;
   padding: 4px 0 4px var(--incipit-activity-rail) !important;
 }
-[data-incipit-message][data-incipit-activity] > * {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity] > * {
   min-width: 0;
   min-height: 0;
 }
-[data-incipit-message][data-incipit-activity-edge="first"],
-[data-incipit-message][data-incipit-activity-edge="only"] {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-edge="first"],
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-edge="only"] {
   padding-top: 36px !important;
 }
 /* The connector paints below the glyph slots (z 1) and glyphs (z 2), so every
    icon interrupts the line instead of being crossed by it. */
-[data-incipit-message][data-incipit-activity]::after {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity]::after {
   content: "" !important;
   display: block !important;
   position: absolute !important;
@@ -781,14 +781,14 @@
   background-color: var(--ink-activity-after-bg) !important;
   pointer-events: none;
 }
-[data-incipit-message][data-incipit-activity-edge="first"]::after {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-edge="first"]::after {
   top: calc(var(--incipit-activity-glyph-top) + 32px) !important;
 }
-[data-incipit-message][data-incipit-activity-edge="last"]::after {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-edge="last"]::after {
   bottom: 4px !important;
 }
-[data-incipit-message][data-incipit-activity-edge="only"]::after,
-[data-incipit-message][data-incipit-activity-collapsed]::after {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-edge="only"]::after,
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-collapsed]::after {
   display: none !important;
 }
 
@@ -860,13 +860,13 @@
    the same host row snaps. The transition lives on a transient attribute that
    `activity_groups.js` sets only around a user toggle, so a row that joins a
    collapsed run while streaming never animates. */
-[data-incipit-message][data-incipit-activity-collapsed] {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-collapsed] {
   grid-template-rows: 0fr;
   padding-top: 0 !important;
   padding-bottom: 0 !important;
   overflow: hidden;
 }
-[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header="1"] {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-collapsed][data-incipit-activity-has-header="1"] {
   padding-top: 32px !important;
 }
 /* Keep the parent heading visible while its first tool is being prepared. */
@@ -879,20 +879,20 @@
   from { opacity: 0; transform: translateY(3px); }
   to { opacity: 1; transform: none; }
 }
-[data-incipit-message][data-incipit-activity-collapsed] > :not([data-incipit-activity-header]) {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-collapsed] > :not([data-incipit-activity-header]) {
   visibility: hidden;
 }
-[data-incipit-message][data-incipit-activity-collapsed]:not([data-incipit-activity-has-header="1"]) > :nth-child(n+2),
-[data-incipit-message][data-incipit-activity-collapsed][data-incipit-activity-has-header="1"] > :nth-child(n+3) {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-collapsed]:not([data-incipit-activity-has-header="1"]) > :nth-child(n+2),
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-collapsed][data-incipit-activity-has-header="1"] > :nth-child(n+3) {
   display: none;
 }
-[data-incipit-message][data-incipit-activity-animating] {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-animating] {
   overflow: hidden;
   transition: grid-template-rows var(--incipit-fold-duration) var(--incipit-fold-easing),
               padding-top var(--incipit-fold-duration) var(--incipit-fold-easing),
               padding-bottom var(--incipit-fold-duration) var(--incipit-fold-easing);
 }
-[data-incipit-message][data-incipit-activity-animating] > * {
+:is([data-incipit-message], [data-incipit-activity-row])[data-incipit-activity-animating] > * {
   transition: visibility var(--incipit-fold-duration);
 }
 @media (hover: none) {
@@ -970,7 +970,7 @@ details[data-incipit-thinking] > summary[data-incipit-thinking-summary]:focus-vi
   top: 4px;
   width: 20px;
   height: 20px;
-  background-color: var(--ink-surface-message-canvas);
+  background-color: var(--incipit-activity-surface, var(--incipit-activity-canvas));
   pointer-events: none;
 }
 [data-incipit-activity="thinking"] details[data-incipit-thinking] > summary[data-incipit-thinking-summary]::before,
@@ -1864,21 +1864,18 @@ pre.incipit-mermaid-source {
 /* Expansion grid — IN row (query detail) + OUT row (lines count text we
    removed from the summary). Mirrors the host's toolBodyGrid visual
    without depending on host class names. */
-/* Expansion frame — rounded box, no fill, transparent inside. Padding is
-   pushed onto the rows so the rows themselves match the host's
-   `toolBodyGrid` cell metrics. */
+/* Tool output uses the same solid surface as a chat code block. */
 [data-incipit-tool-grep-expansion] {
   overflow: hidden;
   display: block;
   margin-top: 0.4em;
-  border: var(--ink-tool-grep-expansion-border);
-  border-radius: 6px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--incipit-tool-surface);
   padding: 0;
   transition: max-height 0.22s ease,
               margin-top 0.22s ease,
-              margin-bottom 0.22s ease,
-              border-top-width 0.22s ease,
-              border-bottom-width 0.22s ease;
+              margin-bottom 0.22s ease;
 }
 [data-incipit-tool-use][data-incipit-tool-grep="1"][data-incipit-tool-collapsed="true"] [data-incipit-tool-grep-expansion] {
   max-height: 0;
@@ -1944,63 +1941,38 @@ pre.incipit-mermaid-source {
   color: var(--ink-text-primary);
 }
 
-/* ------------------------------------------------------------
-   Generic IN/OUT block — host shared template.
-
-   Applies to every tool whose body the host renders through its
-   `toolBodyGrid_ZUQaOA / toolBodyRow / toolBodyRowLabel /
-   toolBodyRowContent` template: Bash, PowerShell, LSP, MCP,
-   Read, TodoWrite, NotebookEdit, WebSearch, etc. The host's
-   default look uses no outer frame, only a faint hairline
-   between rows from `var(--app-input-border)` plus an `.85em`
-   monospace label at opacity 0.5 — visually distinct from our
-   Grep takeover (rounded frame + tight Rec Mono Linear at 11px).
-
-   Goal: bring this generic template in line with the Grep block
-   so every fold-out tool uses the same IN/OUT visual language.
-
-   Out of scope:
-   - Edit / MultiEdit Monaco diff blocks, plus Write's incipit-owned
-     empty-file diff island (both bypass the generic IN/OUT frame)
-   - Grep itself (renders its own `[data-incipit-tool-grep-*]`
-     subtree, host's `toolBodyGrid` never appears for it)
-
-   Layer-stripping (mandatory for clean look):
-   - Host paints THREE concentric surfaces by default:
-       1. `.toolBody_ZUQaOA`  — outer card (border + tool-bg +
-          radius:5 + margin:8 0)
-       2. `.toolBodyGrid_ZUQaOA`  — bare grid (no paint of its own)
-       3. `.toolResult_uq5aLg` — inner code-bg block, only in OUT,
-          stretched to 100% width
-     Stacking all three plus our own grid frame produced the
-     "two effects overlapping" look. Strip layer 1 (when it
-     contains a toolBodyGrid, so diff toolBody is untouched)
-     and layer 3 entirely; keep layer 2 as the single frame.
-   ------------------------------------------------------------ */
-[data-incipit-tool-use] [class*="toolBody_"]:has([class*="toolBodyGrid"]) {
+/* Generic IN/OUT uses one solid code surface, like Grep and file previews.
+   Strip the host's surrounding and nested fills so the grid owns the surface;
+   labels and spacing distinguish input from output without separator rules. */
+[data-incipit-tool-use] [class*="toolBody_"]:has(:is([class*="toolBodyGrid"], [data-incipit-tool-io])) {
   border: 0 !important;
   background: transparent !important;
   border-radius: 0 !important;
   padding: 0 !important;
   margin: 0 !important;
 }
-[data-incipit-tool-use] [class*="toolBodyGrid"] {
-  border: var(--ink-tool-use-border);
-  border-radius: 6px;
+[data-incipit-tool-use] :is([class*="toolBodyGrid"], [data-incipit-tool-io]) {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  border: 0;
+  border-radius: 8px;
+  background: var(--incipit-tool-surface);
+  padding: 4px 0;
   margin-top: 0.4em;
   overflow: hidden;
 }
 [data-incipit-tool-use] [class*="toolResult_"] {
   background: transparent !important;
 }
-[data-incipit-tool-use] [class*="toolBodyRow"] {
-  border-top: var(--ink-tool-use-border-top);
-  padding: 0;
+[data-incipit-tool-use] :is([class*="toolBodyRow"], [data-incipit-tool-io-row]) {
+  border-top: 0;
+  padding: 2px 0;
 }
-[data-incipit-tool-use] [class*="toolBodyRow"]:first-child {
+[data-incipit-tool-use] :is([class*="toolBodyRow"], [data-incipit-tool-io-row]):first-child {
   border-top: none;
 }
-[data-incipit-tool-use] [class*="toolBodyRowLabel"] {
+[data-incipit-tool-use] :is([class*="toolBodyRowLabel"], [data-incipit-tool-io-label]) {
+  grid-column: 1;
   font-family: var(--incipit-code-font);
   font-size: 11px;
   font-weight: normal;
@@ -2012,7 +1984,8 @@ pre.incipit-mermaid-source {
   text-align: left;
   white-space: nowrap;
 }
-[data-incipit-tool-use] [class*="toolBodyRowContent"] {
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) {
+  grid-column: 2;
   font-family: var(--incipit-code-font);
   font-size: 11px;
   line-height: 1.5;
@@ -2028,23 +2001,26 @@ pre.incipit-mermaid-source {
    markdown-root rule, hljs theme `.hljs { background: ... }`, host's
    `--app-code-background` painter on toolResult, and the global
    `pre { margin: 1em 0 }` that creates a phantom inner panel). */
-[data-incipit-tool-use] [class*="toolBodyRow"],
-[data-incipit-tool-use] [class*="toolBodyRowLabel"],
-[data-incipit-tool-use] [class*="toolBodyRowContent"],
-[data-incipit-tool-use] [class*="toolBodyRowContent"] pre,
-[data-incipit-tool-use] [class*="toolBodyRowContent"] code,
+[data-incipit-tool-use] :is([class*="toolBodyRow"], [data-incipit-tool-io-row]),
+[data-incipit-tool-use] :is([class*="toolBodyRowLabel"], [data-incipit-tool-io-label]),
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]),
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) pre,
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) code,
 [data-incipit-tool-use] [class*="toolResult_"] {
   background: transparent !important;
   background-color: transparent !important;
 }
-[data-incipit-tool-use] [class*="toolBodyRowContent"] pre,
-[data-incipit-tool-use] [class*="toolBodyRowContent"] code {
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) pre,
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) code {
   font-family: var(--incipit-code-font);
   font-size: 11px;
   line-height: 1.5;
   color: inherit;
   margin: 0 !important;
 }
+
+[data-incipit-tool-use] [data-incipit-tool-io-row] { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; }
+[data-incipit-tool-use] [data-incipit-tool-io-content] pre { padding: 0 !important; }
 
 /* Strip the host's `max-height: 60px` + linear-gradient `mask-image`
    clip on every toolBodyRowContent. The host caps OUT at four lines
@@ -2053,7 +2029,7 @@ pre.incipit-mermaid-source {
    SaaS rather than the literary register the project targets.
    We replace it with our own opt-in clip below, identical in shape
    to the Grep "+ N more lines" toggle. */
-[data-incipit-tool-use] [class*="toolBodyRowContent"] {
+[data-incipit-tool-use] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) {
   max-height: none !important;
   mask-image: none !important;
   -webkit-mask-image: none !important;
@@ -2271,13 +2247,13 @@ pre.incipit-mermaid-source {
   [class*="diffEditorWrapper"],
   [class*="modalContent_"]:has([class*="diffEditorContainer"])
 ) {
-  --incipit-diff-surface: #1f1f1e;
+  --incipit-diff-surface: var(--incipit-tool-surface);
   --incipit-diff-text: #f0eee8;
   --incipit-diff-muted: #9c9c9a;
   --incipit-diff-border: rgba(248, 246, 240, 0.12);
   --incipit-diff-divider: rgba(248, 246, 240, 0.10);
   --incipit-diff-shadow: rgba(0, 0, 0, 0.28);
-  --incipit-diff-header-bg: #2a2a28;
+  --incipit-diff-header-bg: var(--incipit-tool-header-surface);
   --incipit-diff-header-text: #d8d6ce;
   --incipit-diff-header-border: rgba(248, 246, 240, 0.08);
   --incipit-diff-gradient-start: rgba(31, 31, 30, 0);
@@ -2305,7 +2281,7 @@ pre.incipit-mermaid-source {
   --incipit-diff-overview: rgba(248, 246, 240, 0.04);
   --incipit-diff-scrollbar-size: 9px;
   --incipit-diff-scrollbar-track-x: var(--incipit-diff-header-bg);
-  --incipit-diff-scrollbar-track-y: var(--incipit-diff-surface);
+  --incipit-diff-scrollbar-track-y: var(--incipit-diff-header-bg);
   --incipit-diff-scrollbar-thumb: var(--incipit-scrollbar-thumb, #3c3c3c);
   --incipit-diff-scrollbar-thumb-hover: var(--incipit-scrollbar-thumb-hover, #5a5a5a);
   --incipit-diff-scrollbar-thumb-active: var(--incipit-scrollbar-thumb-active, #6a6a6a);
@@ -2362,7 +2338,7 @@ pre.incipit-mermaid-source {
   pointer-events: none;
   background: var(--incipit-diff-header-bg);
   color: var(--incipit-diff-header-text);
-  border-bottom: 1px solid var(--incipit-diff-header-border);
+  border-bottom: 0;
   font-family: var(--incipit-code-font);
   font-variation-settings: "MONO" 1, "CASL" 0, "slnt" 0;
   font-size: 12px;
@@ -2581,7 +2557,7 @@ pre.incipit-mermaid-source {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--incipit-diff-border);
+  border: 0;
   border-radius: 8px;
   background: var(--incipit-diff-surface);
   background-color: var(--incipit-diff-surface);
@@ -2598,7 +2574,7 @@ pre.incipit-mermaid-source {
   padding: 0 10px;
   background: var(--incipit-diff-header-bg);
   color: var(--incipit-diff-header-text);
-  border-bottom: 1px solid var(--incipit-diff-header-border);
+  border-bottom: 0;
   font-family: var(--incipit-code-font);
   font-variation-settings: "MONO" 1, "CASL" 0, "slnt" 0;
   font-size: 12px;
@@ -2671,7 +2647,7 @@ pre.incipit-mermaid-source {
    black stroke and `--app-primary-background` sidebar fill with our
    warm graphite surface, mirroring the inline card treatment. */
 [class*="modalContent_"]:has([class*="diffEditorContainer"]) {
-  border: 1px solid var(--incipit-diff-border) !important;
+  border: 0 !important;
   border-radius: 8px !important;
   background: var(--incipit-diff-surface) !important;
   background-color: var(--incipit-diff-surface) !important;
@@ -2752,7 +2728,7 @@ pre.incipit-mermaid-source {
 
 :where([class*="diffEditorWrapper"], [class*="modalContent_"]) .monaco-diff-editor.side-by-side .editor.modified {
   box-shadow: none !important;
-  border-left: 1px solid var(--incipit-diff-divider, var(--incipit-diff-border)) !important;
+  border-left: 0 !important;
 }
 
 :where([class*="diffEditorWrapper"], [class*="modalContent_"]) .monaco-diff-editor.side-by-side .editor.original {
@@ -3113,8 +3089,8 @@ pre {
    rule above, so this wins regardless of source order. */
 [data-incipit-message] [class*="toolBody"] pre,
 [data-incipit-message] [class*="toolBody"] pre code,
-[data-incipit-message] [class*="toolBodyRowContent"] pre,
-[data-incipit-message] [class*="toolBodyRowContent"] pre code {
+[data-incipit-message] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) pre,
+[data-incipit-message] :is([class*="toolBodyRowContent"], [data-incipit-tool-io-content]) pre code {
   background: transparent !important;
   background-color: transparent !important;
 }
@@ -4557,7 +4533,13 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
    selection pair; keep add, slash, cache/context, permission, and send
    controls visible. */
 [data-incipit-input-footer] > [class*="divider"],
-[data-incipit-input-footer] > [class*="footerButton"] {
+[data-incipit-input-footer] > [class*="footerButton"],
+[data-incipit-input-footer] [class*="selectionChip_"] {
+  display: none !important;
+}
+/* Whole-response copy is provided by the transcript actions (2026-09-19). */
+[data-message-actions] [class*="copyResponseButton_"],
+[data-message-actions]:has(> [class*="copyResponseButton_"]:only-child) {
   display: none !important;
 }
 /* Permission button's natural min content is SVG 26 + padding-right 8
@@ -4654,6 +4636,20 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceEditChip[hidden] {
   display: none !important;
 }
+
+[data-incipit-agent-map-source], [data-incipit-agent-map][hidden] { display: none !important; }
+[data-incipit-agent-map-source] { position: absolute !important; }
+[data-incipit-agent-map] {
+  appearance: none; box-sizing: border-box; display: inline-flex; flex: 0 0 auto;
+  align-self: center; align-items: center; justify-content: center;
+  width: 24px; height: 24px; margin: 0 2px; padding: 3px; border: 0; border-radius: 4px;
+  background: transparent; color: var(--app-secondary-foreground, var(--app-primary-foreground));
+  cursor: pointer; transition: color 180ms ease, background-color 180ms ease;
+}
+[data-incipit-agent-map] svg { display: block; width: 16px; height: 16px; }
+[data-incipit-agent-map]:hover { color: var(--app-primary-foreground); background: var(--incipit-tool-surface); }
+[data-incipit-agent-map]:focus-visible { outline: 1px solid currentColor; outline-offset: 1px; }
+[data-incipit-agent-map][data-incipit-agent-map-state="failed"] { color: var(--app-error-foreground); }
 
 .cceEditPopup {
   position: fixed;
@@ -5920,6 +5916,16 @@ fieldset[class*="inputContainer_"] [class*="inputMentionChip"] *,
 .cceBadgeText {
   display: inline-block;
 }
+.cceBadgeWindow {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 8px;
+}
+.cceBadgeWindow[hidden],
+[data-incipit-cache-window-source] {
+  display: none !important;
+}
 .cceBadgeLabel {
   color: var(--ink-text-primary);
   display: inline-flex;
@@ -7021,7 +7027,7 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
 [data-incipit-activity] [data-incipit-tool-icon] {
   margin-left: calc(-1 * var(--incipit-activity-rail));
   margin-right: 4px;
-  background-color: var(--ink-surface-message-canvas);
+  background-color: var(--incipit-activity-surface, var(--incipit-activity-canvas));
 }
 [data-incipit-tool-icon] svg { display: block; width: 16px; height: 16px; }
 [data-incipit-tool-row]:hover [data-incipit-tool-icon] { color: var(--ink-text-primary); }
@@ -7089,42 +7095,44 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
 /* ============================================================
    Diff preview.
 
-   The tool row already names the file and carries the counts, so the preview
-   is one outlined code viewport plus a single footer line for the notice,
-   paging and the complete view. The viewport sits directly on the message
-   canvas: no surface fill, no gutter fill, no code-block tint, so the only
-   backgrounds inside it are the whole-line green/red rows with their 3px
-   edge bar and the character-level tints on paired replacements.
+   Preview and complete view share a contrasting path heading. The preview's
+   heading owns its expand action; the footer only carries notices and paging.
+   Internal code layers stay transparent so changed lines retain their bands.
    ============================================================ */
 [data-incipit-diff-view] {
   border: 0;
-  border-radius: 0;
-  overflow: visible;
-  background: transparent;
-  background-color: transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--incipit-tool-surface);
+  background-color: var(--incipit-tool-surface);
   box-shadow: none;
 }
 [data-incipit-diff-viewport] {
   box-sizing: border-box;
   max-height: min(20em, 50vh);
   overflow: auto;
-  border: 1px solid var(--incipit-diff-border);
-  border-radius: 6px;
+  border: 0;
+  border-radius: 0;
   /* No reserved scrollbar gutter: the whole-line tints must reach the border,
      and a page either overflows from its first frame or never does. */
   scrollbar-gutter: auto;
   scrollbar-width: thin;
-  scrollbar-color: var(--incipit-diff-scrollbar-thumb) transparent;
   background: transparent;
 }
-[data-incipit-diff-viewport]:hover { scrollbar-color: var(--incipit-diff-scrollbar-thumb-hover) transparent; }
+/* Match the global scrollbar policy's specificity only inside owned diff surfaces. */
+:root :is([data-incipit-diff-view], [data-incipit-diff-dialog])[data-incipit-diff-island] [data-incipit-diff-viewport],
+:root [data-incipit-write-diff-modal] [data-incipit-write-diff-modal-content] [data-incipit-write-diff-modal-scroll] {
+  scrollbar-color: var(--incipit-diff-scrollbar-thumb) var(--incipit-diff-header-bg) !important;
+}
+:root :is([data-incipit-diff-view], [data-incipit-diff-dialog])[data-incipit-diff-island] [data-incipit-diff-viewport]:hover {
+  scrollbar-color: var(--incipit-diff-scrollbar-thumb-hover) var(--incipit-diff-header-bg) !important;
+}
 [data-incipit-diff-viewport]:focus-visible { outline: var(--ink-diff-viewport-focus-visible-outline); outline-offset: 1px; }
-[data-incipit-diff-viewport] [data-incipit-diff-island-body] { width: max-content; min-width: 100%; overflow: visible; padding: 3px 0; background: transparent; }
+[data-incipit-diff-viewport] [data-incipit-diff-island-body] { width: max-content; min-width: 100%; overflow: visible; padding: 8px 0; background: transparent; }
 [data-incipit-diff-viewport] [data-incipit-diff-island-row] { grid-template-columns: 40px 14px minmax(0, 1fr); min-height: 1.55em; }
 [data-incipit-diff-viewport] [data-incipit-diff-island-row="ctx"],
 [data-incipit-diff-viewport] [data-incipit-diff-island-row="gap"] { background: transparent; }
-/* The preview lives inside the host markdown root, where fenced code gets the
-   `#272727` block tint; the diff `pre` must stay on the canvas. */
+/* The outer surface owns the fill; individual code lines must not cover diff bands. */
 [data-incipit-message] pre[data-incipit-diff-island-pre],
 [data-incipit-message] pre[data-incipit-diff-island-pre] code {
   background: transparent !important;
@@ -7144,7 +7152,7 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
   align-items: center;
   gap: 12px;
   min-width: 0;
-  padding: 3px 2px 0;
+  padding: 6px 12px 8px;
   color: var(--incipit-diff-muted);
   font: 11px/1.6 var(--incipit-body-font);
 }
@@ -7160,25 +7168,68 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
 [data-incipit-diff-view] [data-incipit-diff-footer] button:disabled { opacity: .5; cursor: default; text-decoration: none; }
 [data-incipit-diff-pages][hidden], [data-incipit-diff-notice][hidden], [data-incipit-diff-retry][hidden],
 [data-incipit-diff-full][hidden], [data-incipit-diff-counts][hidden] { display: none !important; }
-[data-incipit-diff-empty] { padding: 6px 10px; border: 1px solid var(--incipit-diff-border); border-radius: 6px; color: var(--incipit-diff-muted); font: 12px/1.5 var(--incipit-body-font); }
+[data-incipit-diff-empty] { padding: 12px; border: 0; color: var(--incipit-diff-muted); font: 12px/1.5 var(--incipit-body-font); }
 [data-incipit-diff-state="error"] [data-incipit-diff-notice],
 [data-incipit-diff-state="permission"] [data-incipit-diff-notice] { color: var(--incipit-diff-del-fg); }
 
-/* Complete view: a modal with its own header, path, search toolbar and footer. */
-[data-incipit-diff-dialog] { border: 1px solid var(--incipit-diff-border); }
-[data-incipit-diff-dialog] [data-incipit-diff-header] { height: auto; min-height: 32px; pointer-events: auto; padding: 5px 9px; }
-[data-incipit-diff-dialog] button {
-  color: inherit; font: inherit; font-size: 12px; cursor: pointer;
-  background: transparent; border: 0; padding: 3px 5px; border-radius: 3px;
+/* Complete view: one path heading and content-sized, borderless reading surface. */
+[data-incipit-diff-dialog] [data-incipit-diff-header],
+[data-incipit-diff-view] > [data-incipit-diff-header],
+[data-incipit-agent-history] > [data-incipit-diff-header],
+[data-incipit-agent-body] > [data-incipit-diff-header] {
+  flex: 0 0 auto;
+  height: 28px;
+  min-height: 28px;
+  gap: 6px;
+  pointer-events: auto;
+  padding: 0 10px;
+  border: 0;
+  background: var(--incipit-diff-header-bg);
+  font-family: var(--incipit-body-font);
 }
-[data-incipit-diff-dialog] button:hover { background: var(--incipit-diff-button-bg-hover); }
-[data-incipit-diff-dialog] button:disabled { opacity: .5; cursor: default; }
-[data-incipit-diff-dialog] [data-incipit-diff-title] { flex: 1 1 auto; min-width: 0; text-align: start; }
+[data-incipit-diff-dialog] button,
+[data-incipit-diff-view] > [data-incipit-diff-header] button,
+[data-incipit-agent-history] > [data-incipit-diff-header] button,
+[data-incipit-agent-body] > [data-incipit-diff-header] button {
+  color: inherit; font: inherit; font-size: 12px; cursor: pointer;
+  background: transparent; border: 0; padding: 4px 6px; border-radius: 6px;
+  transition: background-color 180ms ease, color 180ms ease, opacity 180ms ease;
+}
+[data-incipit-diff-dialog] button:hover,
+[data-incipit-diff-view] > [data-incipit-diff-header] button:hover,
+[data-incipit-agent-history] > [data-incipit-diff-header] button:hover,
+[data-incipit-agent-body] > [data-incipit-diff-header] button:hover { background: var(--incipit-tool-input-surface); }
+[data-incipit-diff-dialog] button:focus-visible,
+[data-incipit-diff-view] > [data-incipit-diff-header] button:focus-visible { outline: 1px solid currentColor; outline-offset: 2px; }
+[data-incipit-diff-dialog] button:disabled,
+[data-incipit-diff-view] > [data-incipit-diff-header] button:disabled { opacity: .5; cursor: default; }
+[data-incipit-diff-dialog] [data-incipit-diff-title],
+[data-incipit-diff-view] > [data-incipit-diff-header] [data-incipit-diff-title],
+[data-incipit-agent-history] > [data-incipit-diff-header] [data-incipit-diff-title],
+[data-incipit-agent-body] > [data-incipit-diff-header] [data-incipit-diff-title] {
+  flex: 1 1 auto; min-width: 0; text-align: start;
+  font-family: var(--incipit-code-font); font-size: 12px; font-weight: 400; line-height: 1.6;
+}
+[data-incipit-diff-action] { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex: 0 0 auto; min-width: 28px; height: 28px; white-space: nowrap; }
+[data-incipit-diff-action] svg { flex: 0 0 16px; display: block; width: 16px; height: 16px; overflow: visible; }
+[data-incipit-diff-header] [data-incipit-diff-action] {
+  box-sizing: border-box; height: 22px; min-height: 0; min-width: 24px; padding: 2px 4px;
+}
+[data-incipit-diff-action] [data-copy-glyph] { transform-origin: 8px 8px; transition: opacity 180ms ease, transform 180ms ease, stroke-dashoffset 220ms ease; }
+[data-incipit-diff-action] [data-copy-glyph="check"],
+[data-incipit-diff-action] [data-copy-glyph="error"] { opacity: 0; transform: scale(.75); }
+[data-incipit-diff-action] [data-copy-glyph="check"] { stroke-dasharray: 14; stroke-dashoffset: 14; }
+[data-incipit-diff-copy][data-copy-state="copied"] [data-copy-glyph="copy"],
+[data-incipit-diff-copy][data-copy-state="error"] [data-copy-glyph="copy"] { opacity: 0; transform: scale(.75); }
+[data-incipit-diff-copy][data-copy-state="copied"] [data-copy-glyph="check"] { opacity: 1; transform: scale(1); stroke-dashoffset: 0; color: var(--incipit-diff-add-fg); }
+[data-incipit-diff-copy][data-copy-state="error"] [data-copy-glyph="error"] { opacity: 1; transform: scale(1); color: var(--incipit-diff-del-fg); }
+[data-incipit-diff-announcement] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 [data-incipit-diff-close] { flex: 0 0 auto; white-space: nowrap; }
 [data-incipit-diff-dialog] [data-incipit-diff-viewport] { border: 0; border-radius: 0; }
-[data-incipit-diff-dialog] [data-incipit-diff-notice] { padding: 6px 10px; color: var(--incipit-diff-muted); font: 12px/1.5 var(--incipit-body-font); overflow-wrap: anywhere; }
-[data-incipit-diff-dialog] [data-incipit-diff-footer] { padding: 5px 10px; border-top: 1px solid var(--incipit-diff-divider); }
-[data-incipit-diff-dialog] [data-incipit-diff-footer]:empty { display: none; }
+[data-incipit-diff-dialog] [data-incipit-diff-notice] { padding: 6px 12px; color: var(--incipit-diff-muted); font: 12px/1.5 var(--incipit-body-font); overflow-wrap: anywhere; }
+[data-incipit-diff-dialog] [data-incipit-diff-footer] { flex: 0 0 auto; flex-wrap: wrap; padding: 6px 12px 10px; border: 0; }
+[data-incipit-diff-dialog] [data-incipit-diff-footer]:not(:has(> :not([hidden]))),
+[data-incipit-diff-view] > [data-incipit-diff-footer]:not(:has(> :not([hidden]))) { display: none; }
 [data-incipit-diff-dialog] {
   box-sizing: border-box;
   position: fixed;
@@ -7186,49 +7237,60 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
   width: min(1100px, calc(100vw - 32px));
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 32px);
-  height: auto;
+  height: fit-content;
+  min-height: 0;
   margin: auto;
   padding: 0;
   color: var(--incipit-diff-text);
   background: var(--incipit-diff-surface);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 12px;
   box-shadow: 0 12px 40px var(--incipit-diff-shadow);
   overflow: hidden;
 }
 [data-incipit-diff-dialog][open] { display: flex; flex-direction: column; }
 [data-incipit-diff-dialog]::backdrop { background: var(--ink-diff-dialog-bg); }
-[data-incipit-diff-full-content] { display: flex; flex-direction: column; min-height: 0; }
-[data-incipit-diff-full-content] [data-incipit-diff-viewport] { flex: 1 1 auto; min-height: 0; max-height: calc(100vh - 210px); overscroll-behavior: contain; }
-[data-incipit-diff-full-path] { padding: 6px 10px; max-height: 4.5em; overflow: auto; color: var(--incipit-diff-muted); font: 11px/1.5 var(--incipit-code-font); overflow-wrap: anywhere; }
-[data-incipit-diff-toolbar] { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; padding: 5px 8px; border-block: 1px solid var(--incipit-diff-divider); color: var(--incipit-diff-header-text); }
-[data-incipit-diff-find] { min-width: 100px; flex: 1 1 140px; background: var(--incipit-diff-surface); color: var(--incipit-diff-text); border: 1px solid var(--incipit-diff-border); padding: 5px 7px; font: 12px var(--incipit-code-font); }
-[data-incipit-diff-search-status] { font-size: 11px; }
+[data-incipit-diff-full-content] { display: flex; flex: 0 1 auto; flex-direction: column; min-height: 0; }
+[data-incipit-diff-full-content] [data-incipit-diff-viewport] { flex: 0 1 auto; min-height: 0; max-height: calc(100vh - 180px); overscroll-behavior: contain; }
+[data-incipit-diff-toolbar] { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; padding: 12px; border: 0; color: var(--incipit-diff-header-text); }
+[data-incipit-diff-toolbar]:not([hidden]) ~ [data-incipit-diff-full-content] [data-incipit-diff-island-body] { padding-top: 0; }
+[data-incipit-diff-toolbar][hidden] { display: none !important; }
+[data-incipit-diff-find] {
+  box-sizing: border-box; min-width: 0; width: 0; flex: 1 1 auto; height: 34px;
+  background: var(--incipit-tool-input-surface); color: var(--incipit-diff-text); border: 0; border-radius: 7px;
+  padding: 7px 10px; font: 12px/1.5 var(--incipit-body-font); outline: none;
+}
+[data-incipit-diff-search-status] { flex: 0 0 auto; font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--incipit-diff-muted); }
+[data-incipit-diff-dialog] [data-incipit-diff-island-code] { font-weight: 400 !important; }
+
+@media (max-width: 600px) {
+  [data-incipit-diff-action-label] { display: none; }
+  [data-incipit-diff-dialog] [data-incipit-diff-header] { gap: 5px; padding-inline: 10px; }
+}
 
 @media (max-width: 380px) {
   [data-incipit-diff-dialog] { width: calc(100vw - 16px); max-width: calc(100vw - 16px); max-height: calc(100vh - 16px); }
 }
 
 /* Agent activity is a second reading level, not another chat surface. */
+:root {
+  --incipit-tool-base-surface: var(--ink-surface-code);
+  --incipit-tool-inset-surface: var(--incipit-activity-canvas);
+}
+[data-incipit-tool-surface-level="0"] {
+  --incipit-tool-surface: var(--incipit-tool-base-surface);
+  --incipit-tool-child-surface: var(--incipit-tool-inset-surface);
+}
+[data-incipit-tool-surface-level="1"] {
+  --incipit-tool-surface: var(--incipit-tool-inset-surface);
+  --incipit-tool-child-surface: var(--incipit-tool-base-surface);
+}
 [data-incipit-agent-card], [data-incipit-workflow] {
   --incipit-agent-rule: rgba(248,246,240,0.14);
   --incipit-agent-muted: #9c9c9a;
   min-width: 0;
 }
 [data-incipit-agent-card] > :not([data-incipit-tool-heading]):not([data-incipit-agent-fold]) { display: none !important; }
-[data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-row] { padding-right: 4px; }
-[data-incipit-agent-card][data-incipit-agent-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon]::before { display: none; animation: none; }
-[data-incipit-agent-card][data-incipit-agent-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon] svg { display: none; }
-[data-incipit-agent-card][data-incipit-agent-state="running"] > [data-incipit-tool-heading] [data-incipit-tool-icon]::after {
-  content: "";
-  box-sizing: border-box;
-  width: 15px;
-  height: 15px;
-  border: 1.5px solid currentColor;
-  border-right-color: transparent;
-  border-radius: 50%;
-  animation: incipit-agent-orbit 1.4s linear infinite;
-}
-@keyframes incipit-agent-orbit { to { transform: rotate(360deg); } }
 [data-incipit-agent-card][data-incipit-agent-state="queued"] > [data-incipit-tool-heading] [data-incipit-tool-icon],
 [data-incipit-agent-card][data-incipit-agent-state="unknown"] > [data-incipit-tool-heading] [data-incipit-tool-icon] { opacity: 0.55; }
 [data-incipit-agent-fold] { display: grid; grid-template-rows: 0fr; min-width: 0; }
@@ -7238,8 +7300,11 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
 [data-incipit-agent-fold-inner] { min-height: 0; min-width: 0; overflow: hidden; }
 [data-incipit-agent-body] {
   margin: 4px 0 10px;
-  padding: 0 0 0 12px;
-  border-left: 1px solid var(--incipit-agent-rule);
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  background: var(--incipit-tool-surface);
   color: var(--app-primary-foreground);
   font-family: var(--incipit-body-font);
   font-size: var(--incipit-body-size, 13px);
@@ -7256,10 +7321,10 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
   font-size: 11px;
   line-height: 1.8;
 }
-[data-incipit-agent-toolbar] { justify-content: flex-end; padding-bottom: 5px; }
+[data-incipit-agent-toolbar] { justify-content: flex-end; }
 [data-incipit-agent-toolbar][hidden] { display: none !important; }
-[data-incipit-agent-history-toolbar] { padding: 5px 0 8px; border-bottom: 1px solid var(--incipit-agent-rule); }
-[data-incipit-agent-page-label] { margin-right: auto; font-variant-numeric: tabular-nums; }
+[data-incipit-agent-page-label] { flex: 0 0 auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
+[data-incipit-agent-page-label][hidden] { display: none; }
 [data-incipit-agent-action] {
   appearance: none;
   display: inline-flex;
@@ -7293,28 +7358,27 @@ button[data-incipit-tool-file-link]:focus-visible { outline: var(--ink-tool-file
 [data-incipit-agent-error], [data-incipit-agent-notice="error"], [data-incipit-agent-notice="permission"], [data-incipit-copy-error] { color: var(--app-error-foreground); }
 [data-incipit-agent-card-status]:empty, [data-incipit-agent-history-notice]:empty, [data-incipit-workflow-notice]:empty { display: none; }
 [data-incipit-agent-records] {
-  max-height: min(52vh, 34em);
+  --incipit-activity-surface: var(--incipit-tool-surface);
+  max-height: min(60vh, 44em);
   overflow: auto;
   overscroll-behavior: auto;
   min-width: 0;
   scrollbar-width: thin;
-  padding: 4px 4px 4px 0;
+  padding: 8px 12px;
 }
-[data-incipit-agent-record] { min-width: 0; padding: 4px 0; }
+[data-incipit-agent-history] { min-width: 0; overflow: hidden; border-radius: 8px; background: var(--incipit-tool-surface); }
+[data-incipit-agent-history] > [data-incipit-diff-header] { flex-wrap: nowrap; gap: 4px; }
+[data-incipit-agent-history-notice]:not(:empty) { padding: 0 12px; }
+[data-incipit-agent-record] { min-width: 0; padding: 0; }
+[data-incipit-agent-record][data-incipit-agent-role="user"] { padding: 4px 0 8px; }
+[data-incipit-activity-row] { min-width: 0; }
 [data-incipit-agent-record-actions] { justify-content: flex-end; opacity: 0; transition: opacity 180ms ease; }
 [data-incipit-agent-record]:hover > [data-incipit-agent-record-actions],
 [data-incipit-agent-record]:focus-within > [data-incipit-agent-record-actions] { opacity: 1; }
 [data-incipit-agent-record][data-incipit-agent-role="user"] > [data-incipit-agent-action] { color: var(--incipit-agent-muted); font-size: 0.92em; }
 [data-incipit-agent-block], [data-incipit-agent-record-content] { min-width: 0; }
-[data-incipit-agent-tool], [data-incipit-agent-nested-call], [data-incipit-workflow-agent] { box-sizing: border-box; padding-left: 30px; min-width: 0; }
-[data-incipit-agent-tool] > [data-incipit-tool-heading] [data-incipit-tool-icon],
-[data-incipit-agent-nested-call] > [data-incipit-tool-heading] [data-incipit-tool-icon],
-[data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-icon] { margin-left: -30px; margin-right: 4px; background: transparent; }
-[data-incipit-agent-tool] > [data-incipit-agent-fold] > [data-incipit-agent-fold-inner] { padding-right: 2px; }
-[data-incipit-agent-tool-output] { padding: 5px 0 8px; }
-[data-incipit-agent-thinking] { gap: 8px; color: var(--incipit-agent-muted); padding: 4px 0; }
-[data-incipit-agent-thinking]::before { content: "✦"; font-size: 0.8em; opacity: 0.8; }
-[data-incipit-agent-thinking] + [data-incipit-agent-fold] { padding-left: 14px; }
+[data-incipit-agent-tool], [data-incipit-agent-nested-call], [data-incipit-workflow-agent] { box-sizing: border-box; min-width: 0; }
+[data-incipit-agent-tool-output] { padding: 8px 10px; background: var(--incipit-tool-surface); border: 0; border-radius: 8px; }
 [data-incipit-agent-raw-details] { margin: 6px 0; min-width: 0; }
 [data-incipit-agent-raw-details] > summary { cursor: pointer; color: var(--incipit-agent-muted); font: inherit; font-size: 0.92em; }
 [data-incipit-agent-raw], [data-incipit-agent-prose] { white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0; }
@@ -7324,9 +7388,9 @@ pre[data-incipit-agent-raw], [data-incipit-agent-prose] pre {
   max-width: 100%;
   padding: 10px !important;
   margin: 6px 0 !important;
-  border: 1px solid var(--incipit-agent-rule);
+  border: 0;
   border-radius: 6px;
-  background: transparent !important;
+  background: var(--incipit-tool-surface) !important;
   max-height: 26em;
   overflow: auto;
   font-family: var(--incipit-code-font) !important;
@@ -7348,12 +7412,13 @@ pre[data-incipit-agent-raw], [data-incipit-agent-prose] pre {
 [data-incipit-agent-prose] a { color: inherit; cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 [data-incipit-agent-prose] code { font-family: var(--incipit-code-font); }
 [data-incipit-agent-prose] pre > code.hljs { padding: 0; background: transparent; overflow: visible; }
+[data-incipit-agent-prose] pre { background: var(--incipit-tool-child-surface, var(--incipit-tool-surface)) !important; }
 [data-incipit-agent-image] { display: block; width: auto; max-width: 100%; max-height: 240px; object-fit: contain; margin: 8px 0; border-radius: 5px; }
-[data-incipit-workflow-summary] { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 1px 0 12px; margin-bottom: 1px; border-bottom: 1px solid var(--incipit-agent-rule); }
+[data-incipit-workflow-summary] { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px; padding: 1px 0 12px; margin-bottom: 1px; border-bottom: 0; }
 [data-incipit-workflow-total] { color: var(--app-primary-foreground); }
 [data-incipit-workflow-usage] { margin-left: auto; color: var(--incipit-agent-muted); font-size: 0.9em; font-variant-numeric: tabular-nums; }
 [data-incipit-workflow-phase] { min-width: 0; padding: 7px 0; }
-[data-incipit-workflow-phase] + [data-incipit-workflow-phase] { border-top: 1px solid var(--incipit-agent-rule); }
+[data-incipit-workflow-phase] + [data-incipit-workflow-phase] { border-top: 0; }
 [data-incipit-workflow-phase-heading] {
   display: flex; align-items: baseline; gap: 8px; width: 100%; min-width: 0;
   padding: 3px 0 7px; border: 0; background: transparent; color: var(--app-primary-foreground); font: inherit; text-align: start; cursor: pointer;
@@ -7365,23 +7430,85 @@ pre[data-incipit-agent-raw], [data-incipit-agent-prose] pre {
 [data-incipit-workflow-caret] { flex: 0 0 6px; width: 6px; height: 6px; border-right: 1px solid currentColor; border-bottom: 1px solid currentColor; transform: translateY(-2px) rotate(45deg); opacity: 0.55; transition: transform 180ms ease, opacity 180ms ease; }
 [data-incipit-workflow-phase-heading][aria-expanded="false"] [data-incipit-workflow-caret] { transform: translateY(-2px) rotate(-45deg); }
 [data-incipit-workflow-phase-heading]:hover [data-incipit-workflow-caret] { opacity: 1; }
-[data-incipit-workflow-agent-list] { padding: 0 0 2px 12px; margin-left: 6px; border-left: 1px solid var(--incipit-agent-rule); }
+[data-incipit-workflow-agent-list] { --incipit-activity-surface: var(--incipit-tool-surface); padding: 0 0 2px; margin: 0; border: 0; }
 [data-incipit-workflow-agent] > [data-incipit-agent-fold] > [data-incipit-agent-fold-inner] { padding: 4px 0 8px; }
 [data-incipit-workflow-agent] [data-incipit-tool-fingerprint-text] { font-size: 0.88em; }
 [data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-toggle] { flex: 1 1 auto; max-width: 100%; }
 [data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-label] { max-width: none; }
-[data-incipit-workflow-result] { border-top: 1px solid var(--incipit-agent-rule); margin-top: 6px; }
+[data-incipit-workflow-result] { border-top: 0; margin-top: 6px; }
 [data-incipit-workflow-result] [data-incipit-agent-prose] { max-height: min(52vh, 34em); overflow: auto; }
 [data-incipit-workflow-result]:empty { display: none; }
 @media (max-width: 480px) {
-  [data-incipit-agent-body] { padding-left: 8px; }
   [data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-row] { flex-wrap: wrap; }
   [data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-row][data-incipit-expanded="true"] [data-incipit-tool-subject="text"] { flex: 1 0 100%; order: 1; }
   [data-incipit-agent-card] > [data-incipit-tool-heading] [data-incipit-tool-fingerprint-text] { display: none; }
   [data-incipit-workflow-phase-heading] { flex-wrap: wrap; }
   [data-incipit-workflow-phase-title] { flex: 1; }
   [data-incipit-workflow-phase-stats] { flex-basis: calc(100% - 3ch); margin-left: 3ch; order: 4; }
-  [data-incipit-workflow-agent-list] { padding-left: 5px; margin-left: 3px; }
   [data-incipit-workflow-agent] > [data-incipit-tool-heading] [data-incipit-tool-fingerprint-text] { display: none; }
-  [data-incipit-agent-body] [data-incipit-agent-body] { padding-left: 4px; margin-left: 0; }
+  [data-incipit-agent-body] [data-incipit-agent-body] { margin-left: 0; }
+}
+
+:root [data-incipit-agent-history][data-incipit-diff-island] > [data-incipit-agent-records] { scrollbar-color: var(--incipit-scrollbar-thumb) var(--incipit-diff-header-bg) !important; }
+:root [data-incipit-agent-body][data-incipit-diff-island] [data-incipit-workflow] { scrollbar-color: var(--incipit-scrollbar-thumb) var(--incipit-diff-header-bg) !important; }
+[data-incipit-agent-card-status]:not(:empty),
+[data-incipit-agent-body] > [data-incipit-agent-card-content] > [data-incipit-workflow] { padding: 8px 12px; }
+[data-incipit-agent-body] > [data-incipit-agent-card-content] > [data-incipit-workflow] { max-height: min(60vh, 44em); overflow: auto; }
+
+/* One frame per output. Unrecognized native bodies still share the code surface. */
+[data-incipit-tool-use] [class*="toolBody_"]:not(:has(:is([class*="toolBodyGrid"], [data-incipit-tool-io]), [class*="diffEditorWrapper"], [data-incipit-diff-island], [data-incipit-write-diff])) {
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: var(--incipit-tool-surface) !important;
+  box-shadow: none !important;
+}
+[data-incipit-tool-use] :is([class*="toolBodyGrid"], [data-incipit-tool-io]),
+[data-incipit-tool-grep-expansion] { border: 0 !important; }
+[data-incipit-tool-use] :is([class*="toolBodyRow"], [data-incipit-tool-io-row]) { border: 0 !important; }
+[class*="modalContent_"]:has([class*="diffEditorContainer"]) [class*="modalHeader_"] { border: 0 !important; }
+[data-incipit-write-diff-expand],
+[class*="diffEditorWrapper"] [class*="expandButton"] { border: 0 !important; background: var(--incipit-tool-input-surface) !important; }
+
+/* IN and OUT are separate sections of one surface, not nested frames. */
+[data-incipit-tool-use] :is([class*="toolBodyRow_"], [data-incipit-tool-io-row]) + :is([class*="toolBodyRow_"], [data-incipit-tool-io-row]),
+[data-incipit-tool-grep-row] + [data-incipit-tool-grep-row] {
+  position: relative;
+  margin-top: 2px;
+  padding-top: 6px;
+}
+[data-incipit-tool-use] :is([class*="toolBodyRow_"], [data-incipit-tool-io-row]) + :is([class*="toolBodyRow_"], [data-incipit-tool-io-row])::before,
+[data-incipit-tool-grep-row] + [data-incipit-tool-grep-row]::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: var(--incipit-tool-divider);
+  pointer-events: none;
+}
+
+/* Search surfaces stay visually unchanged through interaction (2026-09-19).
+   Match semantic search fields and their wrappers, not reused form-input classes. */
+:root :is(
+  input[type="search"], input[role="searchbox"], input[data-incipit-diff-find],
+  input[placeholder*="search" i], input[aria-label*="search" i],
+  input[placeholder*="搜索"], input[placeholder*="查找"],
+  [class*="searchContainer_"] > input,
+  [class*="searchContainer_"]:has(> input), [class*="searchBox_"]:has(input)
+),
+:root :is(
+  input[type="search"], input[role="searchbox"], input[data-incipit-diff-find],
+  input[placeholder*="search" i], input[aria-label*="search" i],
+  input[placeholder*="搜索"], input[placeholder*="查找"],
+  [class*="searchContainer_"] > input,
+  [class*="searchContainer_"]:has(> input), [class*="searchBox_"]:has(input)
+):is(:hover, :active, :focus, :focus-visible, :focus-within) {
+  background: var(--incipit-tool-input-surface) !important;
+  color: var(--app-primary-foreground) !important;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  transition: none !important;
 }

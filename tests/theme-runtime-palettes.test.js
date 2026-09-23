@@ -165,8 +165,8 @@ assert.deepStrictEqual(
   ['incipit-github-dark', 'incipit-github-light', 'incipit-ink-black'],
   'three Monaco diff themes are registered',
 );
-assert.strictEqual(install.__test.MONACO_DIFF_THEMES['incipit-ink-black'].colors['editor.background'], '#0a0b0b');
-assert.strictEqual(install.__test.MONACO_DIFF_THEMES['incipit-ink-black'].colors['editorGutter.background'], '#0a0b0b');
+assert.strictEqual(install.__test.MONACO_DIFF_THEMES['incipit-ink-black'].colors['editor.background'], '#1a1b1c');
+assert.strictEqual(install.__test.MONACO_DIFF_THEMES['incipit-ink-black'].colors['editorGutter.background'], '#1a1b1c');
 assert.strictEqual(install.__test.MONACO_DIFF_THEMES['incipit-ink-black'].colors['editorLineNumber.foreground'], '#838484');
 assert.deepStrictEqual(
   install.__test.MONACO_DIFF_THEMES['incipit-ink-black'].rules,
